@@ -8,6 +8,13 @@ SexyLoot is a World of Warcraft addon (pure Lua, no build step) for **World of W
 
 There is no compiler, linter or test suite. Deploy by copying or symlinking this folder as `SexyLoot` into `Interface/AddOns/`, then `/reload`. `/sexyloot test` fills every window with sample data.
 
+## Packaging / CI
+
+- [.github/workflows/release.yml](.github/workflows/release.yml) runs on every push to `master`: bumps the patch number of `## Version:` in [SexyLoot.toc](SexyLoot.toc), commits and tags it (as `github-actions[bot]`, which does not retrigger the workflow), then runs `BigWigsMods/packager@v2` in the same job (tags pushed with `GITHUB_TOKEN` cannot start another workflow, so bump and package must share a job).
+- [.pkgmeta](.pkgmeta) packages the folder as `SexyLoot`, uses `CHANGELOG.md` as the changelog and leaves out `CLAUDE.md`, both READMEs and `.github`.
+- GitHub releases work out of the box. CurseForge needs `## X-Curse-Project-ID:` in the TOC plus the `CF_API_KEY` secret. WoWInterface needs `## X-WoWI-ID:` plus `WOWI_API_TOKEN`. Without them the packager skips that site.
+- Keep the CHANGELOG entry for a release in `CHANGELOG.md` before pushing; the bump commit does not write to it.
+
 ## Forever client constraints (learned in SexyInterrupter)
 
 - `## Interface: 120100, 16001` in one unified `.toc`; do not add per-flavor TOCs.
