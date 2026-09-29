@@ -9,6 +9,8 @@ Rollfenster mit den Würfen aller Spieler direkt am Item, ein Beutefenster im St
 ![Interface](https://img.shields.io/badge/Interface-120100%20%7C%2016001-3b2b12?style=for-the-badge)
 ![Edit Mode](https://img.shields.io/badge/Edit%20Mode-ja-4fc16a?style=for-the-badge)
 
+[🇬🇧 English version](README.en.md)
+
 </div>
 
 ---
