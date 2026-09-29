@@ -151,7 +151,10 @@ function MyLoot:Refresh()
     ns.frames.mine:SetHeight(height)
 end
 
-ns.Apply.mine = function() MyLoot:Refresh() end
+ns.Apply.mine = function()
+    ns.ApplyStyle(panel, "mine")
+    MyLoot:Refresh()
+end
 
 function MyLoot:Init()
     panel = ns.Panel(ns.frames.mine)

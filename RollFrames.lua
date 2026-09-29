@@ -52,29 +52,38 @@ end
 
 local PI = { "player", "item" }
 local I = { "item" }
+-- Reihenfolge wichtig: Die Muster mit "%s" für den Spieler passen auch auf die
+-- Ich-Formen ("You won: ..." würde als Spieler "You" erkannt), daher zuerst SELF.
+Def("LOOT_ROLL_NEED_SELF", "pick", I, "need")
+Def("LOOT_ROLL_GREED_SELF", "pick", I, "greed")
+Def("LOOT_ROLL_DISENCHANT_SELF", "pick", I, "greed")
+Def("LOOT_ROLL_PASSED_SELF", "pick", I, "pass")
+Def("LOOT_ROLL_PASSED_SELF_AUTO", "pick", I, "pass")
+Def("LOOT_ROLL_YOU_WON", "won", I)
 Def("LOOT_ROLL_NEED", "pick", PI, "need")
 Def("LOOT_ROLL_GREED", "pick", PI, "greed")
 Def("LOOT_ROLL_DISENCHANT", "pick", PI, "greed")
 Def("LOOT_ROLL_PASSED", "pick", PI, "pass")
 Def("LOOT_ROLL_PASSED_AUTO", "pick", PI, "pass")
 Def("LOOT_ROLL_PASSED_AUTO_FEMALE", "pick", PI, "pass")
-Def("LOOT_ROLL_NEED_SELF", "pick", I, "need")
-Def("LOOT_ROLL_GREED_SELF", "pick", I, "greed")
-Def("LOOT_ROLL_DISENCHANT_SELF", "pick", I, "greed")
-Def("LOOT_ROLL_PASSED_SELF", "pick", I, "pass")
-Def("LOOT_ROLL_PASSED_SELF_AUTO", "pick", I, "pass")
 Def("LOOT_ROLL_ROLLED_NEED", "roll", { "roll", "item", "player" }, "need")
 Def("LOOT_ROLL_ROLLED_GREED", "roll", { "roll", "item", "player" }, "greed")
 Def("LOOT_ROLL_ROLLED_DE", "roll", { "roll", "item", "player" }, "greed")
 Def("LOOT_ROLL_WON", "won", PI)
-Def("LOOT_ROLL_YOU_WON", "won", I)
 Def("LOOT_ROLL_ALL_PASSED", "allpassed", I)
 
 local function Match(msg, d)
     local caps = { msg:match(d.pat) }
     if #caps == 0 then return end
     local out = {}
-    for i, tk in ipairs(d.tokens) do out[d.fields[tk.pos]] = caps[i] end
+    -- Der Forever-Client stellt den Meldungen einen Link voran
+    -- (|Hlootroll:<ID>|h[Loot]|h), dessen %d-Token in den Feldnamen nicht
+    -- vorkommt. Solche führenden Tokens werden übersprungen.
+    local skip = math.max(0, #d.tokens - #d.fields)
+    for i, tk in ipairs(d.tokens) do
+        local field = d.fields[tk.pos - skip]
+        if field then out[field] = caps[i] end
+    end
     return out
 end
 
@@ -105,6 +114,7 @@ end
 
 local function NewRow()
     local r = ns.Panel(ns.frames.roll)
+    ns.ApplyStyle(r, "roll")
     r:SetWidth(WIDTH)
     r:SetHeight(70)
 
@@ -217,20 +227,33 @@ end
 
 function RF:UpdateChips(r)
     local parts = {}
+    local size = ns.cfg.roll.size
+    r.chips:SetFont(STANDARD_TEXT_FONT, size, "")
     if not ns.cfg.roll.hideRolls then
-        for _, name in ipairs(r.roster) do
+        -- Beste Ergebnisse zuerst: Bedarf vor Gier vor Passen vor "noch keine Wahl",
+        -- innerhalb davon der höchste Wurf oben
+        local RANK = { need = 3, greed = 2, pass = 1 }
+        local names = { unpack(r.roster) }
+        table.sort(names, function(a, b)
+            local ra, rb = RANK[r.picks[a]] or 0, RANK[r.picks[b]] or 0
+            if ra ~= rb then return ra > rb end
+            local xa, xb = r.rolls[a] or 0, r.rolls[b] or 0
+            if xa ~= xb then return xa > xb end
+            return a < b
+        end)
+        for _, name in ipairs(names) do
             local pick = r.picks[name]
             if pick then
-                local s = ns.ColorName(name) .. " |T" .. TEX[pick] .. ":14|t"
-                if r.rolls[name] then s = s .. " " .. r.rolls[name] end
-                if r.winner == name then s = s .. " |TInterface\\RaidFrame\\ReadyCheck-Ready:14|t" end
+                local s = "|T" .. TEX[pick] .. ":" .. size .. "|t " .. ns.ColorName(name)
+                if r.rolls[name] then s = s .. "  |cffffffff" .. r.rolls[name] .. "|r" end
+                if r.winner == name then s = s .. " |TInterface\\RaidFrame\\ReadyCheck-Ready:" .. size .. "|t" end
                 parts[#parts + 1] = s
             else
                 parts[#parts + 1] = "|cff888888" .. ns.Short(name) .. " …|r"
             end
         end
     end
-    local text = table.concat(parts, "   ")
+    local text = table.concat(parts, "\n")
     if r.done then
         local res
         if r.winner then
@@ -324,8 +347,12 @@ function RF:Finish(r, winner)
     for _, k in ipairs(KINDS) do r.btn[k]:Disable(); r.btn[k]:SetAlpha(0.3) end
     self:UpdateChips(r)
     ns.Feed:AddRoll(r)
+    if winner and not r.preview then
+        ns.Winner:Display(winner, r.link, r.picks[winner] or "greed", r.rolls[winner])
+    end
+    -- Das Fenster bleibt nach dem Wurf noch einige Sekunden stehen
     local gen = r.gen
-    C_Timer.After(6, function() if r.gen == gen then RF:Remove(r) end end)
+    C_Timer.After(ns.cfg.roll.hold, function() if r.gen == gen then RF:Remove(r) end end)
 end
 
 function RF:OnChat(msg)
@@ -353,6 +380,7 @@ function RF:OnChat(msg)
                     self:Finish(r, player)
                 else
                     ns.Feed:AddWin(player, t.item)
+                    ns.Winner:Display(player, t.item)
                 end
             elseif d.kind == "allpassed" then
                 if r then self:Finish(r, nil) end
@@ -497,8 +525,27 @@ end
 --------------------------------------------------------------------------
 
 ns.Apply.roll = function()
-    for _, r in ipairs(active) do RF:UpdateChips(r) end
+    for _, r in ipairs(pool) do ns.ApplyStyle(r, "roll") end
+    for _, r in ipairs(active) do
+        ns.ApplyStyle(r, "roll")
+        RF:UpdateChips(r)
+    end
     RF:Layout()
+end
+
+-- Nach /reload kennt das Addon laufende Würfe nicht mehr (START_LOOT_ROLL kam
+-- schon vorher). Sie werden aus der Liste der aktiven Würfe neu aufgebaut, mit
+-- der Restzeit des Clients. Wahlen anderer Spieler stehen nur im Chat und sind
+-- nach einem Reload nicht mehr bekannt, neue kommen wieder normal dazu.
+function RF:Restore()
+    if not GetLootRollTimeLeft or not IsInGroup() then return end
+    -- Wie XLoot: die Roll-IDs durchprobieren, aktive haben eine Restzeit > 0
+    for rollID = 1, 300 do
+        local left = GetLootRollTimeLeft(rollID) or 0
+        if left > 0 and left < 300000 and not FindRow(nil, rollID) then
+            self:Start(rollID, left)
+        end
+    end
 end
 
 function RF:Init()
@@ -519,8 +566,14 @@ function RF:Init()
     ev:RegisterEvent("START_LOOT_ROLL")
     ev:RegisterEvent("CANCEL_LOOT_ROLL")
     ev:RegisterEvent("CHAT_MSG_LOOT")
+    ev:RegisterEvent("PLAYER_ENTERING_WORLD")
     ev:SetScript("OnEvent", function(_, event, a, b)
-        if event == "START_LOOT_ROLL" then RF:Start(a, b)
+        if event == "PLAYER_ENTERING_WORLD" then
+            -- Iteminfos sind direkt beim Laden oft noch nicht da
+            -- zweiter Versuch, falls das Item beim ersten noch nicht geladen war
+            C_Timer.After(1, function() RF:Restore() end)
+            C_Timer.After(4, function() RF:Restore() end)
+        elseif event == "START_LOOT_ROLL" then RF:Start(a, b)
         elseif event == "CANCEL_LOOT_ROLL" then RF:OnCancel(a)
         else RF:OnChat(a) end
     end)

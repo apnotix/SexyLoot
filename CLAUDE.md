@@ -25,14 +25,15 @@ There is no compiler, linter or test suite. Deploy by copying or symlinking this
 
 ## Architecture
 
-Load order (see [SexyLoot.toc](SexyLoot.toc)): LibStub, EditModeExpanded-1.0, then `Core.lua`, `RollFrames.lua`, `LootWindow.lua`, `Feed.lua`, `MyLoot.lua`, `EditMode.lua`.
+Load order (see [SexyLoot.toc](SexyLoot.toc)): LibStub, EditModeExpanded-1.0, then `Core.lua`, `RollFrames.lua`, `LootWindow.lua`, `Feed.lua`, `Winner.lua`, `MyLoot.lua`, `EditMode.lua`.
 
-- **Core.lua** defines `ns.defaults`, creates one invisible anchor frame per window (`ns.frames.roll/loot/feed/mine`), and on `ADDON_LOADED` builds `ns.cfg`, calls every module's `Init()`, then `ns.SetupEditMode()`, then `ns.Refresh(key)` for each window. `ns.Apply[key](cfg)` is how a module applies its settings.
+- **Core.lua** defines `ns.defaults`, creates one invisible anchor frame per window (`ns.frames.roll/winner/loot/feed/mine`), and on `ADDON_LOADED` builds `ns.cfg`, calls every module's `Init()`, then `ns.SetupEditMode()`, then `ns.Refresh(key)` for each window. `ns.Apply[key](cfg)` is how a module applies its settings.
 - **RollFrames.lua** hides Blizzard's group loot frames (`UIParent:UnregisterEvent("START_LOOT_ROLL")` etc.), builds one row per roll and parses roll chat messages. Patterns are compiled from the `LOOT_ROLL_*` global strings (handles positional `%1$s` formats), so they work in every locale.
 - **LootWindow.lua** unregisters `LootFrame` events and draws its own slot list. `GetLootSlotInfo` returns different argument orders on classic vs retail clients; the code detects which.
 - **Feed.lua** owns `ns.ParseLoot` (loot chat messages). Self loot is forwarded to `ns.MyLoot:Add`. Roll winners are noted with `Feed:NoteWin` so the following "receives loot" line is not shown twice.
+- **Winner.lua** shows the roll winner large mid-screen (`Winner:Display`, called from `RollFrames:Finish` and from the "won" chat branch without a row). Preview is sticky in Edit Mode.
 - **MyLoot.lua** stacks by item ID unless `noStack`, shows sell value via `GetItemInfo`.
-- **EditMode.lua** registers the four anchors with EME. Every option here must also exist in `ns.defaults` (Core.lua).
+- **EditMode.lua** registers the five anchors with EME. Every option here must also exist in `ns.defaults` (Core.lua).
 
 ## EditModeExpanded rules (from the library source)
 

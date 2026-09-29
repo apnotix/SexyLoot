@@ -26,6 +26,16 @@ No more guessing who rolled what.
 - 🔍 **Tooltips:** hover the item to see the game's normal item tooltip.
 - 🔒 **Honest buttons:** they only lock once your choice has actually gone through. If you cancel the confirmation on a Bind-on-Pickup item, you can still choose again.
 - ⬆️ **Growth direction** up or down, with adjustable spacing.
+- 📋 **Rolls one below the other:** every player gets their own line, best result on top, font size adjustable.
+- ⏳ **Stays after the roll:** the window only disappears after an adjustable time (3 to 30 seconds).
+- 🔄 **Survives a reload:** a running roll is restored afterwards.
+
+### 🏆 Winner announcement
+Whoever wins a roll appears large in the middle of the screen.
+
+- 🖼️ **Item with icon and quality color**, plus name, need/greed and roll.
+- 🙋 **"Du gewinnst!"** when it is you.
+- 📏 **Font size** and **display time** adjustable.
 
 ### 🎁 Loot window
 Replaces the default loot window.
@@ -44,7 +54,7 @@ Who got what?
 - 👥 **Everything the group looted**, with item link and the player's class color.
 - 🎲 **Roll details in the tooltip:** hover a roll line to see every choice and roll, sorted by result or by player order.
 - 🕐 **Timestamps** (optional), **mouse wheel** to scroll.
-- 🔤 **Line count** and **font size** adjustable.
+- 🔤 **Width**, **height** and **font size** adjustable (the line count follows from them).
 
 ### 🎒 My loot
 Perfect while leveling: a small list of your latest finds.
@@ -60,7 +70,7 @@ Perfect while leveling: a small list of your latest finds.
 
 Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) library for this.
 
-**Every one of the four windows offers:**
+**Every one of the five windows offers:**
 
 | Option | Effect |
 | --- | --- |
@@ -70,14 +80,16 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | ⚔️ Hide in combat | Only visible outside of combat |
 | 🖱️ Hide until mouseover | Appears when you move the mouse over it |
 | 🧭 Coordinates | Screen position by number entry |
+| 🎨 Background and border color | Both with a color picker and opacity, plus "Reset colors" |
 
 **Plus each window's own options:**
 
 | Window | Options |
 | --- | --- |
-| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Spacing between windows · Start test roll |
+| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Spacing between windows · Font size of rolls · Show window after the roll (seconds) · Start test roll |
+| 🏆 Winner announcement | Font size · Display time · Show test winner |
 | 🎁 Loot window | Auto-loot grey items · Group loot label from quality · Icon size · Open test loot |
-| 📜 Group feed | Hide timestamps · Sort roll details by player order · Visible lines · Font size · Clear feed |
+| 📜 Group feed | Hide timestamps · Sort roll details by player order · Width · Height · Font size · Clear feed |
 | 🎒 My loot | Hide vendor value · Hide age · Do not stack identical items · Number of entries · Clear list |
 
 ### 👀 Demo data in Edit Mode

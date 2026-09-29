@@ -209,7 +209,10 @@ end
 
 --------------------------------------------------------------------------
 
-ns.Apply.loot = function() LW:Draw() end
+ns.Apply.loot = function()
+    ns.ApplyStyle(panel, "loot")
+    LW:Draw()
+end
 
 function LW:Init()
     -- Blizzards Beutefenster abschalten

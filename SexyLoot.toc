@@ -17,5 +17,6 @@ Core.lua
 RollFrames.lua
 LootWindow.lua
 Feed.lua
+Winner.lua
 MyLoot.lua
 EditMode.lua

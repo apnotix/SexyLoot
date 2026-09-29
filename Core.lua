@@ -3,20 +3,32 @@ local ADDON, ns = ...
 -- Standardwerte. Sie stehen hier, weil Schieberegler ihr onChanged
 -- beim Laden nur mit gespeicherten Werten aufrufen.
 -- Checkboxen sind im Standard immer false.
+-- Farben (r, g, b, Deckkraft). Sie stehen in ns.cfg[key].bg / .border und
+-- werden zusätzlich in SexyLootDB.colors gespeichert, weil EditModeExpanded
+-- Farbwahlen nicht ablegt.
+local BORDER = { 0.42, 0.36, 0.25, 1 }
 ns.defaults = {
-    roll = { hideRolls = false, growUp = false, gap = 10 },
-    loot = { auto = false, thr = 2, icon = 34 },
-    feed = { hideStamp = false, sortPlayers = false, lines = 8, size = 15 },
-    mine = { hideValue = false, hideTime = false, noStack = false, rows = 7 },
+    roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12,
+        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+    winner = { size = 28, hold = 6,
+        bg = { 0.03, 0.02, 0.01, 0.85 }, border = BORDER },
+    loot = { auto = false, thr = 2, icon = 34,
+        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+    feed = { hideStamp = false, sortPlayers = false, width = 340, height = 160, size = 15,
+        bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
+    mine = { hideValue = false, hideTime = false, noStack = false, rows = 7,
+        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
 }
 
 ns.frames  = {}   -- Anker-Fenster, die im Edit Mode bewegt werden
 ns.Apply   = {}   -- ns.Apply[key](cfg) wendet die Einstellungen an
 ns.modules = {}   -- Module mit :Init()
 
-local SIZES = { roll = { 300, 90 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 230, 150 } }
+-- roll: Platz für etwa vier Rollzeilen, damit der Edit-Mode-Rahmen alle Zeilen umfasst
+local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 230, 150 } }
 local START = {
     roll = { 240, 520 },
+    winner = { 720, 640 },      -- ungefähr Bildschirmmitte, oberhalb des Zentrums
     loot = { 900, 420 },
     feed = { 30, 190 },
     mine = { 900, 190 },
@@ -47,6 +59,7 @@ end
 ns.Actions = {
     testRoll  = function() ns.RollFrames:Test() end,
     openLoot  = function() ns.LootWindow:Test() end,
+    testWinner = function() ns.Winner:Test() end,
     clearFeed = function() ns.Feed:Clear() end,
     clearMine = function() ns.MyLoot:Clear() end,
 }
@@ -84,6 +97,15 @@ ns.qualityFallback = {
     [3] = { 0, 0.44, 0.87 }, [4] = { 0.64, 0.21, 0.93 }, [5] = { 1, 0.5, 0 },
     [6] = { 0.9, 0.8, 0.5 }, [7] = { 0, 0.8, 1 },
 }
+
+-- Hintergrund- und Randfarbe des Fensters aus ns.cfg[key] auf ein Panel anwenden
+function ns.ApplyStyle(panel, key)
+    local cfg = ns.cfg and ns.cfg[key]
+    if not (panel and cfg) then return end
+    local bg, bd = cfg.bg, cfg.border
+    panel:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
+    panel:SetBackdropBorderColor(bd[1], bd[2], bd[3], bd[4])
+end
 
 function ns.QualityColor(q)
     q = q or 1
@@ -184,6 +206,15 @@ f:SetScript("OnEvent", function(_, _, name)
         SexyLootDB.frames[key] = SexyLootDB.frames[key] or {}
         ns.cfg[key] = CopyTable(def)
     end
+    -- Gespeicherte Farben über die Standardfarben legen
+    SexyLootDB.colors = SexyLootDB.colors or {}
+    for key, saved in pairs(SexyLootDB.colors) do
+        if ns.cfg[key] then
+            for _, k in ipairs({ "bg", "border" }) do
+                if type(saved[k]) == "table" and #saved[k] == 4 then ns.cfg[key][k] = CopyTable(saved[k]) end
+            end
+        end
+    end
 
     ns.CreateFrames()
     for _, m in ipairs(ns.modules) do m:Init() end
@@ -204,10 +235,12 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Feed:Test()
     elseif msg == "mine" then
         ns.MyLoot:Test()
+    elseif msg == "winner" then
+        ns.Actions.testWinner()
     elseif msg == "test" then
         ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test()
     else
-        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine")
+        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | winner")
         print("Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken.")
     end
 end

@@ -7,7 +7,6 @@ local Feed = {}
 ns.Feed = Feed
 table.insert(ns.modules, Feed)
 
-local WIDTH = 340
 local MAXKEEP = 60
 local TEX = {
     need  = "Interface\\Buttons\\UI-GroupLoot-Dice-Up",
@@ -46,7 +45,12 @@ function ns.ParseLoot(msg)
         local caps = { msg:match(d.pat) }
         if #caps > 0 then
             local out = { self = d.self }
-            for i, tk in ipairs(d.tokens) do out[d.fields[tk.pos]] = caps[i] end
+            -- Führende Tokens ohne Feldnamen (Link |Hlootroll:<ID>|h) überspringen
+            local skip = math.max(0, #d.tokens - #d.fields)
+            for i, tk in ipairs(d.tokens) do
+                local field = d.fields[tk.pos - skip]
+                if field then out[field] = caps[i] end
+            end
             out.count = tonumber(out.count) or 1
             out.player = ns.Short(out.player or UnitName("player"))
             return out
@@ -201,17 +205,20 @@ end
 function Feed:Refresh()
     if not panel then return end
     local cfg = ns.cfg.feed
+    ns.ApplyStyle(panel, "feed")
     local h = cfg.size + 4
-    panel:SetHeight(cfg.lines * h + 8)
-    ns.frames.feed:SetHeight(cfg.lines * h + 8)
+    -- Breite und Höhe stellt man direkt ein, die Zeilenzahl ergibt sich daraus
+    local lines = math.max(1, math.floor((cfg.height - 8) / h))
+    panel:SetHeight(cfg.height)
+    ns.frames.feed:SetSize(cfg.width, cfg.height)
     local n = #entries
-    offset = math.max(0, math.min(offset, math.max(0, n - cfg.lines)))
-    for j = 1, math.max(#rows, cfg.lines) do
+    offset = math.max(0, math.min(offset, math.max(0, n - lines)))
+    for j = 1, math.max(#rows, lines) do
         local row = rows[j] or MakeRow(j)
-        if j <= cfg.lines then
+        if j <= lines then
             local e = entries[n - offset - (j - 1)]
             row.entry = e
-            row:SetSize(WIDTH - 12, h)
+            row:SetSize(cfg.width - 12, h)
             row:ClearAllPoints()
             row:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 6, 4 + (j - 1) * h)
             row.text:SetFont(STANDARD_TEXT_FONT, cfg.size, "")
@@ -233,7 +240,6 @@ ns.Apply.feed = function() Feed:Refresh() end
 
 function Feed:Init()
     panel = ns.Panel(ns.frames.feed)
-    panel:SetBackdropColor(0.03, 0.02, 0.01, 0.7)
     panel:SetPoint("BOTTOMLEFT", ns.frames.feed, "BOTTOMLEFT")
     panel:SetPoint("BOTTOMRIGHT", ns.frames.feed, "BOTTOMRIGHT")
     panel:EnableMouseWheel(true)

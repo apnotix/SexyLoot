@@ -26,6 +26,16 @@ Kein Rätselraten mehr, wer was gewürfelt hat.
 - 🔍 **Tooltips:** Fahr über das Item und sieh den normalen Item-Tooltip des Spiels.
 - 🔒 **Ehrliche Buttons:** Sie sperren erst, wenn deine Wahl wirklich angekommen ist. Bricht du bei einem Bind-on-Pickup-Item die Nachfrage ab, kannst du noch einmal wählen.
 - ⬆️ **Wachstumsrichtung** nach oben oder unten, mit einstellbarem Abstand.
+- 📋 **Würfe untereinander:** Jeder Spieler steht in einer eigenen Zeile, bestes Ergebnis oben, Schriftgröße einstellbar.
+- ⏳ **Bleibt nach dem Wurf stehen:** Das Fenster verschwindet erst nach einer einstellbaren Zeit (3 bis 30 Sekunden).
+- 🔄 **Überlebt einen Reload:** Ein laufender Wurf wird danach wiederhergestellt.
+
+### 🏆 Gewinner-Anzeige
+Wer einen Wurf gewinnt, erscheint groß mitten auf dem Bildschirm.
+
+- 🖼️ **Item mit Symbol und Qualitätsfarbe**, dazu Name, Bedarf/Gier und Wurf.
+- 🙋 **„Du gewinnst!“**, wenn du es bist.
+- 📏 **Schriftgröße** und **Anzeigedauer** einstellbar.
 
 ### 🎁 Beutefenster
 Ersetzt das Standard-Beutefenster.
@@ -44,7 +54,7 @@ Wer hat was bekommen?
 - 👥 **Alle Funde der Gruppe** mit Itemlink und Klassenfarbe des Spielers.
 - 🎲 **Würfel-Details im Tooltip:** Mit der Maus über eine Würfelzeile siehst du alle Wahlen und Würfe, sortiert nach Ergebnis oder Spielerreihenfolge.
 - 🕐 **Zeitstempel** (abschaltbar), **Mausrad** zum Blättern.
-- 🔤 **Zeilenzahl** und **Schriftgröße** einstellbar.
+- 🔤 **Breite**, **Höhe** und **Schriftgröße** einstellbar (die Zeilenzahl ergibt sich daraus).
 
 ### 🎒 Meine Beute
 Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
@@ -60,7 +70,7 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. SexyLoot nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
 
-**Jedes der vier Fenster bietet:**
+**Jedes der fünf Fenster bietet:**
 
 | Option | Wirkung |
 | --- | --- |
@@ -70,14 +80,16 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 | ⚔️ Im Kampf ausblenden | Nur außerhalb des Kampfs sichtbar |
 | 🖱️ Nur bei Mouseover | Erscheint erst, wenn du mit der Maus darüberfährst |
 | 🧭 Koordinaten | Bildschirmposition per Zahleneingabe |
+| 🎨 Hintergrund- und Randfarbe | Beides mit Farbwähler und Deckkraft, dazu „Farben zurücksetzen“ |
 
 **Dazu die eigenen Optionen jedes Fensters:**
 
 | Fenster | Optionen |
 | --- | --- |
-| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Testwurf starten |
+| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
+| 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
-| 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Sichtbare Zeilen · Schriftgröße · Feed leeren |
+| 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
 | 🎒 Meine Beute | Verkaufswert ausblenden · Zeitangabe ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
