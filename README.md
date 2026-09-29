@@ -1,57 +1,130 @@
-# SexyLoot
+<div align="center">
 
-Lootaddon für World of Warcraft: Forever im Stil von XLoot.
+# 🎲 SexyLoot
 
-- **Rollfenster** mit Bedarf, Gier und Passen. Wahl und Würfe aller Spieler stehen direkt am Item, in Klassenfarben. Der Gewinner bekommt einen Haken.
-- **Beutefenster** ersetzt das Blizzard-LootFrame (Qualitätsfarben, Tooltips, Shift-Klick verlinkt, „Alles nehmen“).
-- **Gruppen-Feed** zeigt, wer welches Item bekommen hat. Der Tooltip einer Würfelzeile listet alle Würfe. Mausrad blättert.
-- **Meine Beute** ist eine kleine Liste der zuletzt gelooteten Items mit Stapeln, Zeitangabe und Verkaufswert.
+**Loot, Würfe und Beute auf einen Blick.**
+Rollfenster mit den Würfen aller Spieler direkt am Item, ein Beutefenster im Stil von XLoot, ein Gruppen-Feed und eine Liste deiner letzten Funde. Alles frei einstellbar im Edit Mode.
 
-## Installation
+![WoW Forever](https://img.shields.io/badge/WoW-Forever-e8c26a?style=for-the-badge)
+![Interface](https://img.shields.io/badge/Interface-120100%20%7C%2016001-3b2b12?style=for-the-badge)
+![Edit Mode](https://img.shields.io/badge/Edit%20Mode-ja-4fc16a?style=for-the-badge)
 
-Den Addon-Ordner (der mit der `SexyLoot.toc`) unter dem Namen `SexyLoot` nach `Interface/AddOns/` des Forever-Clients kopieren oder verlinken. Die TOC führt wie bei SexyInterrupter `## Interface: 120100, 16001`.
+</div>
 
-## Einstellungen
+---
 
-Alles wird im Edit Mode eingestellt. Edit Mode öffnen und ein SexyLoot-Fenster anklicken.
+## ✨ Das kann SexyLoot
 
-Solange der Edit Mode offen ist, zeigt jedes Fenster Beispieldaten (zwei Würfe, eine Testbeute, Feed-Zeilen, gelootete Items). Beim Verlassen verschwinden sie wieder.
+### 🎲 Rollfenster: Bedarf, Gier, Passen
+Kein Rätselraten mehr, wer was gewürfelt hat.
 
-Jedes Fenster hat: Position, Skalierung (50 bis 200 %), Ausblenden, Im Kampf ausblenden, Nur bei Mouseover anzeigen und Koordinaten.
+- 🎯 **Würfe am Item:** Wahl und Wurf jedes Spielers stehen direkt unter dem Gegenstand, in Klassenfarben.
+- 🏆 **Gewinner auf einen Blick:** Der Sieger bekommt einen Haken, Bedarf schlägt Gier.
+- ⏱️ **Timer-Leiste:** Sie wird rot, wenn die Zeit knapp wird.
+- 🔍 **Tooltips:** Fahr über das Item und sieh den normalen Item-Tooltip des Spiels.
+- 🔒 **Ehrliche Buttons:** Sie sperren erst, wenn deine Wahl wirklich angekommen ist. Bricht du bei einem Bind-on-Pickup-Item die Nachfrage ab, kannst du noch einmal wählen.
+- ⬆️ **Wachstumsrichtung** nach oben oder unten, mit einstellbarem Abstand.
 
-| Fenster | Eigene Optionen |
+### 🎁 Beutefenster
+Ersetzt das Standard-Beutefenster.
+
+- 🌈 **Qualitätsfarben** für Rahmen und Namen, Menge am Symbol.
+- 🖱️ **Klick zum Looten**, Shift-Klick verlinkt das Item im Chat.
+- ✅ **„Alles nehmen“** mit einem Klick.
+- 🪙 **Auto-Loot** wird unterstützt.
+- 🩶 **Graue Items automatisch** einsammeln (optional).
+- 🏷️ **Gruppenloot-Markierung:** Ab welcher Qualität ein Item als Gruppenloot beschriftet wird, stellst du selbst ein.
+- 🔎 **Symbolgröße** von 24 bis 48 Pixel.
+
+### 📜 Gruppen-Feed
+Wer hat was bekommen?
+
+- 👥 **Alle Funde der Gruppe** mit Itemlink und Klassenfarbe des Spielers.
+- 🎲 **Würfel-Details im Tooltip:** Mit der Maus über eine Würfelzeile siehst du alle Wahlen und Würfe, sortiert nach Ergebnis oder Spielerreihenfolge.
+- 🕐 **Zeitstempel** (abschaltbar), **Mausrad** zum Blättern.
+- 🔤 **Zeilenzahl** und **Schriftgröße** einstellbar.
+
+### 🎒 Meine Beute
+Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
+
+- 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
+- 🕒 **Zeitangabe** pro Eintrag („jetzt“, „40s“, „2m“).
+- 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer.
+- 🔢 **3 bis 10 Einträge**, alles abschaltbar.
+
+---
+
+## 🛠️ Alles im Edit Mode einstellbar
+
+Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. SexyLoot nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
+
+**Jedes der vier Fenster bietet:**
+
+| Option | Wirkung |
 | --- | --- |
-| Rollfenster | Würfe am Item ausblenden, Neue Fenster nach oben wachsen lassen, Abstand zwischen Fenstern, Testwurf starten |
-| Beutefenster | Graue Items automatisch einsammeln, Gruppenloot-Markierung ab Qualität (2 grün, 3 blau, 4 episch), Symbolgröße, Testbeute öffnen |
-| Gruppen-Feed | Zeitstempel ausblenden, Wurfdetails nach Spielerreihenfolge sortieren, Sichtbare Zeilen, Schriftgröße, Feed leeren |
-| Meine Beute | Verkaufswert ausblenden, Zeitangabe ausblenden, Gleiche Items nicht stapeln, Anzahl Einträge, Liste leeren |
+| 📍 Position | Frei ziehen, am Bildschirmrand geklemmt |
+| 🔍 Skalierung | 50 bis 200 % |
+| 👁️ Ausblenden | Fenster dauerhaft aus |
+| ⚔️ Im Kampf ausblenden | Nur außerhalb des Kampfs sichtbar |
+| 🖱️ Nur bei Mouseover | Erscheint erst, wenn du mit der Maus darüberfährst |
+| 🧭 Koordinaten | Bildschirmposition per Zahleneingabe |
 
-Checkboxen sind im Standardzustand immer aus, weil EditModeExpanded beim Laden `onUnchecked` aufruft. Darum heißen aktive Optionen „… ausblenden“.
+**Dazu die eigenen Optionen jedes Fensters:**
 
-## Befehle
-
-`/sexyloot test` zeigt Testdaten in allen Fenstern. Einzeln: `/sexyloot roll`, `loot`, `feed`, `mine`.
-
-## Aufbau
-
-| Datei | Inhalt |
+| Fenster | Optionen |
 | --- | --- |
-| `Core.lua` | Standardwerte, Anker-Fenster, Hilfsfunktionen, Start |
-| `RollFrames.lua` | START_LOOT_ROLL, Chat-Parsing der Würfe, Zeilen mit Timer |
-| `LootWindow.lua` | LOOT_OPENED und Slots |
-| `Feed.lua` | Gruppen-Feed, Parsing der Lootnachrichten |
-| `MyLoot.lua` | Liste der eigenen Beute |
-| `EditMode.lua` | Registrierung bei EditModeExpanded |
-| `lib/` | LibStub, EditModeExpanded-1.0 |
+| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Testwurf starten |
+| 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
+| 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Sichtbare Zeilen · Schriftgröße · Feed leeren |
+| 🎒 Meine Beute | Verkaufswert ausblenden · Zeitangabe ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |
 
-## Bekannte Grenzen
+### 👀 Demodaten im Edit Mode
+Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würfe, eine Testbeute, Feed-Zeilen und gelootete Items. So siehst du sofort, wie Skalierung, Symbolgröße und Zeilenzahl aussehen. Beim Verlassen verschwinden sie wieder.
 
-- Nicht im Spiel getestet. Die Würfelerkennung liest die Loot-Chatnachrichten über die Blizzard-Globalstrings (`LOOT_ROLL_*`). Falls ein Client andere Texte nutzt oder die Nachrichten als geschützte Werte liefert, erscheinen die Würfe nicht am Item.
-- Plündermeister (Master Loot) wird vom Beutefenster nicht unterstützt.
-- Die Wurfzeit im Rollfenster kommt aus dem Spiel, sie lässt sich nicht einstellen.
-- „Gruppenloot-Markierung“ ändert nur die Beschriftung im Beutefenster. Ab welcher Qualität gewürfelt wird, legt der Gruppenleiter fest.
-- Keine Auswahllisten: Im Forever-Client sind Addon-Frames mit `UIDropDownMenuTemplate` blockiert (siehe SexyInterrupter). Darum gibt es nur Checkboxen, Schieberegler und Schaltflächen.
+---
 
-## Lizenz und Danksagung
+## 📥 Installation
 
-`lib/EditModeExpanded-1.0` stammt von Teelo (https://github.com/teelolws/EditModeExpanded). Die Bibliothek darf in Addons eingebunden werden, wenn der Autor genannt wird. `LibStub` ist gemeinfrei.
+1. Ordner `SexyLoot` in dein `Interface/AddOns`-Verzeichnis des Forever-Clients kopieren.
+2. Spiel starten oder `/reload`.
+3. Edit Mode öffnen und die Fenster nach Wunsch platzieren.
+
+## ⌨️ Befehle
+
+| Befehl | Wirkung |
+| --- | --- |
+| `/sexyloot test` | Testdaten in allen Fenstern |
+| `/sexyloot roll` | Testwurf |
+| `/sexyloot loot` | Testbeute |
+| `/sexyloot feed` | Beispielzeilen im Feed |
+| `/sexyloot mine` | Beispiele in „Meine Beute“ |
+
+Kurzform: `/sl`
+
+---
+
+## ⚠️ Gut zu wissen
+
+- 🧪 **Frühe Version.** Die Würfelerkennung liest die Loot-Chatnachrichten des Spiels. Zeigt dein Client andere Texte, erscheinen die Würfe nicht am Item. Melde dich dann mit einem Screenshot und dem Chat-Text.
+- 👑 **Plündermeister** (Master Loot) wird vom Beutefenster nicht unterstützt.
+- ⏳ Die **Wurfzeit** legt das Spiel fest, sie lässt sich nicht einstellen.
+- 🏷️ Die **Gruppenloot-Markierung** ändert nur die Beschriftung im Beutefenster. Ab welcher Qualität gewürfelt wird, bestimmt der Gruppenleiter.
+- 📋 Es gibt bewusst **keine Auswahllisten**, weil Addon-Frames mit `UIDropDownMenuTemplate` im Forever-Client blockiert sind. Stattdessen gibt es Schieberegler, Checkboxen und Schaltflächen.
+
+## 🐞 Fehler melden
+
+Fehler und Wünsche bitte als [Issue auf GitHub](https://github.com/apnotix/SexyLoot/issues) melden. Aktiviere vorher `/console scriptErrors 1` und schick die Lua-Fehlermeldung mit.
+
+## 🙏 Danksagung
+
+- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) von **Teelo** (Bibliothek `EditModeExpanded-1.0`, eingebettet, Autor wird wie in der Lizenz gefordert genannt)
+- **LibStub** (gemeinfrei)
+- Inspiriert von **XLoot**
+
+---
+
+<div align="center">
+
+Gemacht von **apnotix** · Auch von mir: **SexyInterrupter**
+
+</div>
