@@ -1,5 +1,5 @@
 ## Interface: 120100, 16001
-## Version: 0.1.0
+## Version: 0.1.1
 ## Title: SexyLoot
 ## Author: apnotix
 ## Notes: Lootfenster, Rollfenster mit Würfen am Item, Gruppen-Feed und Liste der zuletzt gelooteten Items. Alles über den Edit Mode einstellbar.
