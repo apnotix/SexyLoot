@@ -1,0 +1,19 @@
+## Interface: 120100, 16001
+## Version: 0.1.0
+## Title: SexyLoot
+## Author: apnotix
+## Notes: Lootfenster, Rollfenster mit Würfen am Item, Gruppen-Feed und Liste der zuletzt gelooteten Items. Alles über den Edit Mode einstellbar.
+## Category: Party & Raid
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: SexyLootDB
+
+lib\LibStub\LibStub.lua
+lib\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
+
+Core.lua
+RollFrames.lua
+LootWindow.lua
+Feed.lua
+MyLoot.lua
+EditMode.lua
