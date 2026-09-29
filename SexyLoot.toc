@@ -4,7 +4,8 @@
 ## Author: apnotix
 ## X-Curse-Project-ID: 1717476
 ## Notes: Lootfenster, Rollfenster mit Würfen am Item, Gruppen-Feed und Liste der zuletzt gelooteten Items. Alles über den Edit Mode einstellbar.
-## Category: Party & Raid
+## Category: Loot
+## IconTexture: Interface\AddOns\SexyLoot\icon.tga
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariables: SexyLootDB
