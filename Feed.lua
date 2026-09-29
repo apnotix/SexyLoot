@@ -56,7 +56,7 @@ end
 
 local COLORQ = { ["9d9d9d"] = 0, ["ffffff"] = 1, ["1eff00"] = 2, ["0070dd"] = 3, ["a335ee"] = 4, ["ff8000"] = 5, ["e6cc80"] = 6 }
 function ns.LinkQuality(link)
-    local q = select(3, GetItemInfo(link))
+    local q = select(3, ns.GetItemInfo(link))
     if q then return q end
     return COLORQ[(link:match("|cff(%x%x%x%x%x%x)") or ""):lower()] or 1
 end

@@ -196,7 +196,7 @@ function LW:Test()
     wipe(slots)
     self.preview = false
     local function L(id, name, color)
-        return select(2, GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::60:::::|h[" .. name .. "]|h|r")
+        return select(2, ns.GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::60:::::|h[" .. name .. "]|h|r")
     end
     slots[1] = { fake = true, item = true, quality = 4, name = "Ring des Glutkerns", icon = "Interface\\Icons\\INV_Jewelry_Ring_36", link = L(17063, "Ring des Glutkerns", "a335ee") }
     slots[2] = { fake = true, item = true, quality = 3, name = "Kettenkappe der Wachsamkeit", icon = "Interface\\Icons\\INV_Helmet_08", link = L(14551, "Kettenkappe der Wachsamkeit", "0070dd") }

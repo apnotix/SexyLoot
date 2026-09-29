@@ -44,7 +44,7 @@ end
 
 function MyLoot:Test()
     local function L(id, name, color)
-        return select(2, GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::1:::::|h[" .. name .. "]|h|r")
+        return select(2, ns.GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::1:::::|h[" .. name .. "]|h|r")
     end
     self:Add(L(2589, "Leinenstoff", "ffffff"), 3)
     self:Add(L(2770, "Kupfererz", "ffffff"), 2)
@@ -121,7 +121,7 @@ function MyLoot:Refresh()
     local shown = math.min(cfg.rows, MAXROWS)
     local sum = 0
     for _, e in ipairs(entries) do
-        local price = select(11, GetItemInfo(e.link)) or 0
+        local price = select(11, ns.GetItemInfo(e.link)) or 0
         sum = sum + price * e.count
     end
     if cfg.hideValue or sum == 0 then
@@ -134,7 +134,7 @@ function MyLoot:Refresh()
         local e = entries[i]
         if i <= shown and e then
             row.link = e.link
-            row.icon:SetTexture(select(5, GetItemInfoInstant(e.link)))
+            row.icon:SetTexture(select(5, ns.GetItemInfoInstant(e.link)))
             row.name:SetText(e.link)
             row.count:SetText(e.count > 1 and ("x" .. e.count) or "")
             row.time:SetText(cfg.hideTime and "" or Age(e.time))

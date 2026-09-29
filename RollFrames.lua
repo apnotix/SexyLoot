@@ -396,10 +396,10 @@ end
 
 function RF:Test()
     local id = 19019
-    local link = select(2, GetItemInfo(id))
+    local link = select(2, ns.GetItemInfo(id))
         or "|cffff8000|Hitem:19019::::::::60:::::|h[Donnerzorn, Klinge des gepeitschten Windes]|h|r"
     local name = link:match("%[(.-)%]")
-    local icon = select(5, GetItemInfoInstant(id)) or "Interface\\Icons\\INV_Sword_39"
+    local icon = select(5, ns.GetItemInfoInstant(id)) or "Interface\\Icons\\INV_Sword_39"
 
     local r = Acquire()
     r.fake = true

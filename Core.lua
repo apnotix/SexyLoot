@@ -68,9 +68,38 @@ function ns.Panel(parent)
     return f
 end
 
+-- Auf dem Forever-Client fehlen manche Item-Globals, daher C_Item bevorzugen.
+function ns.GetItemInfo(...)
+    local f = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    if f then return f(...) end
+end
+
+function ns.GetItemInfoInstant(...)
+    local f = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    if f then return f(...) end
+end
+
+ns.qualityFallback = {
+    [0] = { 0.62, 0.62, 0.62 }, [1] = { 1, 1, 1 }, [2] = { 0.12, 1, 0 },
+    [3] = { 0, 0.44, 0.87 }, [4] = { 0.64, 0.21, 0.93 }, [5] = { 1, 0.5, 0 },
+    [6] = { 0.9, 0.8, 0.5 }, [7] = { 0, 0.8, 1 },
+}
+
 function ns.QualityColor(q)
-    local r, g, b = GetItemQualityColor(q or 1)
-    return r or 1, g or 1, b or 1
+    q = q or 1
+    local c = ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[q]
+    if c then return c.r, c.g, c.b end
+    if C_Item and C_Item.GetItemQualityColor then
+        local r, g, b = C_Item.GetItemQualityColor(q)
+        if r then return r, g, b end
+    end
+    if GetItemQualityColor then
+        local r, g, b = GetItemQualityColor(q)
+        if r then return r, g, b end
+    end
+    local fallback = ns.qualityFallback[q]
+    if fallback then return fallback[1], fallback[2], fallback[3] end
+    return 1, 1, 1
 end
 
 function ns.Short(name)
