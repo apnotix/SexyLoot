@@ -1,5 +1,5 @@
 ## Interface: 120100, 16001
-## Version: 0.1.5
+## Version: 0.1.6
 ## Title: SexyLoot
 ## Author: apnotix
 ## X-Curse-Project-ID: 1717476
