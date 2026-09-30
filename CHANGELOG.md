@@ -7,6 +7,8 @@
 - Rollfenster bleibt nach dem Wurf einstellbar lange stehen (Standard 12 Sekunden).
 - Ein laufender Wurf wird nach einem Reload wiederhergestellt.
 - Jedes Fenster: Hintergrund- und Randfarbe (mit Deckkraft) per Farbwähler im Edit Mode wählbar, dazu "Farben zurücksetzen".
+- Gruppen-Feed: Nachrichten blenden nach einstellbarer Zeit aus (Standard 20 Sekunden, abschaltbar). Scrollen blendet sie wieder ein.
+- Gruppen-Feed: Tooltip und Klick gelten nur noch über dem Item-Link, nicht mehr über der ganzen Zeile.
 - Gruppen-Feed: Breite und Höhe sind einstellbar (ersetzt den Regler "Sichtbare Zeilen").
 - Der Edit-Mode-Rahmen des Rollfensters umfasst jetzt mehrere Zeilen.
 - Behoben: Fehler beim Auswerten der Würfe (führender Link `|Hlootroll`).

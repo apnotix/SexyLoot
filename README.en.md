@@ -52,8 +52,9 @@ Replaces the default loot window.
 Who got what?
 
 - 👥 **Everything the group looted**, with item link and the player's class color.
-- 🎲 **Roll details in the tooltip:** hover a roll line to see every choice and roll, sorted by result or by player order.
+- 🎲 **Roll details in the tooltip:** hover the item link of a line to see every choice and roll, sorted by result or by player order.
 - 🕐 **Timestamps** (optional), **mouse wheel** to scroll.
+- 🌫️ **Fades out:** messages disappear after an adjustable time (5 to 120 seconds, can be turned off). Scrolling brings them back.
 - 🔤 **Width**, **height** and **font size** adjustable (the line count follows from them).
 
 ### 🎒 My loot

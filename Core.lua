@@ -14,7 +14,7 @@ ns.defaults = {
         bg = { 0.03, 0.02, 0.01, 0.85 }, border = BORDER },
     loot = { auto = false, thr = 2, icon = 34,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
-    feed = { hideStamp = false, sortPlayers = false, width = 340, height = 160, size = 15,
+    feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
         bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
     mine = { hideValue = false, hideTime = false, noStack = false, rows = 7,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },

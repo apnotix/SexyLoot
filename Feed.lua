@@ -70,7 +70,7 @@ end
 --------------------------------------------------------------------------
 
 local function Add(text, link, roll, preview)
-    entries[#entries + 1] = { stamp = date("%H:%M"), text = text, link = link, roll = roll, preview = preview }
+    entries[#entries + 1] = { born = GetTime(), stamp = date("%H:%M"), text = text, link = link, roll = roll, preview = preview }
     if #entries > MAXKEEP then table.remove(entries, 1) end
     offset = 0
     Feed:Refresh()
@@ -186,6 +186,35 @@ local function Tip(row)
     GameTooltip:Show()
 end
 
+-- Tooltip und Klick gelten nur über dem Item-Link, nicht über der ganzen Zeile.
+-- Dafür wird beim Befüllen gemessen, wo der Link in der Zeile steht.
+local meas
+local function Measure(text, size)
+    if not meas then
+        meas = panel:CreateFontString(nil, "OVERLAY")
+        meas:SetPoint("TOPLEFT", panel, "TOPLEFT")
+        meas:SetAlpha(0)
+    end
+    meas:SetFont(STANDARD_TEXT_FONT, size, "")
+    meas:SetText(text)
+    return meas:GetStringWidth()
+end
+
+local function OverItem(row)
+    if not (row.entry and row.itemFrom) then return false end
+    local x = GetCursorPosition() / row:GetEffectiveScale() - row:GetLeft()
+    return x >= row.itemFrom and x <= row.itemTo
+end
+
+local function HoverUpdate(row)
+    if OverItem(row) then
+        if not row.tipOn then row.tipOn = true; Tip(row) end
+    elseif row.tipOn then
+        row.tipOn = false
+        GameTooltip:Hide()
+    end
+end
+
 local function MakeRow(i)
     local b = CreateFrame("Button", nil, panel)
     b:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 6, 4)
@@ -193,13 +222,54 @@ local function MakeRow(i)
     b.text:SetAllPoints()
     b.text:SetJustifyH("LEFT")
     b.text:SetWordWrap(false)
-    b:SetScript("OnEnter", Tip)
-    b:SetScript("OnLeave", GameTooltip_Hide)
+    b:SetScript("OnEnter", function(self) self:SetScript("OnUpdate", HoverUpdate) end)
+    b:SetScript("OnLeave", function(self)
+        self:SetScript("OnUpdate", nil)
+        if self.tipOn then self.tipOn = false; GameTooltip:Hide() end
+    end)
+    b:SetScript("OnHide", function(self)
+        self:SetScript("OnUpdate", nil)
+        if self.tipOn then self.tipOn = false; GameTooltip:Hide() end
+    end)
     b:SetScript("OnClick", function(self)
-        if self.entry and self.entry.link then HandleModifiedItemClick(self.entry.link) end
+        if OverItem(self) and self.entry.link then HandleModifiedItemClick(self.entry.link) end
     end)
     rows[i] = b
     return b
+end
+
+-- Zeilen blenden nach cfg.fade Sekunden aus (wie im Chat). Scrollen blendet
+-- alles wieder ein und hält es cfg.fade Sekunden sichtbar.
+local FADE_TIME = 1.0
+local lastScroll = -1000
+
+local function UpdateFade()
+    if not panel then return end
+    local cfg = ns.cfg.feed
+    local now = GetTime()
+    local always = ns.editing or cfg.noFade
+    local reveal = always or (now - lastScroll < cfg.fade)
+    if offset > 0 and not reveal then
+        -- nach dem Blättern wieder zu den neuesten Nachrichten springen
+        offset = 0
+        Feed:Refresh()
+        return
+    end
+    local top = 0
+    for _, row in ipairs(rows) do
+        local e = row.entry
+        if e and row:IsShown() then
+            local a = 1
+            if not reveal then
+                a = 1 - (now - e.born - cfg.fade) / FADE_TIME
+                a = math.max(0, math.min(1, a))
+            end
+            row:SetAlpha(a)
+            row:EnableMouse(a > 0.05)
+            if a > top then top = a end
+        end
+    end
+    panel:SetAlpha(#entries == 0 and 0 or top)
 end
 
 function Feed:Refresh()
@@ -223,7 +293,14 @@ function Feed:Refresh()
             row:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 6, 4 + (j - 1) * h)
             row.text:SetFont(STANDARD_TEXT_FONT, cfg.size, "")
             if e then
-                row.text:SetText((cfg.hideStamp and "" or ("|cff888888" .. e.stamp .. "|r ")) .. e.text)
+                local full = (cfg.hideStamp and "" or ("|cff888888" .. e.stamp .. "|r ")) .. e.text
+                row.text:SetText(full)
+                row.itemFrom, row.itemTo = nil, nil
+                local a = e.link and full:find(e.link, 1, true)
+                if a then
+                    row.itemFrom = Measure(full:sub(1, a - 1), cfg.size)
+                    row.itemTo = row.itemFrom + Measure(e.link, cfg.size)
+                end
                 row:Show()
             else
                 row:Hide()
@@ -233,7 +310,7 @@ function Feed:Refresh()
             row:Hide()
         end
     end
-    if n == 0 then panel:SetAlpha(0) else panel:SetAlpha(1) end
+    UpdateFade()
 end
 
 ns.Apply.feed = function() Feed:Refresh() end
@@ -244,8 +321,16 @@ function Feed:Init()
     panel:SetPoint("BOTTOMRIGHT", ns.frames.feed, "BOTTOMRIGHT")
     panel:EnableMouseWheel(true)
     panel:SetScript("OnMouseWheel", function(_, delta)
+        lastScroll = GetTime()
         offset = offset + delta
         Feed:Refresh()
+    end)
+    local acc = 0
+    panel:SetScript("OnUpdate", function(_, elapsed)
+        acc = acc + elapsed
+        if acc < 0.05 then return end
+        acc = 0
+        UpdateFade()
     end)
 
     local ev = CreateFrame("Frame")

@@ -52,8 +52,9 @@ Ersetzt das Standard-Beutefenster.
 Wer hat was bekommen?
 
 - 👥 **Alle Funde der Gruppe** mit Itemlink und Klassenfarbe des Spielers.
-- 🎲 **Würfel-Details im Tooltip:** Mit der Maus über eine Würfelzeile siehst du alle Wahlen und Würfe, sortiert nach Ergebnis oder Spielerreihenfolge.
+- 🎲 **Würfel-Details im Tooltip:** Mit der Maus über dem Item-Link einer Zeile siehst du alle Wahlen und Würfe, sortiert nach Ergebnis oder Spielerreihenfolge.
 - 🕐 **Zeitstempel** (abschaltbar), **Mausrad** zum Blättern.
+- 🌫️ **Blendet sich aus:** Nachrichten verschwinden nach einstellbarer Zeit (5 bis 120 Sekunden, abschaltbar). Beim Scrollen kommen sie wieder.
 - 🔤 **Breite**, **Höhe** und **Schriftgröße** einstellbar (die Zeilenzahl ergibt sich daraus).
 
 ### 🎒 Meine Beute
