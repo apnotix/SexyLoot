@@ -1,4 +1,5 @@
 local ADDON, ns = ...
+local T = ns.T
 
 -- Gruppen-Feed: wer hat welches Item bekommen. Bei Gruppenwürfen zeigt der
 -- Tooltip einer Zeile alle Wahlen und Würfe. Mausrad blättert.
@@ -13,7 +14,7 @@ local TEX = {
     greed = "Interface\\Buttons\\UI-GroupLoot-Coin-Up",
     pass  = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
 }
-local LABEL = { need = "Bedarf", greed = "Gier", pass = "Passen" }
+local LABEL = { need = NEED or "Need", greed = GREED or "Greed", pass = PASS or "Pass" }   -- Blizzard-Texte, in jeder Clientsprache
 
 local entries, rows, offset = {}, {}, 0
 local panel
@@ -81,7 +82,7 @@ function Feed:NoteWin(player, itemID)
 end
 
 function Feed:AddWin(player, link)
-    Add(ns.ColorName(player) .. " gewinnt " .. link, link)
+    Add(T("%s gewinnt %s", ns.ColorName(player), link), link)
 end
 
 function Feed:AddRoll(r)
@@ -91,10 +92,10 @@ function Feed:AddRoll(r)
     local text
     if r.winner then
         local pick = r.picks[r.winner] or "greed"
-        text = ns.ColorName(r.winner) .. " gewinnt " .. r.link .. " |cff999999· " .. LABEL[pick]
+        text = T("%s gewinnt %s", ns.ColorName(r.winner), r.link) .. " |cff999999· " .. LABEL[pick]
             .. (r.rolls[r.winner] and (" " .. r.rolls[r.winner]) or "") .. "|r"
     else
-        text = "Alle passen auf " .. r.link
+        text = T("Alle passen auf %s", r.link)
     end
     Add(text, r.link, roll)
 end
@@ -109,7 +110,7 @@ function Feed:OnChat(msg)
         recent[key] = nil
         return
     end
-    Add(ns.ColorName(t.player) .. " erhält " .. t.item .. (t.count > 1 and (" x" .. t.count) or ""), t.item)
+    Add(T("%s erhält %s", ns.ColorName(t.player), t.item) .. (t.count > 1 and (" x" .. t.count) or ""), t.item)
 end
 
 function Feed:Clear()
@@ -120,18 +121,18 @@ end
 
 local function Samples(preview)
     local function L(id, name, color) return "|cff" .. color .. "|Hitem:" .. id .. "::::::::60:::::|h[" .. name .. "]|h|r" end
-    local a = L(14551, "Kappe der Wachsamkeit", "0070dd")
-    local b = L(13068, "Mondstoffhandschuhe", "1eff00")
-    local c = L(17063, "Ring des Glutkerns", "a335ee")
+    local a = L(14551, T["Kappe der Wachsamkeit"], "0070dd")
+    local b = L(13068, T["Mondstoffhandschuhe"], "1eff00")
+    local c = L(17063, T["Ring des Glutkerns"], "a335ee")
     ns.classByName.Aldrin, ns.classByName.Mirelle, ns.classByName.Thokk, ns.classByName.Vexa =
         "WARRIOR", "PRIEST", "SHAMAN", "ROGUE"
-    Add(ns.ColorName("Mirelle") .. " erhält " .. b, b, nil, preview)
-    Add(ns.ColorName("Aldrin") .. " gewinnt " .. a .. " |cff999999· Bedarf 92|r", a, {
+    Add(T("%s erhält %s", ns.ColorName("Mirelle"), b), b, nil, preview)
+    Add(T("%s gewinnt %s", ns.ColorName("Aldrin"), a) .. " |cff999999· " .. LABEL.need .. " 92|r", a, {
         roster = { UnitName("player"), "Aldrin", "Mirelle", "Thokk", "Vexa" },
         picks = { Aldrin = "need", Thokk = "need", Vexa = "greed", Mirelle = "pass", [UnitName("player")] = "pass" },
         rolls = { Aldrin = 92, Thokk = 61, Vexa = 34 }, winner = "Aldrin",
     }, preview)
-    Add(ns.ColorName("Vexa") .. " gewinnt " .. c .. " |cff999999· Gier 77|r", c, {
+    Add(T("%s gewinnt %s", ns.ColorName("Vexa"), c) .. " |cff999999· " .. LABEL.greed .. " 77|r", c, {
         roster = { UnitName("player"), "Aldrin", "Mirelle", "Thokk", "Vexa" },
         picks = { Vexa = "greed", Thokk = "greed", Aldrin = "pass", Mirelle = "pass", [UnitName("player")] = "pass" },
         rolls = { Vexa = 77, Thokk = 12 }, winner = "Vexa",
@@ -160,7 +161,7 @@ local function Tip(row)
     local e = row.entry
     if not e then return end
     GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
-    if e.link then GameTooltip:SetHyperlink(e.link) else GameTooltip:SetText("Loot") end
+    if e.link then GameTooltip:SetHyperlink(e.link) else GameTooltip:SetText(LOOT or "Loot") end
     if e.roll then
         local d = e.roll
         local list = {}
@@ -174,12 +175,12 @@ local function Tip(row)
             end)
         end
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("Würfe", 1, 0.82, 0)
+        GameTooltip:AddLine(T["Würfe"], 1, 0.82, 0)
         for _, n in ipairs(list) do
             local p = d.picks[n]
             GameTooltip:AddDoubleLine(
                 ns.ColorName(n) .. (d.winner == n and "  |TInterface\\RaidFrame\\ReadyCheck-Ready:14|t" or ""),
-                p and ("|T" .. TEX[p] .. ":14|t " .. LABEL[p] .. (d.rolls[n] and ("  " .. d.rolls[n]) or "")) or "keine Wahl",
+                p and ("|T" .. TEX[p] .. ":14|t " .. LABEL[p] .. (d.rolls[n] and ("  " .. d.rolls[n]) or "")) or T["keine Wahl"],
                 1, 1, 1, 0.9, 0.9, 0.9)
         end
     end

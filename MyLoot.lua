@@ -1,13 +1,14 @@
 local ADDON, ns = ...
+local T = ns.T
 
 -- Kleine Liste der zuletzt gelooteten Items (beim Leveln: Stoff, Erz, graue Items ...)
--- mit Stapeln, Zeitangabe und Verkaufswert.
+-- mit Stapeln und Verkaufswert (pro Eintrag und gesamt).
 
 local MyLoot = {}
 ns.MyLoot = MyLoot
 table.insert(ns.modules, MyLoot)
 
-local WIDTH = 230
+local WIDTH = 280
 local MAXROWS = 10
 local entries, rows = {}, {}
 local panel, title, total, empty
@@ -46,10 +47,10 @@ function MyLoot:Test()
     local function L(id, name, color)
         return select(2, ns.GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::1:::::|h[" .. name .. "]|h|r")
     end
-    self:Add(L(2589, "Leinenstoff", "ffffff"), 3)
-    self:Add(L(2770, "Kupfererz", "ffffff"), 2)
-    self:Add(L(2589, "Leinenstoff", "ffffff"), 2)
-    self:Add(L(118, "Schwacher Heiltrank", "ffffff"), 1)
+    self:Add(L(2589, T["Leinenstoff"], "ffffff"), 3)
+    self:Add(L(2770, T["Kupfererz"], "ffffff"), 2)
+    self:Add(L(2589, T["Leinenstoff"], "ffffff"), 2)
+    self:Add(L(118, T["Schwacher Heiltrank"], "ffffff"), 1)
 end
 
 -- Im Edit Mode stehen Beispieleinträge in der Liste, beim Verlassen verschwinden sie
@@ -63,24 +64,26 @@ function MyLoot:Preview(active)
         end
         local now = GetTime()
         local sample = {
-            { 2589, "Leinenstoff", "ffffff", 5, 4 },
-            { 2770, "Kupfererz", "ffffff", 2, 40 },
-            { 118, "Schwacher Heiltrank", "ffffff", 1, 95 },
-            { 769, "Zerrissene Wolfshaut", "9d9d9d", 3, 200 },
+            { 2589, T["Leinenstoff"], "ffffff", 5, 4, 13 },
+            { 2770, T["Kupfererz"], "ffffff", 2, 40, 25 },
+            { 118, T["Schwacher Heiltrank"], "ffffff", 1, 95, 40 },
+            { 769, T["Zerrissene Wolfshaut"], "9d9d9d", 3, 200, 8 },
         }
         for i = #sample, 1, -1 do
             local s = sample[i]
-            table.insert(entries, 1, { id = s[1], link = L(s[1], s[2], s[3]), count = s[4], time = now - s[5], preview = true })
+            table.insert(entries, 1, { id = s[1], link = L(s[1], s[2], s[3]), count = s[4], time = now - s[5], price = s[6], preview = true })
         end
     end
     self:Refresh()
 end
 
-local function Age(t)
-    local s = GetTime() - t
-    if s < 5 then return "jetzt" end
-    if s < 60 then return math.floor(s) .. "s" end
-    return math.floor(s / 60) .. "m"
+local function Coins(copper)
+    return GetCoinTextureString and GetCoinTextureString(copper) or GetMoneyString(copper)
+end
+
+-- Verkaufspreis eines Stücks in Kupfer (Vorschau-Einträge bringen ihren eigenen mit)
+local function UnitPrice(e)
+    return e.price or select(11, ns.GetItemInfo(e.link)) or 0
 end
 
 local function MakeRow(i)
@@ -91,12 +94,12 @@ local function MakeRow(i)
     b.icon:SetSize(16, 16)
     b.icon:SetPoint("LEFT", 0, 0)
     b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    b.time = b:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    b.time:SetPoint("RIGHT", 0, 0)
-    b.time:SetWidth(34)
-    b.time:SetJustifyH("RIGHT")
+    b.value = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    b.value:SetPoint("RIGHT", 0, 0)
+    b.value:SetWidth(92)
+    b.value:SetJustifyH("RIGHT")
     b.count = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    b.count:SetPoint("RIGHT", b.time, "LEFT", -4, 0)
+    b.count:SetPoint("RIGHT", b.value, "LEFT", -4, 0)
     b.name = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     b.name:SetPoint("LEFT", b.icon, "RIGHT", 5, 0)
     b.name:SetPoint("RIGHT", b.count, "LEFT", -4, 0)
@@ -121,13 +124,12 @@ function MyLoot:Refresh()
     local shown = math.min(cfg.rows, MAXROWS)
     local sum = 0
     for _, e in ipairs(entries) do
-        local price = select(11, ns.GetItemInfo(e.link)) or 0
-        sum = sum + price * e.count
+        sum = sum + UnitPrice(e) * e.count
     end
     if cfg.hideValue or sum == 0 then
         total:SetText("")
     else
-        total:SetText(GetCoinTextureString and GetCoinTextureString(sum) or GetMoneyString(sum))
+        total:SetText(Coins(sum))
     end
     for i = 1, math.max(#rows, shown) do
         local row = rows[i] or MakeRow(i)
@@ -137,7 +139,9 @@ function MyLoot:Refresh()
             row.icon:SetTexture(select(5, ns.GetItemInfoInstant(e.link)))
             row.name:SetText(e.link)
             row.count:SetText(e.count > 1 and ("x" .. e.count) or "")
-            row.time:SetText(cfg.hideTime and "" or Age(e.time))
+            -- Wert des ganzen Stapels (Stückpreis mal Anzahl)
+            local value = UnitPrice(e) * e.count
+            row.value:SetText((cfg.hideItemValue or value == 0) and "" or Coins(value))
             row:Show()
         else
             row.link = nil
@@ -163,12 +167,12 @@ function MyLoot:Init()
 
     title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 8, -7)
-    title:SetText("Zuletzt gelootet")
+    title:SetText(T["Zuletzt gelootet"])
     total = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     total:SetPoint("TOPRIGHT", -8, -8)
     empty = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     empty:SetPoint("TOPLEFT", 8, -28)
-    empty:SetText("Noch nichts gelootet.")
+    empty:SetText(T["Noch nichts gelootet."])
 
     C_Timer.NewTicker(5, function() MyLoot:Refresh() end)
 end

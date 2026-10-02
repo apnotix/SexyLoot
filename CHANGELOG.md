@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.7
+
+- Meine Beute: Statt der Zeit steht jetzt der Verkaufswert pro Eintrag da, bei Stapeln für den ganzen Stapel. Die Option "Zeitangabe ausblenden" heißt jetzt "Wert pro Eintrag ausblenden", der Gesamtwert "Gesamtwert ausblenden".
+- Behoben: Mitspieler standen beim Würfeln doppelt in der Liste (mit und ohne Realm-Namen).
+- Übersetzung: Deutsch und Englisch. Nicht-deutsche Clients zeigen Englisch, Bedarf/Gier/Passen kommen aus dem Spiel.
+
 ## 0.1.5
 
 - Neu: Gewinner-Anzeige mitten auf dem Bildschirm (Größe und Dauer im Edit Mode einstellbar, `/sexyloot winner` zum Testen).

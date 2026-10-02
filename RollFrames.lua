@@ -1,4 +1,5 @@
 local ADDON, ns = ...
+local T = ns.T
 
 -- Rollfenster: Bedarf / Gier / Passen mit den Würfen aller Spieler direkt am Item.
 -- Die Wahl und die Würfe der anderen Spieler kommen aus den Loot-Chatnachrichten
@@ -15,7 +16,7 @@ local TEX = {
     greed = "Interface\\Buttons\\UI-GroupLoot-Coin-Up",
     pass  = "Interface\\Buttons\\UI-GroupLoot-Pass-Up",
 }
-local LABEL = { need = "Bedarf", greed = "Gier", pass = "Passen" }
+local LABEL = { need = NEED or "Need", greed = GREED or "Greed", pass = PASS or "Pass" }   -- Blizzard-Texte, in jeder Clientsprache
 local ROLLTYPE = { pass = 0, need = 1, greed = 2 }
 local KINDS = { "need", "greed", "pass" }
 
@@ -91,7 +92,7 @@ end
 -- Zeilen
 --------------------------------------------------------------------------
 
-local function Me() return UnitName("player") end
+local function Me() return ns.Short(UnitName("player")) end
 
 local function MakeButton(row, kind, x)
     local b = CreateFrame("Button", nil, row)
@@ -221,6 +222,7 @@ function RF:Layout()
 end
 
 local function AddPlayer(r, name)
+    name = ns.Short(name)   -- ohne Realm, sonst steht ein Spieler doppelt in der Liste
     for _, n in ipairs(r.roster) do if n == name then return end end
     r.roster[#r.roster + 1] = name
 end
@@ -257,10 +259,10 @@ function RF:UpdateChips(r)
     if r.done then
         local res
         if r.winner then
-            res = ns.ColorName(r.winner) .. " gewinnt (" .. LABEL[r.picks[r.winner] or "greed"]
-                .. (r.rolls[r.winner] and (" " .. r.rolls[r.winner]) or "") .. ")"
+            res = T("%s gewinnt (%s)", ns.ColorName(r.winner), LABEL[r.picks[r.winner] or "greed"]
+                .. (r.rolls[r.winner] and (" " .. r.rolls[r.winner]) or ""))
         else
-            res = "Alle haben gepasst"
+            res = T["Alle haben gepasst"]
         end
         text = text .. (text ~= "" and "\n" or "") .. "|cffe8c26a" .. res .. "|r"
     end
@@ -297,7 +299,7 @@ local function Fill(r, link, tex, name, count, quality, bop, duration)
     r.qual:SetColorTexture(cr, cg, cb, 1)
     r.name:SetText(((count or 1) > 1 and (count .. "x ") or "") .. (name or "?"))
     r.name:SetTextColor(cr, cg, cb)
-    r.sub:SetText(bop and "Beim Aufheben gebunden" or "")
+    r.sub:SetText(bop and (ITEM_BIND_ON_PICKUP or "Binds when picked up") or "")
     r.duration = duration
     r.expires = GetTime() + duration
     r.bar:SetMinMaxValues(0, duration)

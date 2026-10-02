@@ -1,4 +1,5 @@
 local ADDON, ns = ...
+local T = ns.T
 
 -- Beutefenster: ersetzt das Blizzard-LootFrame. Qualitätsfarben, Tooltips,
 -- Shift-Klick verlinkt im Chat, "Alles nehmen", optional graue Items automatisch.
@@ -99,7 +100,7 @@ function LW:Draw()
             row.sub:ClearAllPoints()
             row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -1)
             if d.item then
-                row.sub:SetText(d.quality >= thr and "Gruppenloot" or "Freie Beute")
+                row.sub:SetText(d.quality >= thr and T["Gruppenloot"] or T["Freie Beute"])
             else
                 row.sub:SetText("")
             end
@@ -143,7 +144,7 @@ function LW:OnOpened(autoLoot)
             end
         end
     end
-    title:SetText(UnitExists("target") and UnitName("target") or "Beute")
+    title:SetText(UnitExists("target") and UnitName("target") or (LOOT or "Loot"))
     self:Draw()
 
     -- Blizzards LootFrame hat bei Auto-Loot alles selbst genommen. Das machen
@@ -198,12 +199,12 @@ function LW:Test()
     local function L(id, name, color)
         return select(2, ns.GetItemInfo(id)) or ("|cff" .. color .. "|Hitem:" .. id .. "::::::::60:::::|h[" .. name .. "]|h|r")
     end
-    slots[1] = { fake = true, item = true, quality = 4, name = "Ring des Glutkerns", icon = "Interface\\Icons\\INV_Jewelry_Ring_36", link = L(17063, "Ring des Glutkerns", "a335ee") }
-    slots[2] = { fake = true, item = true, quality = 3, name = "Kettenkappe der Wachsamkeit", icon = "Interface\\Icons\\INV_Helmet_08", link = L(14551, "Kettenkappe der Wachsamkeit", "0070dd") }
-    slots[3] = { fake = true, item = true, quality = 1, qty = 3, name = "Leinenstoff", icon = "Interface\\Icons\\INV_Fabric_Linen_01", link = L(2589, "Leinenstoff", "ffffff") }
-    slots[4] = { fake = true, item = true, quality = 0, name = "Zerrissene Wolfshaut", icon = "Interface\\Icons\\INV_Misc_Pelt_Wolf_01", link = L(769, "Zerrissene Wolfshaut", "9d9d9d") }
-    slots[5] = { fake = true, item = false, name = "1 Silber 24 Kupfer", icon = "Interface\\Icons\\INV_Misc_Coin_01" }
-    title:SetText("Testbeute")
+    slots[1] = { fake = true, item = true, quality = 4, name = T["Ring des Glutkerns"], icon = "Interface\\Icons\\INV_Jewelry_Ring_36", link = L(17063, T["Ring des Glutkerns"], "a335ee") }
+    slots[2] = { fake = true, item = true, quality = 3, name = T["Kettenkappe der Wachsamkeit"], icon = "Interface\\Icons\\INV_Helmet_08", link = L(14551, T["Kettenkappe der Wachsamkeit"], "0070dd") }
+    slots[3] = { fake = true, item = true, quality = 1, qty = 3, name = T["Leinenstoff"], icon = "Interface\\Icons\\INV_Fabric_Linen_01", link = L(2589, T["Leinenstoff"], "ffffff") }
+    slots[4] = { fake = true, item = true, quality = 0, name = T["Zerrissene Wolfshaut"], icon = "Interface\\Icons\\INV_Misc_Pelt_Wolf_01", link = L(769, T["Zerrissene Wolfshaut"], "9d9d9d") }
+    slots[5] = { fake = true, item = false, name = T["1 Silber 24 Kupfer"], icon = "Interface\\Icons\\INV_Misc_Coin_01" }
+    title:SetText(T["Testbeute"])
     self:Draw()
 end
 
@@ -239,7 +240,7 @@ function LW:Init()
     allBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     allBtn:SetSize(100, 22)
     allBtn:SetPoint("BOTTOMRIGHT", -8, 6)
-    allBtn:SetText("Alles nehmen")
+    allBtn:SetText(T["Alles nehmen"])
     allBtn:SetScript("OnClick", function()
         if slots[1] and slots[1].fake then LW:Close() return end
         for i = GetNumLootItems(), 1, -1 do LootSlot(i) end

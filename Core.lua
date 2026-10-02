@@ -16,7 +16,7 @@ ns.defaults = {
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
         bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
-    mine = { hideValue = false, hideTime = false, noStack = false, rows = 7,
+    mine = { hideValue = false, hideItemValue = false, noStack = false, rows = 7,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
 }
 
@@ -25,7 +25,7 @@ ns.Apply   = {}   -- ns.Apply[key](cfg) wendet die Einstellungen an
 ns.modules = {}   -- Module mit :Init()
 
 -- roll: Platz für etwa vier Rollzeilen, damit der Edit-Mode-Rahmen alle Zeilen umfasst
-local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 230, 150 } }
+local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 } }
 local START = {
     roll = { 240, 520 },
     winner = { 720, 640 },      -- ungefähr Bildschirmmitte, oberhalb des Zentrums
@@ -133,7 +133,9 @@ ns.classByName = {}
 
 local function AddUnit(list, unit)
     if not UnitExists(unit) then return end
+    -- Immer ohne Realm, damit Gruppenliste und Chatnamen übereinstimmen
     local name = UnitName(unit)
+    name = name and ns.Short(name)
     if not name then return end
     local _, class = UnitClass(unit)
     ns.classByName[name] = class
@@ -241,6 +243,6 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test()
     else
         print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | winner")
-        print("Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken.")
+        print(ns.T["Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken."])
     end
 end

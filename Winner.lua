@@ -1,4 +1,5 @@
 local ADDON, ns = ...
+local T = ns.T
 
 -- Gewinner-Anzeige: Wenn ein Wurf entschieden ist, steht der Gewinner mit Item
 -- gut sichtbar auf dem Bildschirm (Position im Edit Mode einstellbar).
@@ -7,8 +8,8 @@ local W = {}
 ns.Winner = W
 table.insert(ns.modules, W)
 
-local LABEL = { need = "Bedarf", greed = "Gier", pass = "Passen" }
-local SAMPLE = "|cffa335ee|Hitem:17063::::::::60:::::|h[Ring des Glutkerns]|h|r"
+local LABEL = { need = NEED or "Need", greed = GREED or "Greed", pass = PASS or "Pass" }   -- Blizzard-Texte, in jeder Clientsprache
+local SAMPLE = "|cffa335ee|Hitem:17063::::::::60:::::|h[" .. T["Ring des Glutkerns"] .. "]|h|r"
 local FALLBACK_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 
 local panel
@@ -30,8 +31,8 @@ end
 function W:Display(player, link, pick, roll, sticky)
     if not panel or not link then return end
     Style()
-    local me = player == UnitName("player")
-    panel.title:SetText(me and "|cff33ff66Du gewinnst!|r" or (ns.ColorName(player) .. " gewinnt!"))
+    local me = ns.Short(player) == ns.Short(UnitName("player"))
+    panel.title:SetText(me and ("|cff33ff66" .. T["Du gewinnst!"] .. "|r") or T("%s gewinnt!", ns.ColorName(player)))
     panel.item:SetText(link)
     panel.detail:SetText(pick and ("|cffbbbbbb" .. LABEL[pick] .. (roll and (" " .. roll) or "") .. "|r") or "")
 

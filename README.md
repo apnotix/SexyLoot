@@ -61,7 +61,7 @@ Wer hat was bekommen?
 Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 - 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
-- 🕒 **Zeitangabe** pro Eintrag („jetzt“, „40s“, „2m“).
+- 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
 - 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer.
 - 🔢 **3 bis 10 Einträge**, alles abschaltbar.
 
@@ -91,10 +91,15 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
-| 🎒 Meine Beute | Verkaufswert ausblenden · Zeitangabe ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |
+| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
 Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würfe, eine Testbeute, Feed-Zeilen und gelootete Items. So siehst du sofort, wie Skalierung, Symbolgröße und Zeilenzahl aussehen. Beim Verlassen verschwinden sie wieder.
+
+---
+
+## 🌍 Sprachen
+Deutsch und Englisch. Deutsche Clients zeigen Deutsch, alle anderen Clients Englisch. Bedarf, Gier, Passen und „Beim Aufheben gebunden“ kommen direkt aus dem Spiel und erscheinen in der Sprache deines Clients.
 
 ---
 

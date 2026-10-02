@@ -61,7 +61,7 @@ Who got what?
 Perfect while leveling: a small list of your latest finds.
 
 - 🧵 **Stacking:** linen cloth, ore and the like are added up ("x5").
-- 🕒 **Age** per entry ("now", "40s", "2m").
+- 💵 **Value per entry:** the vendor value is shown next to every item, for the whole stack on stacked items.
 - 💰 **Vendor value** of the whole list in gold, silver and copper.
 - 🔢 **3 to 10 entries**, everything can be turned off.
 
@@ -91,10 +91,15 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | 🏆 Winner announcement | Font size · Display time · Show test winner |
 | 🎁 Loot window | Auto-loot grey items · Group loot label from quality · Icon size · Open test loot |
 | 📜 Group feed | Hide timestamps · Sort roll details by player order · Width · Height · Font size · Clear feed |
-| 🎒 My loot | Hide vendor value · Hide age · Do not stack identical items · Number of entries · Clear list |
+| 🎒 My loot | Hide total value · Hide value per entry · Do not stack identical items · Number of entries · Clear list |
 
 ### 👀 Demo data in Edit Mode
 While Edit Mode is open, every window shows sample content: two rolls, a test loot, feed lines and looted items. That way you see right away how scale, icon size and line count look. The samples disappear when you leave Edit Mode.
+
+---
+
+## 🌍 Languages
+German and English. German clients show German, every other client shows English. Need, Greed, Pass and "Binds when picked up" come straight from the game and appear in your client's language.
 
 ---
 

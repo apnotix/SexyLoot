@@ -13,6 +13,7 @@
 lib\LibStub\LibStub.lua
 lib\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
 
+Locale.lua
 Core.lua
 RollFrames.lua
 LootWindow.lua
