@@ -18,6 +18,8 @@ local en = {
     ["%s erhält %s"] = "%s receives %s",
     ["Alle passen auf %s"] = "Everyone passed on %s",
     ["Würfe"] = "Rolls",
+    ["Klick: Zeile ein- oder ausklappen"] = "Click: collapse or expand row",
+    ["%d von %d haben gewählt"] = "%d of %d have chosen",
     ["keine Wahl"] = "no choice",
     ["%s gewinnt (%s)"] = "%s wins (%s)",
     ["Alle haben gepasst"] = "Everyone passed",
@@ -63,6 +65,7 @@ local en = {
     ["Schriftgröße der Würfe"] = "Font size of rolls",
     ["Fenster nach dem Wurf anzeigen (Sekunden)"] = "Show window after the roll (seconds)",
     ["Testwurf starten"] = "Start test roll",
+    ["Maximale Höhe der Liste (darüber klappen Zeilen ein)"] = "Maximum list height (rows collapse above it)",
 
     -- Edit Mode: Gewinner-Anzeige
     ["SexyLoot: Gewinner-Anzeige"] = "SexyLoot: Winner announcement",
@@ -76,6 +79,11 @@ local en = {
     ["Gruppenloot-Markierung ab Qualität (2 grün, 3 blau, 4 episch)"] = "Group loot label from quality (2 green, 3 blue, 4 epic)",
     ["Symbolgröße"] = "Icon size",
     ["Testbeute öffnen"] = "Open test loot",
+    ["Hotkey für „Alles nehmen“ festlegen"] = "Set hotkey for \"Take all\"",
+    ["Hotkey entfernen"] = "Remove hotkey",
+    ["Drücke die gewünschte Taste (Esc bricht ab) …"] = "Press the desired key (Esc cancels) …",
+    ["Hotkey für „Alles nehmen“: %s"] = "Hotkey for \"Take all\": %s",
+    ["Hotkey entfernt."] = "Hotkey removed.",
 
     -- Edit Mode: Gruppen-Feed
     ["SexyLoot: Gruppen-Feed"] = "SexyLoot: Group feed",

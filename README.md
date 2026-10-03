@@ -26,7 +26,9 @@ Kein Rätselraten mehr, wer was gewürfelt hat.
 - 🔍 **Tooltips:** Fahr über das Item und sieh den normalen Item-Tooltip des Spiels.
 - 🔒 **Ehrliche Buttons:** Sie sperren erst, wenn deine Wahl wirklich angekommen ist. Bricht du bei einem Bind-on-Pickup-Item die Nachfrage ab, kannst du noch einmal wählen.
 - ⬆️ **Wachstumsrichtung** nach oben oder unten, mit einstellbarem Abstand.
-- 📋 **Würfe untereinander:** Jeder Spieler steht in einer eigenen Zeile, bestes Ergebnis oben, Schriftgröße einstellbar.
+- 📋 **Würfe als Tabelle:** Jeder Spieler hat eine eigene Zeile mit Wahl-Symbol, Name in Klassenfarbe und dem Wurf rechts. Bestes Ergebnis oben, Passen gedimmt, der Gewinner golden mit Haken. Schriftgröße einstellbar.
+- 📦 **Viele Items gleichzeitig:** Wird die Liste höher als die einstellbare Maximalhöhe, klappen ältere Zeilen auf Item, Buttons und eine Kurzzeile („2 von 5 haben gewählt“) ein. Mit der Maus über der Kurzzeile siehst du alle Würfe. Zeilen, bei denen du noch wählen musst, bleiben möglichst offen.
+- ➖ **Ein- und ausklappbar:** Ein Klick auf den Kopf einer Rollzeile (Plus/Minus-Symbol) klappt die Spielerliste ein oder aus. Shift- oder Strg-Klick verlinkt weiter das Item.
 - ⏳ **Bleibt nach dem Wurf stehen:** Das Fenster verschwindet erst nach einer einstellbaren Zeit (3 bis 30 Sekunden).
 - 🔄 **Überlebt einen Reload:** Ein laufender Wurf wird danach wiederhergestellt.
 
@@ -42,7 +44,7 @@ Ersetzt das Standard-Beutefenster.
 
 - 🌈 **Qualitätsfarben** für Rahmen und Namen, Menge am Symbol.
 - 🖱️ **Klick zum Looten**, Shift-Klick verlinkt das Item im Chat.
-- ✅ **„Alles nehmen“** mit einem Klick.
+- ✅ **„Alles nehmen“** mit einem Klick oder per **Hotkey**, den du im Edit Mode festlegst (auch mit Strg, Alt oder Umschalt).
 - 🪙 **Auto-Loot** wird unterstützt.
 - 🩶 **Graue Items automatisch** einsammeln (optional).
 - 🏷️ **Gruppenloot-Markierung:** Ab welcher Qualität ein Item als Gruppenloot beschriftet wird, stellst du selbst ein.
@@ -87,7 +89,7 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 | Fenster | Optionen |
 | --- | --- |
-| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
+| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |

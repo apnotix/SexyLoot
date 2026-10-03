@@ -210,8 +210,81 @@ end
 
 --------------------------------------------------------------------------
 
+--------------------------------------------------------------------------
+-- Hotkey für "Alles nehmen"
+--------------------------------------------------------------------------
+-- XML-Keybindings sind im Forever-Client nicht möglich. Darum wird der Hotkey
+-- per Override-Binding auf den Button gelegt, solange das Beutefenster offen ist.
+-- (Eine Tastaturabfrage am Fenster selbst schluckt auch das Loslassen von
+-- Tasten, dann läuft der Charakter weiter.) Das Binding lässt sich im Kampf
+-- nicht setzen: öffnet sich das Fenster im Kampf, gilt der Hotkey erst danach.
+-- Der Hotkey liegt in SexyLootDB.hotkey (z. B. "F", "CTRL-F").
+
+local MODS = { LSHIFT = 1, RSHIFT = 1, LCTRL = 1, RCTRL = 1, LALT = 1, RALT = 1, LMETA = 1, RMETA = 1 }
+
+local function KeyCombo(key)
+    if MODS[key] then return end   -- reine Modifikatortaste
+    return (IsAltKeyDown() and "ALT-" or "") .. (IsControlKeyDown() and "CTRL-" or "")
+        .. (IsShiftKeyDown() and "SHIFT-" or "") .. key
+end
+
+local function Say(text) print("|cffe8c26aSexyLoot|r: " .. text) end
+
+local bindOwner
+
+function LW:BindHotkey()
+    if not bindOwner then bindOwner = CreateFrame("Frame") end
+    if InCombatLockdown() then return end
+    ClearOverrideBindings(bindOwner)
+    local hk = SexyLootDB.hotkey
+    if hk and panel:IsShown() then
+        SetOverrideBindingClick(bindOwner, true, hk, "SexyLootAllButton")
+    end
+end
+
+function LW:UpdateHotkey()
+    if not allBtn then return end
+    local hk = SexyLootDB.hotkey
+    allBtn:SetText(T["Alles nehmen"] .. (hk and (" |cffe8c26a" .. hk .. "|r") or ""))
+    allBtn:SetWidth(hk and math.max(100, allBtn:GetTextWidth() + 24) or 100)
+    self:BindHotkey()
+end
+
+local capture
+function LW:CaptureHotkey()
+    if not capture then
+        capture = CreateFrame("Frame", nil, UIParent)
+        capture:SetFrameStrata("TOOLTIP")
+        capture:SetScript("OnKeyDown", function(self, key)
+            self:SetPropagateKeyboardInput(false)
+            local combo = KeyCombo(key)
+            if not combo then return end
+            self:EnableKeyboard(false)
+            self:Hide()
+            if key == "ESCAPE" then return end
+            SexyLootDB.hotkey = combo
+            LW:UpdateHotkey()
+            Say(T("Hotkey für „Alles nehmen“: %s", combo))
+        end)
+    end
+    capture:Show()
+    capture:EnableKeyboard(true)
+    -- nach 10 Sekunden aufgeben, damit die Tastaturabfrage nie hängen bleibt
+    C_Timer.After(10, function()
+        if capture:IsShown() then capture:EnableKeyboard(false); capture:Hide() end
+    end)
+    Say(T["Drücke die gewünschte Taste (Esc bricht ab) …"])
+end
+
+function LW:ClearHotkey()
+    SexyLootDB.hotkey = nil
+    self:UpdateHotkey()
+    Say(T["Hotkey entfernt."])
+end
+
 ns.Apply.loot = function()
     ns.ApplyStyle(panel, "loot")
+    LW:UpdateHotkey()
     LW:Draw()
 end
 
@@ -237,7 +310,7 @@ function LW:Init()
         if fake then LW:Close() else CloseLoot() end
     end)
 
-    allBtn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    allBtn = CreateFrame("Button", "SexyLootAllButton", panel, "UIPanelButtonTemplate")
     allBtn:SetSize(100, 22)
     allBtn:SetPoint("BOTTOMRIGHT", -8, 6)
     allBtn:SetText(T["Alles nehmen"])
@@ -245,6 +318,13 @@ function LW:Init()
         if slots[1] and slots[1].fake then LW:Close() return end
         for i = GetNumLootItems(), 1, -1 do LootSlot(i) end
     end)
+
+    -- Hotkey nur gelten lassen, solange das Fenster sichtbar ist
+    panel:HookScript("OnShow", function() LW:BindHotkey() end)
+    panel:HookScript("OnHide", function() LW:BindHotkey() end)
+    local regen = CreateFrame("Frame")
+    regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+    regen:SetScript("OnEvent", function() LW:BindHotkey() end)
 
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("LOOT_OPENED")

@@ -8,7 +8,7 @@ local ADDON, ns = ...
 -- Farbwahlen nicht ablegt.
 local BORDER = { 0.42, 0.36, 0.25, 1 }
 ns.defaults = {
-    roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12,
+    roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
     winner = { size = 28, hold = 6,
         bg = { 0.03, 0.02, 0.01, 0.85 }, border = BORDER },
@@ -124,12 +124,26 @@ function ns.QualityColor(q)
     return 1, 1, 1
 end
 
+-- Diagnose: /sexyloot debug schaltet Ausgaben zu Würfen und Klicks ein
+function ns.Dbg(...)
+    if ns.debug then print("|cff66ccffSexyLoot debug|r", ...) end
+end
+
 function ns.Short(name)
     if not name then return "?" end
     return Ambiguate and Ambiguate(name, "short") or name
 end
 
 ns.classByName = {}
+
+-- Auf diesem Client kennt die Gruppenliste nur den Vornamen ("Arak"), der Chat
+-- den ganzen Namen ("Arak Ragerunner"). Beide Formen gelten als derselbe Spieler,
+-- wenn der kürzere ein Wortanfang des längeren ist.
+function ns.SameName(a, b)
+    if not (a and b) then return false end
+    if a == b then return true end
+    return a:sub(1, #b + 1) == b .. " " or b:sub(1, #a + 1) == a .. " "
+end
 
 local function AddUnit(list, unit)
     if not UnitExists(unit) then return end
@@ -159,6 +173,11 @@ end
 function ns.ColorName(name)
     name = ns.Short(name)
     local class = ns.classByName[name]
+    if not class then
+        for known, c in pairs(ns.classByName) do
+            if ns.SameName(known, name) then class = c break end
+        end
+    end
     local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
     if c then return ("|cff%02x%02x%02x%s|r"):format(c.r * 255, c.g * 255, c.b * 255, name) end
     return name
@@ -237,6 +256,9 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Feed:Test()
     elseif msg == "mine" then
         ns.MyLoot:Test()
+    elseif msg == "debug" then
+        ns.debug = not ns.debug
+        print("|cffe8c26aSexyLoot|r: debug " .. (ns.debug and "an" or "aus"))
     elseif msg == "winner" then
         ns.Actions.testWinner()
     elseif msg == "test" then

@@ -26,7 +26,9 @@ No more guessing who rolled what.
 - 🔍 **Tooltips:** hover the item to see the game's normal item tooltip.
 - 🔒 **Honest buttons:** they only lock once your choice has actually gone through. If you cancel the confirmation on a Bind-on-Pickup item, you can still choose again.
 - ⬆️ **Growth direction** up or down, with adjustable spacing.
-- 📋 **Rolls one below the other:** every player gets their own line, best result on top, font size adjustable.
+- 📋 **Rolls as a table:** every player gets their own line with choice icon, class-colored name and the roll on the right. Best result on top, passes dimmed, the winner in gold with a check mark. Font size adjustable.
+- 📦 **Many items at once:** if the list gets taller than the adjustable maximum height, older rows collapse to item, buttons and a short line ("2 of 5 have chosen"). Hover the short line to see every roll. Rows where you still have to choose stay open where possible.
+- ➖ **Collapsible:** clicking the header of a roll row (plus/minus icon) collapses or expands the player list. Shift or Ctrl click still links the item.
 - ⏳ **Stays after the roll:** the window only disappears after an adjustable time (3 to 30 seconds).
 - 🔄 **Survives a reload:** a running roll is restored afterwards.
 
@@ -42,7 +44,7 @@ Replaces the default loot window.
 
 - 🌈 **Quality colors** for border and name, stack count on the icon.
 - 🖱️ **Click to loot**, Shift-click links the item in chat.
-- ✅ **"Loot all"** with one click.
+- ✅ **"Loot all"** with one click or by **hotkey**, which you set in Edit Mode (modifiers like Ctrl, Alt or Shift work too).
 - 🪙 **Auto loot** is supported.
 - 🩶 **Auto-loot grey items** (optional).
 - 🏷️ **Group loot label:** you choose from which quality an item is labeled as group loot.
@@ -87,7 +89,7 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 
 | Window | Options |
 | --- | --- |
-| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Spacing between windows · Font size of rolls · Show window after the roll (seconds) · Start test roll |
+| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Spacing between windows · Font size of rolls · Maximum list height · Show window after the roll (seconds) · Start test roll |
 | 🏆 Winner announcement | Font size · Display time · Show test winner |
 | 🎁 Loot window | Auto-loot grey items · Group loot label from quality · Icon size · Open test loot |
 | 📜 Group feed | Hide timestamps · Sort roll details by player order · Width · Height · Font size · Clear feed |

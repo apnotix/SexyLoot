@@ -1,9 +1,20 @@
 # Changelog
 
+## 0.1.8
+
+- Behoben: Bedarf/Gier/Passen reagierten bei echten Würfen nicht, wenn die Zeile vorher als Edit-Mode-Vorschau gedient hatte (altes preview-Flag blieb im Pool stehen). Danach funktionierte auch die Gewinner-Anzeige für diese Zeile nicht.
+- Rollfenster: Jede Zeile lässt sich per Klick auf den Kopf ein- und ausklappen (Plus/Minus-Symbol).
+- Rollfenster: Bei vielen Items gleichzeitig klappen ältere Zeilen ein, sobald die einstellbare Maximalhöhe überschritten wird (Kurzzeile mit Tooltip). Die Liste ragt nicht mehr aus dem Bildschirm.
+- Rollfenster: Neue Darstellung der einzelnen Würfe als Tabelle (Symbol, Name, Wurf rechts, Gewinner golden mit Haken, gedimmtes Passen; ein Ergebnisstreifen erscheint nur, wenn alle gepasst haben).
+- Behoben: Das Rollfenster verschwand manchmal, obwohl andere noch würfelten (Cancel-Ereignis nach der eigenen Wahl). Es bleibt jetzt, solange der Wurf läuft.
+- Rollfenster: Transmog-Würfe werden unterstützt (der Gier-Button würfelt dann auf Transmog). Gesperrte Buttons zeigen jetzt ihren Tooltip mit dem Grund.
+- Behoben: Nach einem Reload fehlten die schon gefallenen Wahlen und Würfe eines laufenden Wurfs. Sie werden jetzt aus der Loot-Historie des Clients geladen, auch die eigene Wahl.
+- Beutefenster: Für "Alles nehmen" lässt sich im Edit Mode ein Hotkey festlegen (und wieder entfernen). Er gilt, solange das Beutefenster offen ist. Der Hotkey läuft über ein Override-Binding, nicht über eine Tastaturabfrage am Fenster (die schluckte das Loslassen von Tasten).
+
 ## 0.1.7
 
 - Meine Beute: Statt der Zeit steht jetzt der Verkaufswert pro Eintrag da, bei Stapeln für den ganzen Stapel. Die Option "Zeitangabe ausblenden" heißt jetzt "Wert pro Eintrag ausblenden", der Gesamtwert "Gesamtwert ausblenden".
-- Behoben: Mitspieler standen beim Würfeln doppelt in der Liste (mit und ohne Realm-Namen).
+- Behoben: Mitspieler standen beim Würfeln doppelt in der Liste (mit und ohne Realm-Namen, kurzer und langer Name wie "Arak" und "Arak Ragerunner").
 - Übersetzung: Deutsch und Englisch. Nicht-deutsche Clients zeigen Englisch, Bedarf/Gier/Passen kommen aus dem Spiel.
 
 ## 0.1.5

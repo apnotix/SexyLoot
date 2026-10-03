@@ -31,7 +31,7 @@ end
 function W:Display(player, link, pick, roll, sticky)
     if not panel or not link then return end
     Style()
-    local me = ns.Short(player) == ns.Short(UnitName("player"))
+    local me = ns.SameName(ns.Short(player), ns.Short(UnitName("player")))
     panel.title:SetText(me and ("|cff33ff66" .. T["Du gewinnst!"] .. "|r") or T("%s gewinnt!", ns.ColorName(player)))
     panel.item:SetText(link)
     panel.detail:SetText(pick and ("|cffbbbbbb" .. LABEL[pick] .. (roll and (" " .. roll) or "") .. "|r") or "")
