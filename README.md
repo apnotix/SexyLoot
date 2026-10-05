@@ -29,7 +29,7 @@ Kein Rätselraten mehr, wer was gewürfelt hat.
 - 📋 **Würfe als Tabelle:** Jeder Spieler hat eine eigene Zeile mit Wahl-Symbol, Name in Klassenfarbe und dem Wurf rechts. Bestes Ergebnis oben, Passen gedimmt, der Gewinner golden mit Haken. Schriftgröße einstellbar.
 - 📦 **Viele Items gleichzeitig:** Wird die Liste höher als die einstellbare Maximalhöhe, klappen ältere Zeilen auf Item, Buttons und eine Kurzzeile („2 von 5 haben gewählt“) ein. Mit der Maus über der Kurzzeile siehst du alle Würfe. Zeilen, bei denen du noch wählen musst, bleiben möglichst offen.
 - ➖ **Ein- und ausklappbar:** Ein Klick auf den Kopf einer Rollzeile (Plus/Minus-Symbol) klappt die Spielerliste ein oder aus. Shift- oder Strg-Klick verlinkt weiter das Item.
-- ⏳ **Bleibt nach dem Wurf stehen:** Das Fenster verschwindet erst nach einer einstellbaren Zeit (3 bis 30 Sekunden).
+- ⏳ **Bleibt nach dem Wurf stehen:** Das Fenster verschwindet erst nach einer einstellbaren Zeit (3 bis 30 Sekunden). Ein Countdown („Schließt in 7s“) und die leerlaufende Leiste zeigen, wann.
 - 🔄 **Überlebt einen Reload:** Ein laufender Wurf wird danach wiederhergestellt.
 
 ### 🏆 Gewinner-Anzeige
@@ -37,6 +37,8 @@ Wer einen Wurf gewinnt, erscheint groß mitten auf dem Bildschirm.
 
 - 🖼️ **Item mit Symbol und Qualitätsfarbe**, dazu Name, Bedarf/Gier und Wurf.
 - 🙋 **„Du gewinnst!“**, wenn du es bist.
+- ✨ **Auffällig:** Ein pulsierender Schein in Qualitätsfarbe (bei dir selbst grün), ein glühendes Symbol mit Stern und eine weiche Ein- und Ausblend-Animation.
+- 📚 **Mehrere Gewinner:** Gewinnen mehrere kurz nacheinander, stehen die Karten untereinander, jede mit eigenem Timer (1 bis 5 gleichzeitig).
 - 📏 **Schriftgröße** und **Anzeigedauer** einstellbar.
 
 ### 🎁 Beutefenster
@@ -47,6 +49,7 @@ Ersetzt das Standard-Beutefenster.
 - ✅ **„Alles nehmen“** mit einem Klick oder per **Hotkey**, den du im Edit Mode festlegst (auch mit Strg, Alt oder Umschalt).
 - 🪙 **Auto-Loot** wird unterstützt.
 - 🩶 **Graue Items automatisch** einsammeln (optional).
+- 💰 **Geld** wird automatisch eingesammelt (abschaltbar).
 - 🏷️ **Gruppenloot-Markierung:** Ab welcher Qualität ein Item als Gruppenloot beschriftet wird, stellst du selbst ein.
 - 🔎 **Symbolgröße** von 24 bis 48 Pixel.
 
@@ -58,6 +61,14 @@ Wer hat was bekommen?
 - 🕐 **Zeitstempel** (abschaltbar), **Mausrad** zum Blättern.
 - 🌫️ **Blendet sich aus:** Nachrichten verschwinden nach einstellbarer Zeit (5 bis 120 Sekunden, abschaltbar). Beim Scrollen kommen sie wieder.
 - 🔤 **Breite**, **Höhe** und **Schriftgröße** einstellbar (die Zeilenzahl ergibt sich daraus).
+
+### 🎯 Freie Würfe
+Für Kisten und alles, wobei die Gruppe von Hand mit `/roll` würfelt.
+
+- 👥 **Erscheint automatisch,** sobald mindestens zwei Spieler gewürfelt haben (abschaltbar).
+- 🥇 **Der höchste Wurf steht oben,** golden mit Haken, bei Gleichstand mehrere. Andere Würfelbereiche als 1–100 stehen dabei und werden fair verglichen.
+- 📣 **Gewinner ansagen:** Ein Button im Fenster schreibt den Gewinner (bei Gleichstand alle) in einen Kanal deiner Wahl: automatisch (Instanz, Schlachtzug, Gruppe, sonst Sagen), Sagen, Gruppe, Schlachtzug, Instanz, Gilde, Schreien oder ein nummerierter Chatkanal. Den Kanal schaltest du im Edit Mode durch.
+- ⏱️ **Leert sich selbst:** Nach einer einstellbaren Zeit ohne neuen Wurf (5 bis 120 Sekunden) verschwindet die Liste, eine Leiste und „Schließt in 12s“ zeigen wann.
 
 ### 🎒 Meine Beute
 Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
@@ -73,7 +84,7 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. SexyLoot nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
 
-**Jedes der fünf Fenster bietet:**
+**Jedes der sechs Fenster bietet:**
 
 | Option | Wirkung |
 | --- | --- |
@@ -90,7 +101,8 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 | Fenster | Optionen |
 | --- | --- |
 | 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
-| 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Test-Gewinner anzeigen |
+| 🎯 Freie Würfe | Schon bei einem Würfler anzeigen · Liste leeren nach (Sekunden ohne Wurf) · Maximale Zeilen · Schriftgröße · Ansage-Kanal wechseln · Kanal-Nummer · Test-Würfe starten |
+| 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Gleichzeitig angezeigte Gewinner · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
 | 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |

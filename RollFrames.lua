@@ -208,11 +208,20 @@ local function NewRow()
     r.result = r:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     r.result:SetJustifyH("CENTER")
 
+    -- Rest-Anzeige der Leiste: vor der Entscheidung die Rollzeit, danach die Zeit,
+    -- bis die Zeile verschwindet
+    r.timerText = r:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    r.timerText:SetPoint("TOPRIGHT", r, "TOPRIGHT", -8, -37)
+    r.timerText:SetJustifyH("RIGHT")
+
     r:SetScript("OnUpdate", function(self)
         if not self.expires then return end
         local left = math.max(0, self.expires - GetTime())
         self.bar:SetValue(left)
-        if left < self.duration * 0.25 then
+        if self.done then
+            self.bar:SetStatusBarColor(0.55, 0.6, 0.7)
+            self.timerText:SetText(T("Schließt in %ds", math.ceil(left)))
+        elseif left < self.duration * 0.25 then
             self.bar:SetStatusBarColor(0.85, 0.28, 0.17)
         else
             self.bar:SetStatusBarColor(0.9, 0.76, 0.42)
@@ -231,6 +240,7 @@ local function Acquire()
     -- aus dem Edit Mode landen im Pool).
     r.preview, r.transmog, r.compact, r.userCollapsed = nil, false, false, nil
     r.fullH, r.nLines, r.names, r.expires = nil, 0, nil, nil
+    r.timerText:SetText("")
     r.bar:Show()
     r:Show()
     active[#active + 1] = r
@@ -247,6 +257,7 @@ function RF:Remove(r)
     if not found then return end
     r.gen = r.gen + 1
     r.expires = nil
+    r.timerText:SetText("")
     r:Hide()
     pool[#pool + 1] = r
     self:Layout()
@@ -549,8 +560,12 @@ end
 function RF:Finish(r, winner)
     if r.done then return end
     r.done, r.winner = true, winner
-    r.expires = nil
-    r.bar:Hide()
+    -- Die Leiste läuft jetzt über die Standzeit leer (siehe OnUpdate)
+    local hold = ns.cfg.roll.hold
+    r.duration, r.expires = hold, GetTime() + hold
+    r.bar:SetMinMaxValues(0, hold)
+    r.bar:SetValue(hold)
+    r.bar:Show()
     for _, k in ipairs(KINDS) do r.btn[k]:Disable(); r.btn[k]:SetAlpha(0.3) end
     self:UpdateChips(r)
     ns.Feed:AddRoll(r)

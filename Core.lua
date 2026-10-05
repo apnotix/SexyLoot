@@ -10,9 +10,11 @@ local BORDER = { 0.42, 0.36, 0.25, 1 }
 ns.defaults = {
     roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
-    winner = { size = 28, hold = 6,
+    freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1,
+        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+    winner = { size = 28, hold = 6, max = 3,
         bg = { 0.03, 0.02, 0.01, 0.85 }, border = BORDER },
-    loot = { auto = false, thr = 2, icon = 34,
+    loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
         bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
@@ -25,9 +27,10 @@ ns.Apply   = {}   -- ns.Apply[key](cfg) wendet die Einstellungen an
 ns.modules = {}   -- Module mit :Init()
 
 -- roll: Platz für etwa vier Rollzeilen, damit der Edit-Mode-Rahmen alle Zeilen umfasst
-local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 } }
+local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, freeroll = { 260, 200 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 } }
 local START = {
     roll = { 240, 520 },
+    freeroll = { 1000, 400 },
     winner = { 720, 640 },      -- ungefähr Bildschirmmitte, oberhalb des Zentrums
     loot = { 900, 420 },
     feed = { 30, 190 },
@@ -60,6 +63,7 @@ ns.Actions = {
     testRoll  = function() ns.RollFrames:Test() end,
     openLoot  = function() ns.LootWindow:Test() end,
     testWinner = function() ns.Winner:Test() end,
+    testFree = function() ns.FreeRolls:Test() end,
     clearFeed = function() ns.Feed:Clear() end,
     clearMine = function() ns.MyLoot:Clear() end,
 }
@@ -259,12 +263,14 @@ SlashCmdList.SEXYLOOT = function(msg)
     elseif msg == "debug" then
         ns.debug = not ns.debug
         print("|cffe8c26aSexyLoot|r: debug " .. (ns.debug and "an" or "aus"))
+    elseif msg == "freeroll" then
+        ns.Actions.testFree()
     elseif msg == "winner" then
         ns.Actions.testWinner()
     elseif msg == "test" then
         ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test()
     else
-        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | winner")
+        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | winner | freeroll")
         print(ns.T["Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken."])
     end
 end

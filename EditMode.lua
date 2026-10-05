@@ -88,14 +88,29 @@ function ns.SetupEditMode()
         Standard(f, "winner", T["SexyLoot: Gewinner-Anzeige"])
         Slider(f, "winner", "size", T["Schriftgröße"], 18, 40, 2)
         Slider(f, "winner", "hold", T["Anzeigedauer (Sekunden)"], 2, 15, 1)
+        Slider(f, "winner", "max", T["Gleichzeitig angezeigte Gewinner"], 1, 5, 1)
         Colors(f, "winner")
         lib:RegisterCustomButton(f, T["Test-Gewinner anzeigen"], ns.Actions.testWinner)
+    end
+
+    do  -- SexyLoot: Freie Würfe (/roll, z. B. bei einer Kiste)
+        local f = ns.frames.freeroll
+        Standard(f, "freeroll", T["SexyLoot: Freie Würfe"])
+        Checkbox(f, "freeroll", "single", T["Schon bei einem Würfler anzeigen"])
+        Slider(f, "freeroll", "hold", T["Liste leeren nach (Sekunden ohne Wurf)"], 5, 120, 5)
+        Slider(f, "freeroll", "rows", T["Maximale Zeilen"], 3, 20, 1)
+        Slider(f, "freeroll", "size", T["Schriftgröße"], 10, 22, 1)
+        lib:RegisterCustomButton(f, T["Ansage-Kanal wechseln"], function() ns.FreeRolls:NextChannel() end)
+        Slider(f, "freeroll", "chanNum", T["Kanal-Nummer (für „Kanal Nr.“)"], 1, 10, 1)
+        Colors(f, "freeroll")
+        lib:RegisterCustomButton(f, T["Test-Würfe starten"], ns.Actions.testFree)
     end
 
     do  -- SexyLoot: Beutefenster
         local f = ns.frames.loot
         Standard(f, "loot", T["SexyLoot: Beutefenster"])
         Checkbox(f, "loot", "auto", T["Graue Items automatisch einsammeln"])
+        Checkbox(f, "loot", "noAutoMoney", T["Geld nicht automatisch einsammeln"])
         Slider(f, "loot", "thr", T["Gruppenloot-Markierung ab Qualität (2 grün, 3 blau, 4 episch)"], 2, 4, 1)
         Slider(f, "loot", "icon", T["Symbolgröße"], 24, 48, 2)
         Colors(f, "loot")

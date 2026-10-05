@@ -125,15 +125,27 @@ function LW:OnOpened(autoLoot)
     wipe(slots)
     self.preview = false
     for i = 1, GetNumLootItems() do
-        local isItem = LootSlotHasItem(i)
+        -- LootSlotHasItem ist seit MoP generisch (Item, Geld UND Währung), der
+        -- Slot-Typ steckt in GetLootSlotType (1 Item, 2 Geld, 3 Währung)
+        local slotType = GetLootSlotType and GetLootSlotType(i)
+        local isItem, isMoney
+        if slotType then
+            isItem = slotType == (LOOT_SLOT_ITEM or 1)
+            isMoney = slotType == (LOOT_SLOT_MONEY or 2) or slotType == (LOOT_SLOT_CURRENCY or 3)
+        else
+            isItem = LootSlotHasItem(i)
+            isMoney = not isItem
+        end
         local icon, name, qty, a, b, c = GetLootSlotInfo(i)
+        ns.Dbg("Slot", i, "Typ", slotType, "Item", isItem, "Geld", isMoney, name)
         if icon then
             -- Klassische Clients liefern (icon, name, qty, quality, locked, ...),
             -- neuere (icon, name, qty, currencyID, quality, locked, ...)
             local quality, locked
             if type(b) == "number" then quality, locked = b, c else quality, locked = a, b end
             quality = quality or 1
-            if cfg.auto and isItem and quality == 0 then
+            -- Graue Items (Option) und Geld/Währung werden gleich eingesammelt
+            if (cfg.auto and isItem and quality == 0) or (isMoney and not cfg.noAutoMoney) then
                 LootSlot(i)
             else
                 slots[#slots + 1] = {
@@ -213,12 +225,15 @@ end
 --------------------------------------------------------------------------
 -- Hotkey für "Alles nehmen"
 --------------------------------------------------------------------------
--- XML-Keybindings sind im Forever-Client nicht möglich. Darum wird der Hotkey
--- per Override-Binding auf den Button gelegt, solange das Beutefenster offen ist.
--- (Eine Tastaturabfrage am Fenster selbst schluckt auch das Loslassen von
--- Tasten, dann läuft der Charakter weiter.) Das Binding lässt sich im Kampf
--- nicht setzen: öffnet sich das Fenster im Kampf, gilt der Hotkey erst danach.
--- Der Hotkey liegt in SexyLootDB.hotkey (z. B. "F", "CTRL-F").
+-- XML-Keybindings sind im Forever-Client nicht möglich. Darum hört ein eigener
+-- Frame auf Tasten, solange das Beutefenster sichtbar ist (so macht es auch
+-- Dialogue UI): er liegt in der Strata TOOLTIP, und in OnKeyDown wird per
+-- SetPropagateKeyboardInput(nicht behandelt) entschieden, ob die Taste an das
+-- Spiel weitergeht. Nur die Hotkey-Taste wird verschluckt, alles andere läuft
+-- normal durch. Im Kampf lässt sich die Weitergabe nicht ändern: dort ist die
+-- Abfrage im Kampf nur "mithören": der Hotkey löst "Alles nehmen" aus, die Taste
+-- geht aber zusätzlich ans Spiel (Leertaste springt dann auch).
+-- Der Hotkey liegt in SexyLootDB.hotkey (z. B. "SPACE", "CTRL-F").
 
 local MODS = { LSHIFT = 1, RSHIFT = 1, LCTRL = 1, RCTRL = 1, LALT = 1, RALT = 1, LMETA = 1, RMETA = 1 }
 
@@ -230,16 +245,21 @@ end
 
 local function Say(text) print("|cffe8c26aSexyLoot|r: " .. text) end
 
-local bindOwner
+local listener
+local lootOpen = false   -- LOOT_OPENED bis LOOT_CLOSED, unabhängig vom Anzeige-Zustand
 
-function LW:BindHotkey()
-    if not bindOwner then bindOwner = CreateFrame("Frame") end
-    if InCombatLockdown() then return end
-    ClearOverrideBindings(bindOwner)
-    local hk = SexyLootDB.hotkey
-    if hk and panel:IsShown() then
-        SetOverrideBindingClick(bindOwner, true, hk, "SexyLootAllButton")
-    end
+-- Der Listener hört IMMER mit, sobald ein Hotkey gesetzt ist. Ob das Beutefenster
+-- offen ist, wird erst beim Tastendruck geprüft. So gibt es keinen Zustand mehr,
+-- der mit dem Fenster auseinanderlaufen kann (verpasstes Ereignis, Kampf, ...).
+-- Alle anderen Tasten gehen unverändert durch (Weitergabe "ja", nach jedem
+-- Loslassen neu gesetzt). Im Kampf nur, wenn die Weitergabe vorher auf "ja" gestellt
+-- werden konnte, sonst würde der Frame im Kampf ALLE Tasten verschlucken.
+function LW:UpdateListener()
+    if not listener then return end
+    local want = SexyLootDB.hotkey and (not InCombatLockdown() or listener.passThrough)
+    listener:EnableKeyboard(want and true or false)
+    ns.Dbg("Hotkey-Abfrage", want and "an" or "aus", "Hotkey", SexyLootDB.hotkey,
+        "Beute offen", lootOpen, "Fenster", panel and panel:IsShown(), "Kampf", InCombatLockdown())
 end
 
 function LW:UpdateHotkey()
@@ -247,7 +267,7 @@ function LW:UpdateHotkey()
     local hk = SexyLootDB.hotkey
     allBtn:SetText(T["Alles nehmen"] .. (hk and (" |cffe8c26a" .. hk .. "|r") or ""))
     allBtn:SetWidth(hk and math.max(100, allBtn:GetTextWidth() + 24) or 100)
-    self:BindHotkey()
+    self:UpdateListener()
 end
 
 local capture
@@ -319,12 +339,59 @@ function LW:Init()
         for i = GetNumLootItems(), 1, -1 do LootSlot(i) end
     end)
 
-    -- Hotkey nur gelten lassen, solange das Fenster sichtbar ist
-    panel:HookScript("OnShow", function() LW:BindHotkey() end)
-    panel:HookScript("OnHide", function() LW:BindHotkey() end)
+    -- Hotkey-Abfrage: eigener Frame, nicht das Beutefenster selbst
+    listener = CreateFrame("Frame", nil, UIParent)
+    listener:SetFrameStrata("TOOLTIP")
+    listener:SetFrameLevel(10000)   -- ganz oben, damit uns kein anderer Frame die Taste vorwegnimmt
+    listener:SetScript("OnKeyDown", function(self, key)
+        local hk = SexyLootDB.hotkey
+        local combo = KeyCombo(key)
+        local combat = InCombatLockdown()
+        ns.Dbg("Taste", key, "als", combo, "Hotkey", hk, "Fenster", panel:IsShown(), "Kampf", combat)
+        local hit = hk and panel:IsShown() and combo == hk
+        if hit then allBtn:Click() end
+        -- Das Fenster schließt sich nach dem ersten Druck. Hält man die Taste länger,
+        -- käme die Wiederholung bei geschlossenem Fenster beim Spiel an (Sprung).
+        -- Darum Wiederholungen derselben Taste verbrauchen, bis sie losgelassen wird.
+        if hit then self.heldKey = key
+        elseif self.heldKey and self.heldKey == key then hit = true end
+        -- Die Weitergabe lässt sich im Kampf nicht ändern: dort bleibt sie "ja"
+        if not combat then
+            self:SetPropagateKeyboardInput(not hit)
+            if hit then
+                -- gleich danach wieder auf "weitergeben", falls ein Kampf beginnt
+                C_Timer.After(0, function()
+                    if not InCombatLockdown() then self:SetPropagateKeyboardInput(true) end
+                end)
+            end
+        end
+    end)
+    -- Nach einem verbrauchten Tastendruck bleibt die Weitergabe auf "nein". Ohne
+    -- OnKeyUp würde dann das Loslassen einer anderen Taste (z. B. der Lauftaste)
+    -- verschluckt, und der Charakter liefe weiter. Darum bei jedem Loslassen
+    -- wieder auf "weitergeben" stellen.
+    listener:SetScript("OnKeyUp", function(self, key)
+        if self.heldKey == key then self.heldKey = nil end
+        if not InCombatLockdown() then self:SetPropagateKeyboardInput(true) end
+    end)
+    -- Weitergabe von Anfang an auf "ja", solange wir nicht im Kampf sind; nur dann
+    -- darf die Abfrage im Kampf an bleiben (siehe UpdateListener)
+    local function PassThrough()
+        if not InCombatLockdown() then
+            listener:SetPropagateKeyboardInput(true)
+            listener.passThrough = true
+        end
+    end
+    PassThrough()
+    panel:HookScript("OnShow", function() LW:UpdateListener() end)
+    panel:HookScript("OnHide", function() LW:UpdateListener() end)
     local regen = CreateFrame("Frame")
+    regen:RegisterEvent("PLAYER_REGEN_DISABLED")
     regen:RegisterEvent("PLAYER_REGEN_ENABLED")
-    regen:SetScript("OnEvent", function() LW:BindHotkey() end)
+    regen:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_REGEN_ENABLED" then PassThrough() end
+        LW:UpdateListener()
+    end)
 
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("LOOT_OPENED")
@@ -333,8 +400,14 @@ function LW:Init()
     ev:RegisterEvent("LOOT_SLOT_CHANGED")
     ev:RegisterEvent("LOOT_BIND_CONFIRM")
     ev:SetScript("OnEvent", function(_, event, a)
-        if event == "LOOT_OPENED" then LW:OnOpened(a)
-        elseif event == "LOOT_CLOSED" then LW:Close()
+        if event == "LOOT_OPENED" then
+            lootOpen = true
+            LW:OnOpened(a)
+            LW:UpdateListener()
+        elseif event == "LOOT_CLOSED" then
+            lootOpen = false
+            LW:Close()
+            LW:UpdateListener()
         elseif event == "LOOT_SLOT_CLEARED" then LW:OnCleared(a)
         elseif event == "LOOT_SLOT_CHANGED" then LW:OnOpened()
         elseif event == "LOOT_BIND_CONFIRM" then LW:BindConfirm(a) end

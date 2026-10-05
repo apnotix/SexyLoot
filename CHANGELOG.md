@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.9
+
+- Beutefenster: Geld (und Währung) wird automatisch eingesammelt, abschaltbar mit "Geld nicht automatisch einsammeln". Erkannt über GetLootSlotType, denn LootSlotHasItem meldet auch bei Geld "ja".
+- Beutefenster-Hotkey: Das Loslassen anderer Tasten wird nach einem Hotkey-Druck nicht mehr verschluckt (der Charakter lief sonst weiter).
+- Gewinner-Anzeige: Abgerundete Karte mit rundem, weichem Schein, abgerundetem Symbol mit Qualitätsring (eigene Texturen in media/, erzeugt mit tools/make_textures.py).
+- Gewinner-Anzeige: Pulsierender Schein in Qualitätsfarbe, glühendes Symbol mit Stern, Zierlinie, Ein- und Ausblend-Animation.
+- Gewinner-Anzeige: Gewinnen mehrere kurz hintereinander, stehen die Karten untereinander (neueste oben), jede mit eigenem Timer. Neuer Regler "Gleichzeitig angezeigte Gewinner" (1 bis 5, Standard 3).
+- Freie Würfe: Schaltfläche "Gewinner ansagen" schreibt den Gewinner in einen einstellbaren Kanal (Automatisch, Sagen, Gruppe, Schlachtzug, Instanz, Gilde, Schreien, Chatkanal-Nummer).
+- Neu: Fenster "Freie Würfe" für manuelle /roll-Würfe (z. B. bei Kisten). Ab zwei Würflern erscheint die Liste, der höchste Wurf steht oben. Nach einer einstellbaren Zeit ohne neuen Wurf wird sie geleert und ausgeblendet (`/sexyloot freeroll` zum Testen).
+- Rollfenster: Nach dem Wurf zeigt die Leiste einen Countdown bis zum Verschwinden, dazu steht "Schließt in Ns" im Kopf.
+
 ## 0.1.8
 
 - Behoben: Bedarf/Gier/Passen reagierten bei echten Würfen nicht, wenn die Zeile vorher als Edit-Mode-Vorschau gedient hatte (altes preview-Flag blieb im Pool stehen). Danach funktionierte auch die Gewinner-Anzeige für diese Zeile nicht.
@@ -9,7 +20,7 @@
 - Behoben: Das Rollfenster verschwand manchmal, obwohl andere noch würfelten (Cancel-Ereignis nach der eigenen Wahl). Es bleibt jetzt, solange der Wurf läuft.
 - Rollfenster: Transmog-Würfe werden unterstützt (der Gier-Button würfelt dann auf Transmog). Gesperrte Buttons zeigen jetzt ihren Tooltip mit dem Grund.
 - Behoben: Nach einem Reload fehlten die schon gefallenen Wahlen und Würfe eines laufenden Wurfs. Sie werden jetzt aus der Loot-Historie des Clients geladen, auch die eigene Wahl.
-- Beutefenster: Für "Alles nehmen" lässt sich im Edit Mode ein Hotkey festlegen (und wieder entfernen). Er gilt, solange das Beutefenster offen ist. Der Hotkey läuft über ein Override-Binding, nicht über eine Tastaturabfrage am Fenster (die schluckte das Loslassen von Tasten).
+- Beutefenster: Für "Alles nehmen" lässt sich im Edit Mode ein Hotkey festlegen (und wieder entfernen). Er gilt, solange das Beutefenster offen ist. Der Hotkey läuft über einen eigenen Tastatur-Frame, der nur die Hotkey-Taste abfängt und alle anderen Tasten weiterreicht (wie bei Dialogue UI), auch im Kampf (dort geht die Taste zusätzlich ans Spiel, weil sich die Weitergabe im Kampf nicht ändern lässt). Auch Leertaste ist möglich.
 
 ## 0.1.7
 

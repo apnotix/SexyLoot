@@ -19,5 +19,6 @@ RollFrames.lua
 LootWindow.lua
 Feed.lua
 Winner.lua
+FreeRolls.lua
 MyLoot.lua
 EditMode.lua

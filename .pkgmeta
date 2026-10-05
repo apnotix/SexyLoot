@@ -9,3 +9,4 @@ ignore:
   - README.md
   - README.en.md
   - .github
+  - tools
