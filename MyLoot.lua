@@ -152,18 +152,28 @@ function MyLoot:Refresh()
     local n = math.max(1, math.min(shown, #entries))
     local height = 24 + n * 20 + 6
     panel:SetHeight(height)
-    ns.frames.mine:SetHeight(height)
+    -- Der Anker behält die Höhe für alle Zeilen, das Fenster hängt oben (nach unten
+    -- wachsen) oder steht unten (nach oben wachsen).
+    ns.frames.mine:SetHeight(24 + math.max(1, shown) * 20 + 6)
+end
+
+local function Place()
+    local down = ns.cfg.mine.growDown
+    local a = down and "TOP" or "BOTTOM"
+    panel:ClearAllPoints()
+    panel:SetPoint(a .. "LEFT", ns.frames.mine, a .. "LEFT")
+    panel:SetPoint(a .. "RIGHT", ns.frames.mine, a .. "RIGHT")
 end
 
 ns.Apply.mine = function()
+    Place()
     ns.ApplyStyle(panel, "mine")
     MyLoot:Refresh()
 end
 
 function MyLoot:Init()
     panel = ns.Panel(ns.frames.mine)
-    panel:SetPoint("TOPLEFT", ns.frames.mine, "TOPLEFT")
-    panel:SetPoint("TOPRIGHT", ns.frames.mine, "TOPRIGHT")
+    Place()
 
     title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 8, -7)

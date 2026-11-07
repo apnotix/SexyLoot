@@ -77,6 +77,13 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 - 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
 - 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer.
 - 🔢 **3 bis 10 Einträge**, alles abschaltbar.
+- ⬇️ **Wachstumsrichtung:** Die Liste wächst nach oben oder, per Einstellung, nach unten.
+
+### ✨ Loot-Einblendung
+Gerade gelootete Items erscheinen kurz als Zeilen mit Symbol, Name, Anzahl und Verkaufswert und blenden dann aus. Gleiche Items werden zusammengezählt. Einstellbar: Anzeigedauer, Anzahl Zeilen, Wert ausblenden. `/sexyloot toast` zeigt Beispiele.
+
+### 💰 Geld
+Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in deinen Taschen. Der Tooltip zeigt das Geld all deiner Charaktere (sobald du sie einmal gespielt hast). Position und Farben im Edit Mode.
 
 ---
 
@@ -105,7 +112,8 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Gleichzeitig angezeigte Gewinner · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
-| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Anzahl Einträge · Liste leeren |
+| 💰 Geld | Nur Position und Farben |
+| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Liste nach unten wachsen lassen · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
 Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würfe, eine Testbeute, Feed-Zeilen und gelootete Items. So siehst du sofort, wie Skalierung, Symbolgröße und Zeilenzahl aussehen. Beim Verlassen verschwinden sie wieder.

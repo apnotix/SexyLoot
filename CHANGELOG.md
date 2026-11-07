@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Geld-Rahmen: Tooltip mit dem Geld aller Charaktere deines Accounts (nach Geld sortiert, mit Gesamtsumme). Ein Charakter erscheint, sobald du ihn einmal gespielt hast. Neuer Button "Gespeicherte Charaktere zurücksetzen".
+- Loot-Einblendung: Mit der Maus über einer Zeile bleibt sie eingeblendet und zeigt den Item-Tooltip (Shift-Klick verlinkt das Item im Chat).
+- Neu: Loot-Einblendung (Symbol, Name, Anzahl, Verkaufswert) für gerade gelootete Items. Zeilen blenden nach einstellbarer Zeit aus, gleiche Items werden zusammengezählt (`/sexyloot toast` zum Testen).
+- "Zuletzt gelootet": Neue Option "Liste nach unten wachsen lassen" (Standard: nach oben).
+- Neu: Kleiner Rahmen "Geld" mit aktuellem Geld und Verkaufswert aller Items in den Taschen (Position und Farben im Edit Mode).
+
 ## 0.1.9
 
 - Beutefenster: Geld (und Währung) wird automatisch eingesammelt, abschaltbar mit "Geld nicht automatisch einsammeln". Erkannt über GetLootSlotType, denn LootSlotHasItem meldet auch bei Geld "ja".

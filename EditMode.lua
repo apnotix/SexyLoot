@@ -136,11 +136,28 @@ function ns.SetupEditMode()
     do  -- SexyLoot: Meine Beute
         local f = ns.frames.mine
         Standard(f, "mine", T["SexyLoot: Meine Beute"])
+        Checkbox(f, "mine", "growDown", T["Liste nach unten wachsen lassen"])
         Checkbox(f, "mine", "hideValue", T["Gesamtwert ausblenden"])
         Checkbox(f, "mine", "hideItemValue", T["Wert pro Eintrag ausblenden"])
         Checkbox(f, "mine", "noStack", T["Gleiche Items nicht stapeln"])
         Slider(f, "mine", "rows", T["Anzahl Einträge"], 3, 10, 1)
         Colors(f, "mine")
         lib:RegisterCustomButton(f, T["Liste leeren"], ns.Actions.clearMine)
+    end
+
+    do  -- SexyLoot: Loot-Einblendung
+        local f = ns.frames.toast
+        Standard(f, "toast", T["SexyLoot: Loot-Einblendung"])
+        Checkbox(f, "toast", "hideValue", T["Wert ausblenden"])
+        Slider(f, "toast", "hold", T["Anzeigedauer (Sekunden)"], 2, 20, 1)
+        Slider(f, "toast", "rows", T["Anzahl Zeilen"], 2, 10, 1)
+        lib:RegisterCustomButton(f, T["Test-Beute anzeigen"], function() ns.Toast:Test() end)
+    end
+
+    do  -- SexyLoot: Geld und Verkaufswert
+        local f = ns.frames.wallet
+        Standard(f, "wallet", T["SexyLoot: Geld"])
+        Colors(f, "wallet")
+        lib:RegisterCustomButton(f, T["Gespeicherte Charaktere zurücksetzen"], function() ns.Wallet:ResetChars() end)
     end
 end

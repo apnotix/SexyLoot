@@ -13,6 +13,17 @@ ns.T = T
 if GetLocale() == "deDE" then return end
 
 local en = {
+    ["Charaktere"] = "Characters",
+    ["Gesamt"] = "Total",
+    ["Gespeicherte Charaktere zurücksetzen"] = "Reset saved characters",
+    ["SexyLoot: Loot-Einblendung"] = "SexyLoot: Loot popup",
+    ["Wert ausblenden"] = "Hide value",
+    ["Anzahl Zeilen"] = "Number of rows",
+    ["Test-Beute anzeigen"] = "Show test loot",
+    ["Liste nach unten wachsen lassen"] = "Let list grow downwards",
+    ["Geld"] = "Money",
+    ["Verkaufswert"] = "Vendor value",
+    ["SexyLoot: Geld"] = "SexyLoot: Money",
     -- Feed / Rollfenster / Gewinner-Anzeige
     ["%s gewinnt %s"] = "%s wins %s",
     ["%s erhält %s"] = "%s receives %s",

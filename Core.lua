@@ -18,8 +18,10 @@ ns.defaults = {
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
         bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
-    mine = { hideValue = false, hideItemValue = false, noStack = false, rows = 7,
+    mine = { growDown = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
         bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+    toast = { hideValue = false, hold = 6, rows = 6 },
+    wallet = { bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
 }
 
 ns.frames  = {}   -- Anker-Fenster, die im Edit Mode bewegt werden
@@ -27,7 +29,7 @@ ns.Apply   = {}   -- ns.Apply[key](cfg) wendet die Einstellungen an
 ns.modules = {}   -- Module mit :Init()
 
 -- roll: Platz für etwa vier Rollzeilen, damit der Edit-Mode-Rahmen alle Zeilen umfasst
-local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, freeroll = { 260, 200 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 } }
+local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, freeroll = { 260, 200 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 }, wallet = { 200, 44 }, toast = { 300, 252 } }
 local START = {
     roll = { 240, 520 },
     freeroll = { 1000, 400 },
@@ -35,6 +37,8 @@ local START = {
     loot = { 900, 420 },
     feed = { 30, 190 },
     mine = { 900, 190 },
+    wallet = { 900, 130 },
+    toast = { 520, 560 },
 }
 
 function ns.CreateFrames()
@@ -260,6 +264,8 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Feed:Test()
     elseif msg == "mine" then
         ns.MyLoot:Test()
+    elseif msg == "toast" then
+        ns.Toast:Test()
     elseif msg == "debug" then
         ns.debug = not ns.debug
         print("|cffe8c26aSexyLoot|r: debug " .. (ns.debug and "an" or "aus"))
@@ -268,9 +274,9 @@ SlashCmdList.SEXYLOOT = function(msg)
     elseif msg == "winner" then
         ns.Actions.testWinner()
     elseif msg == "test" then
-        ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test()
+        ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test(); ns.Toast:Test()
     else
-        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | winner | freeroll")
+        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | toast | winner | freeroll")
         print(ns.T["Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken."])
     end
 end

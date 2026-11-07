@@ -103,7 +103,7 @@ end
 function Feed:OnChat(msg)
     local t = ns.ParseLoot(msg)
     if not t then return end
-    if t.self then ns.MyLoot:Add(t.item, t.count) end
+    if t.self then ns.MyLoot:Add(t.item, t.count); ns.Toast:Add(t.item, t.count) end
     if ns.LinkQuality(t.item) < 2 then return end
     local key = t.player .. ":" .. tostring(ns.ItemID(t.item))
     if recent[key] and GetTime() - recent[key] < 10 then

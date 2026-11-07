@@ -21,4 +21,6 @@ Feed.lua
 Winner.lua
 FreeRolls.lua
 MyLoot.lua
+LootToast.lua
+Wallet.lua
 EditMode.lua

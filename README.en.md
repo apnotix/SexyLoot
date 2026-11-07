@@ -70,6 +70,12 @@ For chests and anything where the group rolls by hand with `/roll`.
 - 📣 **Announce the winner:** a button in the window writes the winner (everyone on a tie) to a channel of your choice: automatic (instance, raid, party, else say), say, party, raid, instance, guild, yell or a numbered chat channel. You cycle the channel in Edit Mode.
 - ⏱️ **Clears itself:** after an adjustable time without a new roll (5 to 120 seconds) the list disappears, a bar and "Closes in 12s" show when.
 
+### ✨ Loot popup
+Items you just looted appear briefly as rows with icon, name, count and vendor value, then fade out. Identical items are added up. Options: display time, number of rows, hide value. `/sexyloot toast` shows samples.
+
+### 💰 Money
+Small frame with your current money and the vendor value of all items in your bags. The tooltip lists the money of all your characters (once each has been played). Position and colors in Edit Mode.
+
 ### 🎒 My loot
 Perfect while leveling: a small list of your latest finds.
 
@@ -105,7 +111,8 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | 🏆 Winner announcement | Font size · Display time · Winners shown at once · Show test winner |
 | 🎁 Loot window | Auto-loot grey items · Group loot label from quality · Icon size · Open test loot |
 | 📜 Group feed | Hide timestamps · Sort roll details by player order · Width · Height · Font size · Clear feed |
-| 🎒 My loot | Hide total value · Hide value per entry · Do not stack identical items · Number of entries · Clear list |
+| 💰 Money | Position and colors only |
+| 🎒 My loot | Hide total value · Hide value per entry · Do not stack identical items · Let list grow downwards · Number of entries · Clear list |
 
 ### 👀 Demo data in Edit Mode
 While Edit Mode is open, every window shows sample content: two rolls, a test loot, feed lines and looted items. That way you see right away how scale, icon size and line count look. The samples disappear when you leave Edit Mode.
