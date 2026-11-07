@@ -316,6 +316,7 @@ function LW:Init()
     panel:SetPoint("TOPLEFT", ns.frames.loot, "TOPLEFT")
     panel:SetPoint("TOPRIGHT", ns.frames.loot, "TOPRIGHT")
     panel:Hide()
+    panel:SetScript("OnShow", function(self) ns.FadeIn(self) end)
 
     title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 10, -9)

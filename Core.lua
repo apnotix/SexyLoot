@@ -6,22 +6,22 @@ local ADDON, ns = ...
 -- Farben (r, g, b, Deckkraft). Sie stehen in ns.cfg[key].bg / .border und
 -- werden zusätzlich in SexyLootDB.colors gespeichert, weil EditModeExpanded
 -- Farbwahlen nicht ablegt.
-local BORDER = { 0.42, 0.36, 0.25, 1 }
+local BORDER = { 0.85, 0.85, 0.9, 0.8 }
 ns.defaults = {
     roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
-        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1,
-        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     winner = { size = 28, hold = 6, max = 3,
-        bg = { 0.03, 0.02, 0.01, 0.85 }, border = BORDER },
+        bg = { 0.04, 0.05, 0.08, 0.88 }, border = BORDER },
     loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34,
-        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
-        bg = { 0.03, 0.02, 0.01, 0.7 }, border = BORDER },
+        bg = { 0.04, 0.05, 0.08, 0.72 }, border = BORDER },
     mine = { growDown = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
-        bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     toast = { hideValue = false, hold = 6, rows = 6 },
-    wallet = { bg = { 0.07, 0.05, 0.03, 0.92 }, border = BORDER },
+    wallet = { bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
 }
 
 ns.frames  = {}   -- Anker-Fenster, die im Edit Mode bewegt werden
@@ -76,16 +76,80 @@ ns.Actions = {
 -- Hilfsfunktionen
 --------------------------------------------------------------------------
 
+ns.MEDIA = "Interface/AddOns/SexyLoot/media/"
+
+-- Farbverlauf mit Alpha, neue und alte API
+function ns.Gradient(tex, orient, r, g, b, a1, a2)
+    tex:SetColorTexture(1, 1, 1, 1)
+    if CreateColor and tex.SetGradient then
+        tex:SetGradient(orient, CreateColor(r, g, b, a1), CreateColor(r, g, b, a2))
+    elseif tex.SetGradientAlpha then
+        tex:SetGradientAlpha(orient, r, g, b, a1, r, g, b, a2)
+    end
+end
+
+-- Neun Texturteile um ein Ziel: vier Ecken fest, vier Kanten und die Mitte gedehnt.
+--   texSize/tc: Kantenlänge der Textur und Eckgröße darin (Pixel)
+--   disp:       Eckgröße auf dem Bildschirm
+--   out:        wie weit das Ganze über das Ziel hinausragt
+-- Liefert ein Objekt mit :SetColor(r, g, b, a).
+function ns.NineSlice(parent, target, path, texSize, tc, disp, out, layer, sub)
+    local f = tc / texSize
+    local pieces = {}
+    local function tex(l, r, t, b)
+        local x = parent:CreateTexture(nil, layer, nil, sub or 0)
+        x:SetTexture(path)
+        x:SetTexCoord(l, r, t, b)
+        pieces[#pieces + 1] = x
+        return x
+    end
+    local tl = tex(0, f, 0, f);          tl:SetSize(disp, disp); tl:SetPoint("TOPLEFT", target, "TOPLEFT", -out, out)
+    local tr = tex(1 - f, 1, 0, f);      tr:SetSize(disp, disp); tr:SetPoint("TOPRIGHT", target, "TOPRIGHT", out, out)
+    local bl = tex(0, f, 1 - f, 1);      bl:SetSize(disp, disp); bl:SetPoint("BOTTOMLEFT", target, "BOTTOMLEFT", -out, -out)
+    local br = tex(1 - f, 1, 1 - f, 1);  br:SetSize(disp, disp); br:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", out, -out)
+    local top = tex(f, 1 - f, 0, f);     top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("BOTTOMRIGHT", tr, "BOTTOMLEFT")
+    local bot = tex(f, 1 - f, 1 - f, 1); bot:SetPoint("TOPLEFT", bl, "TOPRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
+    local lef = tex(0, f, f, 1 - f);     lef:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); lef:SetPoint("BOTTOMRIGHT", bl, "TOPRIGHT")
+    local rig = tex(1 - f, 1, f, 1 - f); rig:SetPoint("TOPLEFT", tr, "BOTTOMLEFT"); rig:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+    local mid = tex(f, 1 - f, f, 1 - f); mid:SetPoint("TOPLEFT", tl, "BOTTOMRIGHT"); mid:SetPoint("BOTTOMRIGHT", br, "TOPLEFT")
+    local obj = {}
+    function obj:SetColor(r, g, b, a)
+        for _, x in ipairs(pieces) do x:SetVertexColor(r, g, b, a or 1) end
+    end
+    return obj
+end
+
+-- Weiches Einblenden beim Erscheinen (Alpha-Animation, läuft einmal pro Aufruf)
+function ns.FadeIn(frame, seconds)
+    if not frame.fadeInAnim then
+        local ag = frame:CreateAnimationGroup()
+        local a = ag:CreateAnimation("Alpha")
+        if a.SetFromAlpha then
+            a:SetFromAlpha(0)
+            a:SetToAlpha(1)
+        else
+            a:SetChange(1)
+        end
+        a:SetSmoothing("OUT")
+        frame.fadeInAnim, frame.fadeInAlpha = ag, a
+    end
+    frame.fadeInAlpha:SetDuration(seconds or 0.18)
+    frame.fadeInAnim:Stop()
+    frame.fadeInAnim:Play()
+end
+
+-- Flaches Fenster wie die Loot-Einblendung: dunkle, leicht durchsichtige Fläche
+-- mit schmalem Balken links (Farbe: Randfarbe)
 function ns.Panel(parent)
-    local f = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate" or nil)
-    f:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 12,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    f:SetBackdropColor(0.07, 0.05, 0.03, 0.92)
-    f:SetBackdropBorderColor(0.42, 0.36, 0.25, 1)
+    local f = CreateFrame("Frame", nil, parent)
+    f.fill = f:CreateTexture(nil, "BACKGROUND")
+    f.fill:SetAllPoints()
+    f.fill:SetColorTexture(0.02, 0.02, 0.03, 0.78)
+    f.bar = f:CreateTexture(nil, "BORDER")
+    f.bar:SetPoint("TOPLEFT")
+    f.bar:SetPoint("BOTTOMLEFT")
+    f.bar:SetWidth(3)
+    f.bar:SetColorTexture(0.85, 0.85, 0.9, 0.8)
     return f
 end
 
@@ -111,8 +175,8 @@ function ns.ApplyStyle(panel, key)
     local cfg = ns.cfg and ns.cfg[key]
     if not (panel and cfg) then return end
     local bg, bd = cfg.bg, cfg.border
-    panel:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
-    panel:SetBackdropBorderColor(bd[1], bd[2], bd[3], bd[4])
+    panel.fill:SetColorTexture(bg[1], bg[2], bg[3], bg[4])
+    panel.bar:SetColorTexture(bd[1], bd[2], bd[3], bd[4])
 end
 
 function ns.QualityColor(q)
@@ -244,6 +308,10 @@ f:SetScript("OnEvent", function(_, _, name)
             end
         end
     end
+
+    -- Wachstumsrichtung von "Zuletzt gelootet": gilt für alle Edit-Mode-Layouts
+    -- (EME-Checkboxen sind pro Layout), darum eigener Schalter in SexyLootDB
+    ns.cfg.mine.growDown = SexyLootDB.mineGrowDown and true or false
 
     ns.CreateFrames()
     for _, m in ipairs(ns.modules) do m:Init() end

@@ -25,46 +25,7 @@ local GAP = 28      -- Abstand zwischen den Karten (Platz für den Schein)
 
 local cards, pool = {}, {}   -- sichtbare Karten (neueste zuerst) und freie Karten
 
--- Farbverlauf mit Alpha, neue und alte API
-local function Gradient(tex, orient, r, g, b, a1, a2)
-    tex:SetColorTexture(1, 1, 1, 1)
-    if CreateColor and tex.SetGradient then
-        tex:SetGradient(orient, CreateColor(r, g, b, a1), CreateColor(r, g, b, a2))
-    elseif tex.SetGradientAlpha then
-        tex:SetGradientAlpha(orient, r, g, b, a1, r, g, b, a2)
-    end
-end
-
--- Neun Texturteile um ein Ziel: vier Ecken fest, vier Kanten und die Mitte gedehnt.
---   texSize/tc: Kantenlänge der Textur und Eckgröße darin (Pixel)
---   disp:       Eckgröße auf dem Bildschirm
---   out:        wie weit das Ganze über das Ziel hinausragt
--- Liefert ein Objekt mit :SetColor(r, g, b, a).
-local function NineSlice(parent, target, path, texSize, tc, disp, out, layer, sub)
-    local f = tc / texSize
-    local pieces = {}
-    local function tex(l, r, t, b)
-        local x = parent:CreateTexture(nil, layer, nil, sub or 0)
-        x:SetTexture(path)
-        x:SetTexCoord(l, r, t, b)
-        pieces[#pieces + 1] = x
-        return x
-    end
-    local tl = tex(0, f, 0, f);          tl:SetSize(disp, disp); tl:SetPoint("TOPLEFT", target, "TOPLEFT", -out, out)
-    local tr = tex(1 - f, 1, 0, f);      tr:SetSize(disp, disp); tr:SetPoint("TOPRIGHT", target, "TOPRIGHT", out, out)
-    local bl = tex(0, f, 1 - f, 1);      bl:SetSize(disp, disp); bl:SetPoint("BOTTOMLEFT", target, "BOTTOMLEFT", -out, -out)
-    local br = tex(1 - f, 1, 1 - f, 1);  br:SetSize(disp, disp); br:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", out, -out)
-    local top = tex(f, 1 - f, 0, f);     top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("BOTTOMRIGHT", tr, "BOTTOMLEFT")
-    local bot = tex(f, 1 - f, 1 - f, 1); bot:SetPoint("TOPLEFT", bl, "TOPRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
-    local lef = tex(0, f, f, 1 - f);     lef:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); lef:SetPoint("BOTTOMRIGHT", bl, "TOPRIGHT")
-    local rig = tex(1 - f, 1, f, 1 - f); rig:SetPoint("TOPLEFT", tr, "BOTTOMLEFT"); rig:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
-    local mid = tex(f, 1 - f, f, 1 - f); mid:SetPoint("TOPLEFT", tl, "BOTTOMRIGHT"); mid:SetPoint("BOTTOMRIGHT", br, "TOPLEFT")
-    local obj = {}
-    function obj:SetColor(r, g, b, a)
-        for _, x in ipairs(pieces) do x:SetVertexColor(r, g, b, a or 1) end
-    end
-    return obj
-end
+local Gradient, NineSlice = ns.Gradient, ns.NineSlice
 
 -- Farbe des Scheins: Karte, Symbolglühen, Symbolring und Zierlinie
 local function SetGlow(c, r, g, b)

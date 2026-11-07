@@ -243,6 +243,7 @@ local function Acquire()
     r.timerText:SetText("")
     r.bar:Show()
     r:Show()
+    ns.FadeIn(r)
     active[#active + 1] = r
     return r
 end

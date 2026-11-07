@@ -10,6 +10,9 @@ local function Standard(frame, key, title)
     lib:RegisterToggleInCombat(frame)                         -- erst nach RegisterHideable
     lib:RegisterHiddenUntilMouseover(frame, T["Nur bei Mouseover anzeigen"])
     lib:RegisterCoordinates(frame)                            -- X/Y eintippen
+    lib:RegisterCustomButton(frame, T["Andocken: Ziel wechseln"], function() ns.Dock:NextTarget(key) end)
+    lib:RegisterCustomButton(frame, T["Andocken: Seite wechseln"], function() ns.Dock:NextSide(key) end)
+    ns.Dock:Hook(key)                                         -- Ziehen löst das Andocken
 end
 
 -- Aus = Standard: onUnchecked läuft beim Laden immer einmal
@@ -136,7 +139,12 @@ function ns.SetupEditMode()
     do  -- SexyLoot: Meine Beute
         local f = ns.frames.mine
         Standard(f, "mine", T["SexyLoot: Meine Beute"])
-        Checkbox(f, "mine", "growDown", T["Liste nach unten wachsen lassen"])
+        lib:RegisterCustomButton(f, T["Wachstumsrichtung wechseln (oben/unten)"], function()
+            SexyLootDB.mineGrowDown = not SexyLootDB.mineGrowDown
+            ns.cfg.mine.growDown = SexyLootDB.mineGrowDown and true or false
+            ns.Refresh("mine")
+            print("|cffe8c26aSexyLoot|r: " .. (ns.cfg.mine.growDown and T["Meine Beute wächst nach unten"] or T["Meine Beute wächst nach oben"]))
+        end)
         Checkbox(f, "mine", "hideValue", T["Gesamtwert ausblenden"])
         Checkbox(f, "mine", "hideItemValue", T["Wert pro Eintrag ausblenden"])
         Checkbox(f, "mine", "noStack", T["Gleiche Items nicht stapeln"])

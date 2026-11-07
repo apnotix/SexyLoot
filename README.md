@@ -82,6 +82,9 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 ### ✨ Loot-Einblendung
 Gerade gelootete Items erscheinen kurz als Zeilen mit Symbol, Name, Anzahl und Verkaufswert und blenden dann aus. Gleiche Items werden zusammengezählt. Einstellbar: Anzeigedauer, Anzahl Zeilen, Wert ausblenden. `/sexyloot toast` zeigt Beispiele.
 
+### 🧲 Andocken
+Jedes Fenster lässt sich im Edit Mode an ein anderes andocken: **„Andocken: Ziel wechseln“** schaltet durch Aus und die anderen Fenster, **„Andocken: Seite wechseln“** wählt unten, oben, links oder rechts. Das Fenster wandert dann mit seinem Ziel. Ziehst du es im Edit Mode selbst, löst es sich wieder. Die Auswahl steht im Chat.
+
 ### 💰 Geld
 Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in deinen Taschen. Der Tooltip zeigt das Geld all deiner Charaktere (sobald du sie einmal gespielt hast). Position und Farben im Edit Mode.
 
@@ -113,7 +116,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
 | 💰 Geld | Nur Position und Farben |
-| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Liste nach unten wachsen lassen · Anzahl Einträge · Liste leeren |
+| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Wachstumsrichtung wechseln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
 Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würfe, eine Testbeute, Feed-Zeilen und gelootete Items. So siehst du sofort, wie Skalierung, Symbolgröße und Zeilenzahl aussehen. Beim Verlassen verschwinden sie wieder.
