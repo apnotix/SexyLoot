@@ -55,6 +55,12 @@ local function MakeRow(i)
     r.icon:SetSize(ROWH - 6, ROWH - 6)
     r.icon:SetPoint("LEFT", 6, 0)
     r.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    -- Questitem: gelbes Ausrufezeichen an der Ecke des Symbols
+    r.quest = r:CreateTexture(nil, "OVERLAY")
+    r.quest:SetTexture("Interface/GossipFrame/AvailableQuestIcon")
+    r.quest:SetSize(18, 18)
+    r.quest:SetPoint("CENTER", r.icon, "TOPLEFT", 2, -2)
+    r.quest:Hide()
     r.value = r:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     r.value:SetPoint("RIGHT", -8, 0)
     r.value:SetWidth(80)
@@ -95,13 +101,16 @@ function Toast:Layout()
         r.e = e
         r:ClearAllPoints()
         r:SetPoint("TOPLEFT", ns.frames.toast, "TOPLEFT", 0, -(n - 1) * (ROWH + GAP))
-        local name, _, quality, _, _, _, _, _, _, _, price = ns.GetItemInfo(e.link)
+        local name, _, quality, _, _, _, _, _, _, _, price, classID, _, bindType = ns.GetItemInfo(e.link)
         name = name or e.link:match("%[(.-)%]") or "?"
         local cr, cg, cb = ns.QualityColor(quality)
         r.bar:SetColorTexture(cr, cg, cb, 1)
         r.icon:SetTexture(select(5, ns.GetItemInfoInstant(e.link)))
         r.name:SetText(name)
         r.name:SetTextColor(cr, cg, cb)
+        -- Questitem: Klasse "Quest" oder Bindungsart "Quest" (bindType 4)
+        local isQuest = e.quest or classID == (Enum and Enum.ItemClass and Enum.ItemClass.Questitem or 12) or bindType == 4
+        r.quest:SetShown(isQuest and true or false)
         r.count:SetText(e.count > 1 and e.count or "")
         local value = (e.price or price or 0) * e.count
         r.value:SetText((cfg.hideValue or value == 0) and "" or Coins(value))
@@ -144,10 +153,11 @@ function Toast:Preview(active)
             { 118, T["Schwacher Heiltrank"], 1, 40 },
             { 2770, T["Kupfererz"], 2, 25 },
             { 2589, T["Leinenstoff"], 13, 13 },
+            { 5, T["Questgegenstand"], 1, 0, true },
         }
         for _, s in ipairs(sample) do
             table.insert(entries, 1, { id = s[1], link = L(s[1], s[2]), count = s[3], price = s[4],
-                expire = math.huge, preview = true })
+                quest = s[5], expire = math.huge, preview = true })
         end
     end
     self:Layout()

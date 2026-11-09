@@ -76,6 +76,8 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 - 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
 - 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
 - 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer.
+- 📊 **Tooltip** über dem Gesamtwert: Dauer, Anzahl und Wert der Beute der Sitzung, das teuerste Item sowie Wert und Items pro Stunde.
+- ⏱️ **Sitzungsdauer** links neben dem Gesamtwert (seit Login oder dem letzten Leeren der Liste).
 - 🔢 **3 bis 10 Einträge**, alles abschaltbar.
 - ⬇️ **Wachstumsrichtung:** Die Liste wächst nach oben oder, per Einstellung, nach unten.
 
@@ -116,7 +118,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
 | 💰 Geld | Nur Position und Farben |
-| 🎒 Meine Beute | Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Wachstumsrichtung wechseln · Anzahl Einträge · Liste leeren |
+| 🎒 Meine Beute | Sitzungsdauer ausblenden · Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Wachstumsrichtung wechseln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
 Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würfe, eine Testbeute, Feed-Zeilen und gelootete Items. So siehst du sofort, wie Skalierung, Symbolgröße und Zeilenzahl aussehen. Beim Verlassen verschwinden sie wieder.

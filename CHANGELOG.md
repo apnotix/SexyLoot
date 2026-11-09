@@ -1,7 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.1.13
 
+- Behoben: Seit dem flachen Look fehlte die Edit-Mode-Vorschau in den meisten Fenstern, und Rollfenster und Freie Würfe lösten Lua-Fehler aus (das Feld "bar" des Panels kollidierte mit der Zeitleiste). Der Balken links heißt jetzt "accent". Ein Fehler in einer Vorschau blockiert die anderen nicht mehr.
+- "Zuletzt gelootet": Tooltip über dem Gesamtwert mit Dauer, Anzahl und Wert der gelooteten Items der Sitzung, das teuerste Item sowie Wert und Items pro Stunde (Hochrechnung ab 30 Sekunden). Die Zahlen gelten für die ganze Sitzung, auch für Einträge, die nicht mehr in der Liste stehen.
+- "Zuletzt gelootet": Links neben dem Gesamtwert steht die Dauer der Sitzung (seit Login oder dem letzten Leeren der Liste), abschaltbar mit "Sitzungsdauer ausblenden".
+- Loot-Einblendung und "Zuletzt gelootet": Questitems tragen ein gelbes Ausrufezeichen am Symbol.
 - Neu: Fenster lassen sich aneinander andocken. Im Edit Mode gibt es pro Fenster "Andocken: Ziel wechseln" (schaltet durch Aus und die anderen Fenster) und "Andocken: Seite wechseln" (unten, oben, links, rechts). Das angedockte Fenster wandert mit; wer es im Edit Mode selbst zieht, löst es ab.
 - Neuer Look für alle Fenster im Stil der Loot-Einblendung: flache, dunkle, leicht durchsichtige Fläche mit schmalem Balken links (Randfarbe) statt des eckigen Tooltip-Rahmens. Eigene Farben bleiben erhalten, "Farben zurücksetzen" setzt auf den neuen Standard.
 - Rollfenster und Beutefenster blenden weich ein.

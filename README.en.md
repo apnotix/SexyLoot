@@ -115,7 +115,7 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | 🎁 Loot window | Auto-loot grey items · Group loot label from quality · Icon size · Open test loot |
 | 📜 Group feed | Hide timestamps · Sort roll details by player order · Width · Height · Font size · Clear feed |
 | 💰 Money | Position and colors only |
-| 🎒 My loot | Hide total value · Hide value per entry · Do not stack identical items · Switch growth direction · Number of entries · Clear list |
+| 🎒 My loot | Hide session time · Hide total value · Hide value per entry · Do not stack identical items · Switch growth direction · Number of entries · Clear list |
 
 ### 👀 Demo data in Edit Mode
 While Edit Mode is open, every window shows sample content: two rolls, a test loot, feed lines and looted items. That way you see right away how scale, icon size and line count look. The samples disappear when you leave Edit Mode.

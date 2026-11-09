@@ -13,6 +13,16 @@ ns.T = T
 if GetLocale() == "deDE" then return end
 
 local en = {
+    ["Teuerstes Item"] = "Most valuable item",
+    ["Sitzung"] = "Session",
+    ["Dauer"] = "Duration",
+    ["Gelootete Items"] = "Items looted",
+    ["Wert gesamt"] = "Total value",
+    ["Wert pro Stunde"] = "Value per hour",
+    ["Items pro Stunde"] = "Items per hour",
+    ["Pro Stunde: erst nach 30 Sekunden"] = "Per hour: after 30 seconds",
+    ["Sitzungsdauer ausblenden"] = "Hide session time",
+    ["Questgegenstand"] = "Quest item",
     ["Andocken: Ziel wechseln"] = "Docking: change target",
     ["Andocken: Seite wechseln"] = "Docking: change side",
     ["Rollfenster"] = "Roll window",

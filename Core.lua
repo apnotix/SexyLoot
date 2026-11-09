@@ -18,7 +18,7 @@ ns.defaults = {
         bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
         bg = { 0.04, 0.05, 0.08, 0.72 }, border = BORDER },
-    mine = { growDown = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
+    mine = { growDown = false, hideTime = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
         bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
     toast = { hideValue = false, hold = 6, rows = 6 },
     wallet = { bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
@@ -145,11 +145,11 @@ function ns.Panel(parent)
     f.fill = f:CreateTexture(nil, "BACKGROUND")
     f.fill:SetAllPoints()
     f.fill:SetColorTexture(0.02, 0.02, 0.03, 0.78)
-    f.bar = f:CreateTexture(nil, "BORDER")
-    f.bar:SetPoint("TOPLEFT")
-    f.bar:SetPoint("BOTTOMLEFT")
-    f.bar:SetWidth(3)
-    f.bar:SetColorTexture(0.85, 0.85, 0.9, 0.8)
+    f.accent = f:CreateTexture(nil, "BORDER")
+    f.accent:SetPoint("TOPLEFT")
+    f.accent:SetPoint("BOTTOMLEFT")
+    f.accent:SetWidth(3)
+    f.accent:SetColorTexture(0.85, 0.85, 0.9, 0.8)
     return f
 end
 
@@ -176,7 +176,7 @@ function ns.ApplyStyle(panel, key)
     if not (panel and cfg) then return end
     local bg, bd = cfg.bg, cfg.border
     panel.fill:SetColorTexture(bg[1], bg[2], bg[3], bg[4])
-    panel.bar:SetColorTexture(bd[1], bd[2], bd[3], bd[4])
+    panel.accent:SetColorTexture(bd[1], bd[2], bd[3], bd[4])
 end
 
 function ns.QualityColor(q)
@@ -268,7 +268,11 @@ end
 function ns.SetEditMode(active)
     ns.editing = active and true or false
     for _, m in ipairs(ns.modules) do
-        if m.Preview then m:Preview(ns.editing) end
+        -- Ein Fehler in einem Modul darf die Vorschau der anderen nicht verhindern
+        if m.Preview then
+            local ok, err = pcall(m.Preview, m, ns.editing)
+            if not ok then print("|cffe8c26aSexyLoot|r: Vorschau-Fehler: " .. tostring(err)) end
+        end
     end
 end
 
