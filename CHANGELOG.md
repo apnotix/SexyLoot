@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.15
+
+- Release-Workflow repariert: Der Packager brach bei jedem Lauf mit "Found future tag" ab, darum wurde nichts gepackt oder hochgeladen. Der Push-Lauf startet den Paketbau jetzt per workflow_dispatch auf dem Tag.
+
 ## 0.1.14
 
 - Behoben: Seit dem flachen Look fehlte die Edit-Mode-Vorschau in den meisten Fenstern, und Rollfenster und Freie Würfe lösten Lua-Fehler aus (das Feld "bar" des Panels kollidierte mit der Zeitleiste). Der Balken links heißt jetzt "accent". Ein Fehler in einer Vorschau blockiert die anderen nicht mehr.

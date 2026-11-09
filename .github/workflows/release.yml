@@ -7,8 +7,10 @@ name: Bump, tag and release
 #      und CF_API_KEY gesetzt ist) und WoWInterface (wenn X-WoWI-ID und WOWI_API_TOKEN gesetzt sind).
 #
 # Der Bump-Commit stammt von github-actions[bot] und löst den Workflow nicht erneut aus.
-# Bump und Paketbau laufen absichtlich in einem Job: Tags, die mit dem GITHUB_TOKEN
-# gepusht werden, starten keine weiteren Workflows.
+# Der Packager baut bei einem Branch-Push nicht, wenn HEAD einen Tag trägt ("Found future
+# tag", er erwartet einen eigenen Tag-Lauf). Tags, die mit dem GITHUB_TOKEN gepusht werden,
+# starten aber keine Workflows. Darum startet der Push-Lauf nach dem Tag den Workflow selbst
+# per workflow_dispatch auf dem Tag (das darf auch das GITHUB_TOKEN); erst dieser Lauf paketiert.
 on:
   push:
     branches:
@@ -17,10 +19,11 @@ on:
 
 jobs:
   release:
-    if: github.actor != 'github-actions[bot]'
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - name: Checkout
@@ -30,6 +33,7 @@ jobs:
 
       - name: Bump version
         id: bump
+        if: github.event_name == 'push'
         run: |
           current=$(grep -oP '(?<=## Version: )[0-9]+\.[0-9]+\.[0-9]+' SexyLoot.toc)
 
@@ -46,6 +50,9 @@ jobs:
           echo "new_version=$new" >> "$GITHUB_OUTPUT"
 
       - name: Commit and tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -54,8 +61,11 @@ jobs:
           git tag "${{ steps.bump.outputs.new_version }}"
           git push origin HEAD:master
           git push origin "${{ steps.bump.outputs.new_version }}"
+          # Paketbau auf dem Tag anstoßen (siehe Kopfkommentar)
+          gh workflow run release.yml --ref "${{ steps.bump.outputs.new_version }}"
 
       - name: Package and publish
+        if: github.event_name == 'workflow_dispatch'
         uses: BigWigsMods/packager@v2
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
