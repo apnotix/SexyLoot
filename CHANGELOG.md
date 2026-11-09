@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.13
+## 0.1.14
 
 - Behoben: Seit dem flachen Look fehlte die Edit-Mode-Vorschau in den meisten Fenstern, und Rollfenster und Freie Würfe lösten Lua-Fehler aus (das Feld "bar" des Panels kollidierte mit der Zeitleiste). Der Balken links heißt jetzt "accent". Ein Fehler in einer Vorschau blockiert die anderen nicht mehr.
 - "Zuletzt gelootet": Tooltip über dem Gesamtwert mit Dauer, Anzahl und Wert der gelooteten Items der Sitzung, das teuerste Item sowie Wert und Items pro Stunde (Hochrechnung ab 30 Sekunden). Die Zahlen gelten für die ganze Sitzung, auch für Einträge, die nicht mehr in der Liste stehen.
