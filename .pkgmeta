@@ -10,3 +10,4 @@ ignore:
   - README.en.md
   - .github
   - tools
+  - curseforge
