@@ -15,10 +15,18 @@ Rollfenster mit den Würfen aller Spieler direkt am Item, ein Beutefenster im St
 
 ---
 
+## 🎨 Einheitlicher Look
+
+Alle acht Fenster sehen gleich aus und passen zu **SexyQuestHelper**: dunkelbraune Fläche, 2-Pixel-Goldrand, Titelband mit Badge (z. B. Anzahl der Gegenstände), Karten mit feinen Trennlinien, farbige Etiketten für Zustände (grün, bernstein, grau, rot, blau) und ein grüner Aktionsknopf. Schrift: **Marcellus** für Titel, **Inter** für den übrigen Text (mitgeliefert, SIL Open Font License). Clients in Russisch, Koreanisch und Chinesisch behalten die Spielschrift.
+
+Hintergrund- und Randfarbe sind je Fenster im Edit Mode einstellbar, „Farben zurücksetzen“ stellt den Quest-Look wieder her.
+
+---
+
 ## ✨ Das kann SexyLoot
 
 ### 🎲 Rollfenster: Bedarf, Gier, Passen
-Kein Rätselraten mehr, wer was gewürfelt hat.
+Kein Rätselraten mehr, wer was gewürfelt hat. Ein Fenster „Gruppenwurf“ mit Anzahl im Badge, darin eine Karte je Gegenstand.
 
 - 🎯 **Würfe am Item:** Wahl und Wurf jedes Spielers stehen direkt unter dem Gegenstand, in Klassenfarben.
 - 🏆 **Gewinner auf einen Blick:** Der Sieger bekommt einen Haken, Bedarf schlägt Gier.
@@ -26,7 +34,7 @@ Kein Rätselraten mehr, wer was gewürfelt hat.
 - 🔍 **Tooltips:** Fahr über das Item und sieh den normalen Item-Tooltip des Spiels.
 - 🔒 **Ehrliche Buttons:** Sie sperren erst, wenn deine Wahl wirklich angekommen ist. Bricht du bei einem Bind-on-Pickup-Item die Nachfrage ab, kannst du noch einmal wählen.
 - ⬆️ **Wachstumsrichtung** nach oben oder unten, mit einstellbarem Abstand.
-- 📋 **Würfe als Tabelle:** Jeder Spieler hat eine eigene Zeile mit Wahl-Symbol, Name in Klassenfarbe und dem Wurf rechts. Bestes Ergebnis oben, Passen gedimmt, der Gewinner golden mit Haken. Schriftgröße einstellbar.
+- 📋 **Würfe als Tabelle:** Jeder Spieler hat eine eigene Zeile mit Name in Klassenfarbe, einem Etikett für die Wahl (Bedarf grün, Gier bernstein, Passen grau, „wartet“ grau) und dem Wurf rechts. Bestes Ergebnis oben, Passen gedimmt, der Gewinner golden mit Haken. Schriftgröße einstellbar.
 - 📦 **Viele Items gleichzeitig:** Wird die Liste höher als die einstellbare Maximalhöhe, klappen ältere Zeilen auf Item, Buttons und eine Kurzzeile („2 von 5 haben gewählt“) ein. Mit der Maus über der Kurzzeile siehst du alle Würfe. Zeilen, bei denen du noch wählen musst, bleiben möglichst offen.
 - ➖ **Ein- und ausklappbar:** Ein Klick auf den Kopf einer Rollzeile (Plus/Minus-Symbol) klappt die Spielerliste ein oder aus. Shift- oder Strg-Klick verlinkt weiter das Item.
 - ⏳ **Bleibt nach dem Wurf stehen:** Das Fenster verschwindet erst nach einer einstellbaren Zeit (3 bis 30 Sekunden). Ein Countdown („Schließt in 7s“) und die leerlaufende Leiste zeigen, wann.
@@ -35,18 +43,19 @@ Kein Rätselraten mehr, wer was gewürfelt hat.
 ### 🏆 Gewinner-Anzeige
 Wer einen Wurf gewinnt, erscheint groß mitten auf dem Bildschirm.
 
-- 🖼️ **Item mit Symbol und Qualitätsfarbe**, dazu Name, Bedarf/Gier und Wurf.
+- 🖼️ **Item mit Symbol,** Symbolrahmen und Name in Qualitätsfarbe. Der Gewinner steht in Klassenfarbe daneben, Wurfart (Bedarf, Gier, Passen) und Ergebnis als Etiketten.
 - 🙋 **„Du gewinnst!“**, wenn du es bist.
-- ✨ **Auffällig:** Ein pulsierender Schein in Qualitätsfarbe (bei dir selbst grün), ein glühendes Symbol mit Stern und eine weiche Ein- und Ausblend-Animation.
-- 📚 **Mehrere Gewinner:** Gewinnen mehrere kurz nacheinander, stehen die Karten untereinander, jede mit eigenem Timer (1 bis 5 gleichzeitig).
+- ✨ **Auffällig:** Ein pulsierender Schein in Qualitätsfarbe (bei dir selbst grün) und eine weiche Ein- und Ausblend-Animation.
+- 📚 **Mehrere Gewinner:** Gewinnen mehrere kurz nacheinander, stehen die Karten untereinander, jede mit eigenem Timer (1 bis 5 gleichzeitig). Das Badge zeigt die Stapelposition („1/2“).
 - 📏 **Schriftgröße** und **Anzeigedauer** einstellbar.
 
 ### 🎁 Beutefenster
 Ersetzt das Standard-Beutefenster.
 
-- 🌈 **Qualitätsfarben** für Rahmen und Namen, Menge am Symbol.
+- 🌈 **Qualitätsfarben** für Symbolrahmen und Namen, Menge am Symbol. Das Titelband zeigt den Namen des Ziels und die Anzahl der Beutestücke.
+- 🏷️ **Etiketten:** „Gruppenloot“ (blau) oder „Freie Beute“ (grau) unter jedem Namen.
 - 🖱️ **Klick zum Looten**, Shift-Klick verlinkt das Item im Chat.
-- ✅ **„Alles nehmen“** mit einem Klick oder per **Hotkey**, den du im Edit Mode festlegst (auch mit Strg, Alt oder Umschalt).
+- ✅ **„Alles nehmen“** als grüner Knopf in der Fußleiste, mit einem Klick oder per **Hotkey**, den du im Edit Mode festlegst (auch mit Strg, Alt oder Umschalt).
 - 🪙 **Auto-Loot** wird unterstützt.
 - 🩶 **Graue Items automatisch** einsammeln (optional).
 - 💰 **Geld** wird automatisch eingesammelt (abschaltbar).
@@ -66,23 +75,24 @@ Wer hat was bekommen?
 Für Kisten und alles, wobei die Gruppe von Hand mit `/roll` würfelt.
 
 - 👥 **Erscheint automatisch,** sobald mindestens zwei Spieler gewürfelt haben (abschaltbar).
-- 🥇 **Der höchste Wurf steht oben,** golden mit Haken, bei Gleichstand mehrere. Andere Würfelbereiche als 1–100 stehen dabei und werden fair verglichen.
+- 🥇 **Der höchste Wurf steht oben,** mit bernsteinfarbenem Platz-Etikett, golden hinterlegt und mit Haken, bei Gleichstand mehrere. Andere Würfelbereiche als 1–100 stehen dabei und werden fair verglichen.
 - 📣 **Gewinner ansagen:** Ein Button im Fenster schreibt den Gewinner (bei Gleichstand alle) in einen Kanal deiner Wahl: automatisch (Instanz, Schlachtzug, Gruppe, sonst Sagen), Sagen, Gruppe, Schlachtzug, Instanz, Gilde, Schreien oder ein nummerierter Chatkanal. Den Kanal schaltest du im Edit Mode durch.
-- ⏱️ **Leert sich selbst:** Nach einer einstellbaren Zeit ohne neuen Wurf (5 bis 120 Sekunden) verschwindet die Liste, eine Leiste und „Schließt in 12s“ zeigen wann.
+- ⏱️ **Leert sich selbst:** Nach einer einstellbaren Zeit ohne neuen Wurf (5 bis 120 Sekunden) verschwindet die Liste, eine goldene Leiste unter dem Band und „Schließt in 12s“ im Badge zeigen wann.
 
 ### 🎒 Meine Beute
 Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 - 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
 - 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
-- 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer.
-- 📊 **Tooltip** über dem Gesamtwert: Dauer, Anzahl und Wert der Beute der Sitzung, das teuerste Item sowie Wert und Items pro Stunde.
-- ⏱️ **Sitzungsdauer** links neben dem Gesamtwert (seit Login oder dem letzten Leeren der Liste).
+- 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer, in einer Fußleiste.
+- 📊 **Tooltip** über dem Titelband: Dauer, Anzahl und Wert der Beute der Sitzung, das teuerste Item sowie Wert und Items pro Stunde.
+- ⏱️ **Sitzungsdauer** als Badge im Titelband (seit Login oder dem letzten Leeren der Liste).
+- ❗ **Questitems** tragen ein gelbes Ausrufezeichen am Symbol.
 - 🔢 **3 bis 10 Einträge**, alles abschaltbar.
 - ⬇️ **Wachstumsrichtung:** Die Liste wächst nach oben oder, per Einstellung, nach unten.
 
 ### ✨ Loot-Einblendung
-Gerade gelootete Items erscheinen kurz als Zeilen mit Symbol, Name, Anzahl und Verkaufswert und blenden dann aus. Gleiche Items werden zusammengezählt. Einstellbar: Anzeigedauer, Anzahl Zeilen, Wert ausblenden. `/sexyloot toast` zeigt Beispiele.
+Gerade gelootete Items erscheinen kurz als Karten mit Symbol (Rahmen in Qualitätsfarbe), Name, Anzahl und Verkaufswert und blenden dann aus. Questitems tragen zusätzlich ein Etikett „Quest“. Gleiche Items werden zusammengezählt, mit der Maus darüber bleibt die Zeile stehen und zeigt den Item-Tooltip. Einstellbar: Anzeigedauer, Anzahl Zeilen, Wert ausblenden. `/sexyloot toast` zeigt Beispiele.
 
 ### 🧲 Andocken
 Jedes Fenster lässt sich im Edit Mode an ein anderes andocken: **„Andocken: Ziel wechseln“** schaltet durch Aus und die anderen Fenster, **„Andocken: Seite wechseln“** wählt unten, oben, links oder rechts. Das Fenster wandert dann mit seinem Ziel. Ziehst du es im Edit Mode selbst, löst es sich wieder. Die Auswahl steht im Chat.
@@ -96,7 +106,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 
 Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. SexyLoot nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
 
-**Jedes der sechs Fenster bietet:**
+**Jedes der acht Fenster bietet:**
 
 | Option | Wirkung |
 | --- | --- |
@@ -106,7 +116,8 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | ⚔️ Im Kampf ausblenden | Nur außerhalb des Kampfs sichtbar |
 | 🖱️ Nur bei Mouseover | Erscheint erst, wenn du mit der Maus darüberfährst |
 | 🧭 Koordinaten | Bildschirmposition per Zahleneingabe |
-| 🎨 Hintergrund- und Randfarbe | Beides mit Farbwähler und Deckkraft, dazu „Farben zurücksetzen“ |
+| 🧲 Andocken | An ein anderes Fenster ankoppeln (Ziel und Seite wechseln) |
+| 🎨 Hintergrund- und Randfarbe | Beides mit Farbwähler und Deckkraft, dazu „Farben zurücksetzen“ (nicht bei der Loot-Einblendung) |
 
 **Dazu die eigenen Optionen jedes Fensters:**
 
@@ -115,9 +126,10 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
 | 🎯 Freie Würfe | Schon bei einem Würfler anzeigen · Liste leeren nach (Sekunden ohne Wurf) · Maximale Zeilen · Schriftgröße · Ansage-Kanal wechseln · Kanal-Nummer · Test-Würfe starten |
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Gleichzeitig angezeigte Gewinner · Test-Gewinner anzeigen |
-| 🎁 Beutefenster | Graue Items automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Testbeute öffnen |
-| 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Breite · Höhe · Schriftgröße · Feed leeren |
-| 💰 Geld | Nur Position und Farben |
+| 🎁 Beutefenster | Graue Items automatisch einsammeln · Geld nicht automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Hotkey für „Alles nehmen“ festlegen oder entfernen · Testbeute öffnen |
+| 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Nachrichten nicht ausblenden · Ausblenden nach (Sekunden) · Breite · Höhe · Schriftgröße · Feed leeren |
+| ✨ Loot-Einblendung | Wert ausblenden · Anzeigedauer · Anzahl Zeilen · Test-Beute anzeigen |
+| 💰 Geld | Nur Position und Farben · Gespeicherte Charaktere zurücksetzen |
 | 🎒 Meine Beute | Sitzungsdauer ausblenden · Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Wachstumsrichtung wechseln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
@@ -127,6 +139,9 @@ Solange der Edit Mode offen ist, zeigt jedes Fenster Beispielinhalte: zwei Würf
 
 ## 🌍 Sprachen
 Deutsch und Englisch. Deutsche Clients zeigen Deutsch, alle anderen Clients Englisch. Bedarf, Gier, Passen und „Beim Aufheben gebunden“ kommen direkt aus dem Spiel und erscheinen in der Sprache deines Clients.
+
+## 🔤 Schriften
+Marcellus und Inter liegen in `media/fonts` (SIL Open Font License, Lizenztexte daneben). Sind sie nicht ladbar oder spielst du auf einem russischen, koreanischen oder chinesischen Client, nutzt SexyLoot die Spielschrift.
 
 ---
 
@@ -145,6 +160,10 @@ Deutsch und Englisch. Deutsche Clients zeigen Deutsch, alle anderen Clients Engl
 | `/sexyloot loot` | Testbeute |
 | `/sexyloot feed` | Beispielzeilen im Feed |
 | `/sexyloot mine` | Beispiele in „Meine Beute“ |
+| `/sexyloot toast` | Beispiele in der Loot-Einblendung |
+| `/sexyloot winner` | Beispiel-Gewinner |
+| `/sexyloot freeroll` | Beispiel-Würfe in „Freie Würfe“ |
+| `/sexyloot debug` | Debug-Ausgaben zu Würfen und Klicks ein- oder ausschalten |
 
 Kurzform: `/sl`
 
@@ -166,6 +185,7 @@ Fehler und Wünsche bitte als [Issue auf GitHub](https://github.com/apnotix/Sexy
 
 - [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) von **Teelo** (Bibliothek `EditModeExpanded-1.0`, eingebettet, Autor wird wie in der Lizenz gefordert genannt)
 - **LibStub** (gemeinfrei)
+- Schriften [Marcellus](https://fonts.google.com/specimen/Marcellus) und [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
 - Inspiriert von **XLoot**
 
 ---
