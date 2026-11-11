@@ -10,7 +10,7 @@ ns.LootWindow = LW
 table.insert(ns.modules, LW)
 
 local WIDTH = 250
-local HEAD, FOOT = 28, 30
+local HEAD, FOOT = ns.HEAD + 4, 32
 local panel, title, closeBtn, allBtn
 local rows, slots = {}, {}
 
@@ -23,17 +23,27 @@ local function MakeRow(i)
     b:RegisterForClicks("LeftButtonUp")
     b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
 
-    b.qual = b:CreateTexture(nil, "BACKGROUND")
+    -- Kartenfläche mit Trennlinie, wie die Zeilen im Questfenster
+    b.bg = b:CreateTexture(nil, "BACKGROUND")
+    b.bg:SetAllPoints()
+    b.bg:SetColorTexture(0.145, 0.125, 0.10, 1)
+    b.divider = b:CreateTexture(nil, "BORDER")
+    b.divider:SetPoint("TOPLEFT")
+    b.divider:SetPoint("TOPRIGHT")
+    b.divider:SetHeight(1)
+    b.divider:SetColorTexture(0.21, 0.19, 0.14, 1)
+
+    b.qual = b:CreateTexture(nil, "BACKGROUND", nil, 1)
     b.icon = b:CreateTexture(nil, "ARTWORK")
     b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     b.count = b:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     b.count:SetJustifyH("RIGHT")
 
-    b.name = b:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    b.name = b:CreateFontString(nil, "OVERLAY", "SexyLootText")
     b.name:SetJustifyH("LEFT")
     b.name:SetWordWrap(false)
-    b.sub = b:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    b.sub:SetJustifyH("LEFT")
+    -- Herkunft als Etikett: Gruppenloot (blau) oder freie Beute (grau)
+    b.pill = ns.Pill(b)
 
     b:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -71,13 +81,13 @@ function LW:Draw()
         local d = slots[i]
         if d then
             row.data = d
-            row:SetSize(WIDTH - 16, h + 4)
+            row:SetSize(WIDTH - 4, h + 4)
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -(HEAD + (i - 1) * (h + 4)))
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 2, -(HEAD + (i - 1) * (h + 4)))
 
             row.qual:SetSize(h + 2, h + 2)
             row.qual:ClearAllPoints()
-            row.qual:SetPoint("LEFT", row, "LEFT", 0, 0)
+            row.qual:SetPoint("LEFT", row, "LEFT", 8, 0)
             row.icon:SetSize(h, h)
             row.icon:ClearAllPoints()
             row.icon:SetPoint("CENTER", row.qual, "CENTER")
@@ -93,16 +103,17 @@ function LW:Draw()
 
             row.name:ClearAllPoints()
             row.name:SetPoint("TOPLEFT", row.qual, "TOPRIGHT", 6, -1)
-            row.name:SetPoint("RIGHT", row, "RIGHT", 0, 0)
+            row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
             row.name:SetText(d.name)
             if d.item then row.name:SetTextColor(r, g, b) else row.name:SetTextColor(1, 0.85, 0.3) end
 
-            row.sub:ClearAllPoints()
-            row.sub:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -1)
+            row.pill.tex:ClearAllPoints()
+            row.pill.tex:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
             if d.item then
-                row.sub:SetText(d.quality >= thr and T["Gruppenloot"] or T["Freie Beute"])
+                if d.quality >= thr then row.pill:Set("they", T["Gruppenloot"], nil, 14)
+                else row.pill:Set("grey", T["Freie Beute"], nil, 14) end
             else
-                row.sub:SetText("")
+                row.pill:Hide()
             end
             row:Show()
         else
@@ -112,6 +123,7 @@ function LW:Draw()
     end
     local height = HEAD + #slots * (h + 4) + FOOT
     panel:SetHeight(height)
+    panel:SetBadge(#slots .. " " .. (#slots == 1 and T["Beutestück"] or T["Beutestücke"]))
     ns.frames.loot:SetHeight(height)
     if #slots == 0 then panel:Hide() else panel:Show() end
 end
@@ -265,8 +277,8 @@ end
 function LW:UpdateHotkey()
     if not allBtn then return end
     local hk = SexyLootDB.hotkey
-    allBtn:SetText(T["Alles nehmen"] .. (hk and (" |cffe8c26a" .. hk .. "|r") or ""))
-    allBtn:SetWidth(hk and math.max(100, allBtn:GetTextWidth() + 24) or 100)
+    allBtn.text:SetText(T["Alles nehmen"] .. (hk and (" |cffe8c26a" .. hk .. "|r") or ""))
+    allBtn:SetWidth(hk and math.max(100, allBtn.text:GetStringWidth() + 24) or 100)
     self:UpdateListener()
 end
 
@@ -312,16 +324,18 @@ function LW:Init()
     -- Blizzards Beutefenster abschalten
     if LootFrame then LootFrame:UnregisterAllEvents() end
 
-    panel = ns.Panel(ns.frames.loot)
+    panel = ns.FramedPanel(ns.frames.loot, LOOT or "Loot")
     panel:SetPoint("TOPLEFT", ns.frames.loot, "TOPLEFT")
     panel:SetPoint("TOPRIGHT", ns.frames.loot, "TOPRIGHT")
     panel:Hide()
     panel:SetScript("OnShow", function(self) ns.FadeIn(self) end)
 
-    title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOPLEFT", 10, -9)
-    title:SetPoint("RIGHT", panel, "RIGHT", -30, 0)
+    -- Titel (Zielname) füllt das Band bis vor Badge und Schließen-Knopf
+    title = panel.title
+    title:SetPoint("RIGHT", panel.band, "RIGHT", -110, 0)
     title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+    panel.badgeInset = 28   -- Platz für den Schließen-Knopf
 
     closeBtn = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
     closeBtn:SetPoint("TOPRIGHT", 2, 2)
@@ -331,10 +345,17 @@ function LW:Init()
         if fake then LW:Close() else CloseLoot() end
     end)
 
-    allBtn = CreateFrame("Button", "SexyLootAllButton", panel, "UIPanelButtonTemplate")
+    -- Fußleiste mit dem grünen Knopf
+    local foot = panel:CreateTexture(nil, "BACKGROUND", nil, 1)
+    foot:SetPoint("BOTTOMLEFT", 2, 2)
+    foot:SetPoint("BOTTOMRIGHT", -2, 2)
+    foot:SetHeight(FOOT - 2)
+    foot:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+
+    allBtn = ns.Button(panel)
     allBtn:SetSize(100, 22)
     allBtn:SetPoint("BOTTOMRIGHT", -8, 6)
-    allBtn:SetText(T["Alles nehmen"])
+    allBtn.text:SetText(T["Alles nehmen"])
     allBtn:SetScript("OnClick", function()
         if slots[1] and slots[1].fake then LW:Close() return end
         for i = GetNumLootItems(), 1, -1 do LootSlot(i) end

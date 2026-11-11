@@ -196,7 +196,7 @@ local function Measure(text, size)
         meas:SetPoint("TOPLEFT", panel, "TOPLEFT")
         meas:SetAlpha(0)
     end
-    meas:SetFont(STANDARD_TEXT_FONT, size, "")
+    meas:SetFont(ns.FONT_TEXT, size, "")
     meas:SetText(text)
     return meas:GetStringWidth()
 end
@@ -218,7 +218,7 @@ end
 
 local function MakeRow(i)
     local b = CreateFrame("Button", nil, panel)
-    b:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 6, 4)
+    b:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 8, 4)
     b.text = b:CreateFontString(nil, "OVERLAY")
     b.text:SetAllPoints()
     b.text:SetJustifyH("LEFT")
@@ -279,7 +279,7 @@ function Feed:Refresh()
     ns.ApplyStyle(panel, "feed")
     local h = cfg.size + 4
     -- Breite und Höhe stellt man direkt ein, die Zeilenzahl ergibt sich daraus
-    local lines = math.max(1, math.floor((cfg.height - 8) / h))
+    local lines = math.max(1, math.floor((cfg.height - ns.HEAD - 6) / h))
     panel:SetHeight(cfg.height)
     ns.frames.feed:SetSize(cfg.width, cfg.height)
     local n = #entries
@@ -289,10 +289,10 @@ function Feed:Refresh()
         if j <= lines then
             local e = entries[n - offset - (j - 1)]
             row.entry = e
-            row:SetSize(cfg.width - 12, h)
+            row:SetSize(cfg.width - 16, h)
             row:ClearAllPoints()
-            row:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 6, 4 + (j - 1) * h)
-            row.text:SetFont(STANDARD_TEXT_FONT, cfg.size, "")
+            row:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 8, 4 + (j - 1) * h)
+            row.text:SetFont(ns.FONT_TEXT, cfg.size, "")
             if e then
                 local full = (cfg.hideStamp and "" or ("|cff888888" .. e.stamp .. "|r ")) .. e.text
                 row.text:SetText(full)
@@ -317,7 +317,7 @@ end
 ns.Apply.feed = function() Feed:Refresh() end
 
 function Feed:Init()
-    panel = ns.Panel(ns.frames.feed)
+    panel = ns.FramedPanel(ns.frames.feed, T["Gruppenbeute"])
     panel:SetPoint("BOTTOMLEFT", ns.frames.feed, "BOTTOMLEFT")
     panel:SetPoint("BOTTOMRIGHT", ns.frames.feed, "BOTTOMRIGHT")
     panel:EnableMouseWheel(true)

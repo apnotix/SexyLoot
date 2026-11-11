@@ -3,51 +3,47 @@ local T = ns.T
 
 -- Gewinner-Anzeige: Wenn ein Wurf entschieden ist, steht der Gewinner mit Item
 -- gut sichtbar auf dem Bildschirm (Position im Edit Mode einstellbar). Die Karte
--- ist abgerundet und hat einen weichen, runden Schein in Qualitätsfarbe, das
--- Symbol ist abgerundet und glüht. Kurze Ein- und Ausblend-Animationen machen
--- sie präsent. Gewinnen mehrere kurz hintereinander, stehen die Karten
--- untereinander (neueste oben), jede mit eigenem Timer.
+-- hat den Look der anderen Fenster (Goldrand, Titelband "Gewinner") und einen
+-- weichen Schein in Qualitätsfarbe, das Symbol trägt einen Rahmen in Qualitätsfarbe.
+-- Wurfart und Ergebnis stehen als Etiketten neben dem Gewinner. Kurze Ein- und
+-- Ausblend-Animationen machen sie präsent. Gewinnen mehrere kurz hintereinander,
+-- stehen die Karten untereinander (neueste oben), jede mit eigenem Timer.
 --
--- Die Rundungen kommen aus kleinen Texturen in media/ (erzeugt von
--- tools/make_textures.py), die hier als 9-Slice zusammengesetzt werden.
+-- Der Schein kommt aus einer kleinen Textur in media/ (erzeugt von
+-- tools/make_textures.py), die hier als 9-Slice zusammengesetzt wird.
 
 local W = {}
 ns.Winner = W
 table.insert(ns.modules, W)
 
 local LABEL = { need = NEED or "Need", greed = GREED or "Greed", pass = PASS or "Pass" }   -- Blizzard-Texte, in jeder Clientsprache
+local TONE = { need = "ok", greed = "warn", pass = "grey" }                                -- Etikettenfarbe je Wurfart
 local SAMPLE = "|cffa335ee|Hitem:17063::::::::60:::::|h[" .. T["Ring des Glutkerns"] .. "]|h|r"
 local SAMPLE2 = "|cff0070dd|Hitem:14551::::::::60:::::|h[" .. T["Kettenkappe der Wachsamkeit"] .. "]|h|r"
 local FALLBACK_ICON = "Interface/Icons/INV_Misc_QuestionMark"
 local MEDIA = "Interface/AddOns/SexyLoot/media/"
-local CARD_H = 110  -- Höhe einer Karte
+local CARD_H = 112  -- Höhe einer Karte (Titelband plus Inhalt)
 local GAP = 28      -- Abstand zwischen den Karten (Platz für den Schein)
 
 local cards, pool = {}, {}   -- sichtbare Karten (neueste zuerst) und freie Karten
 
-local Gradient, NineSlice = ns.Gradient, ns.NineSlice
+local NineSlice = ns.NineSlice
 
--- Farbe des Scheins: Karte, Symbolglühen, Symbolring und Zierlinie
+-- Farbe des Scheins und des Symbolrahmens
 local function SetGlow(c, r, g, b)
     c.glowCard:SetColor(r, g, b, 1)
-    c.glowIcon:SetColor(r, g, b, 1)
-    c.iring:SetColor(r, g, b, 1)
-    Gradient(c.line, "HORIZONTAL", r, g, b, 0.9, 0)
+    c.iborder:SetColorTexture(r, g, b, 1)
 end
 
 local function Style(c)
     local cfg = ns.cfg.winner
-    local bg, bd = cfg.bg, cfg.border
-    c.fill:SetColor(bg[1], bg[2], bg[3], bg[4])
-    c.ring:SetColor(bd[1], bd[2], bd[3], bd[4])
+    ns.ApplyStyle(c, "winner")
     c:SetSize(ns.frames.winner:GetWidth(), CARD_H)
     local s = cfg.size
     local icon = math.min(64, s * 2 + 8)
     c.icon:SetSize(icon, icon)
-    c.qual:SetSize(icon + 4, icon + 4)
-    c.title:SetFont(STANDARD_TEXT_FONT, s, "OUTLINE")
-    c.item:SetFont(STANDARD_TEXT_FONT, math.max(12, s - 6), "OUTLINE")
-    c.detail:SetFont(STANDARD_TEXT_FONT, math.max(11, s - 12), "")
+    c.item:SetFont(ns.FONT_TITLE, math.max(14, s - 4), "OUTLINE")
+    c.who:SetFont(ns.FONT_TEXT, math.max(12, s - 12), "")
 end
 
 -- Dauer-Animationen: laufen nur, solange die Karte sichtbar ist
@@ -71,6 +67,8 @@ local function Layout()
     for i, c in ipairs(cards) do
         c:ClearAllPoints()
         c:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, -(i - 1) * (CARD_H + GAP))
+        -- Mehrere Karten tragen ihre Stapelposition als Badge
+        c:SetBadge(#cards > 1 and (i .. "/" .. #cards) or "")
     end
 end
 
@@ -88,88 +86,43 @@ local function Release(c)
 end
 
 local function NewCard()
-    local c = CreateFrame("Frame", nil, ns.frames.winner)
+    local c = ns.FramedPanel(ns.frames.winner, T["Gewinner"])
     c:SetSize(ns.frames.winner:GetWidth(), CARD_H)
     c:EnableMouse(false)
     c:Hide()
     c.gen = 0
     c.pulses = {}
 
-    -- Abgerundeter Körper: Füllung und Rand
-    c.fill = NineSlice(c, c, MEDIA .. "fill64.tga", 64, 20, 20, 0, "BACKGROUND", -2)
-    c.ring = NineSlice(c, c, MEDIA .. "ring64.tga", 64, 20, 20, 0, "BORDER", 0)
-
-    -- Weicher, runder Schein um die Karte (liegt über der Karte, ist innen durchsichtig)
+    -- Weicher Schein um die Karte (liegt über der Karte, ist innen durchsichtig)
     c.glow = CreateFrame("Frame", nil, c)
     c.glow:SetAllPoints(c)
     c.glowCard = NineSlice(c.glow, c, MEDIA .. "glow128.tga", 128, 48, 48, 32, "BACKGROUND", 0)
 
-    c.qual = c:CreateTexture(nil, "BACKGROUND")   -- nur Anker für Symbol und Text
-    c.qual:SetPoint("LEFT", 18, 0)
-    c.qual:SetColorTexture(0, 0, 0, 0)
-
-    c.icon = c:CreateTexture(nil, "ARTWORK")
-    c.icon:SetPoint("CENTER", c.qual, "CENTER")
+    -- Symbol mit Rahmen in Qualitätsfarbe, vertikal in der Mitte des Inhalts
+    c.icon = c:CreateTexture(nil, "ARTWORK", nil, 1)
+    c.icon:SetPoint("LEFT", c, "LEFT", 20, -ns.HEAD / 2)
     c.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    -- Symbol abrunden (MaskTexture, falls der Client sie kennt)
-    if c.CreateMaskTexture then
-        c.iconMask = c:CreateMaskTexture()
-        c.iconMask:SetTexture(MEDIA .. "mask64.tga", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-        c.iconMask:SetAllPoints(c.icon)
-        c.icon:AddMaskTexture(c.iconMask)
-    end
-    -- Ring in Qualitätsfarbe um das Symbol und weicher Schein darum
-    c.iring = NineSlice(c, c.icon, MEDIA .. "ring64.tga", 64, 20, 20, 2, "ARTWORK", 2)
-    c.iglow = CreateFrame("Frame", nil, c)
-    c.iglow:SetAllPoints(c)
-    c.glowIcon = NineSlice(c.iglow, c.icon, MEDIA .. "glowicon64.tga", 64, 32, 32, 16, "BACKGROUND", 0)
-
-    -- Funkelnder Stern an der Ecke des Symbols (eigener Frame, liegt über den Scheinen)
-    c.topf = CreateFrame("Frame", nil, c)
-    c.topf:SetAllPoints(c)
-    c.star = c.topf:CreateTexture(nil, "OVERLAY")
-    c.star:SetTexture("Interface/Cooldown/star4")
-    c.star:SetBlendMode("ADD")
-    c.star:SetVertexColor(1, 0.9, 0.5, 0.9)
-    c.star:SetSize(30, 30)
-    c.star:SetPoint("CENTER", c.icon, "TOPRIGHT", -3, -3)
-    do
-        local ag = c.star:CreateAnimationGroup()
-        local rot = ag:CreateAnimation("Rotation")
-        rot:SetDegrees(-360)
-        rot:SetDuration(9)
-        ag:SetLooping("REPEAT")
-        c.pulses[#c.pulses + 1] = ag
-        Pulse(c, c.star, 0.35, 1, 0.8)
-    end
-
-    c.title = c:CreateFontString(nil, "OVERLAY")
-    c.title:SetPoint("TOPLEFT", c.qual, "TOPRIGHT", 18, 0)
-    c.title:SetPoint("RIGHT", c, "RIGHT", -18, 0)
-    c.title:SetJustifyH("LEFT")
-    c.title:SetWordWrap(false)
-    c.title:SetShadowColor(0, 0, 0, 1)
-    c.title:SetShadowOffset(1, -1)
-
-    -- Zierlinie unter dem Titel, läuft nach rechts aus
-    c.line = c:CreateTexture(nil, "ARTWORK")
-    c.line:SetHeight(1)
-    c.line:SetPoint("TOPLEFT", c.title, "BOTTOMLEFT", 0, -3)
-    c.line:SetPoint("RIGHT", c, "RIGHT", -20, 0)
+    c.iborder = c:CreateTexture(nil, "ARTWORK")
+    c.iborder:SetPoint("TOPLEFT", c.icon, "TOPLEFT", -2, 2)
+    c.iborder:SetPoint("BOTTOMRIGHT", c.icon, "BOTTOMRIGHT", 2, -2)
 
     c.item = c:CreateFontString(nil, "OVERLAY")
-    c.item:SetPoint("TOPLEFT", c.line, "BOTTOMLEFT", 0, -5)
+    c.item:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 14, -2)
     c.item:SetPoint("RIGHT", c, "RIGHT", -18, 0)
     c.item:SetJustifyH("LEFT")
     c.item:SetWordWrap(false)
+    c.item:SetShadowColor(0, 0, 0, 1)
+    c.item:SetShadowOffset(1, -1)
 
-    c.detail = c:CreateFontString(nil, "OVERLAY")
-    c.detail:SetPoint("TOPLEFT", c.item, "BOTTOMLEFT", 0, -2)
-    c.detail:SetJustifyH("LEFT")
+    -- Gewinner in Klassenfarbe, daneben Etiketten für Wurfart und Ergebnis
+    c.who = c:CreateFontString(nil, "OVERLAY")
+    c.who:SetPoint("TOPLEFT", c.item, "BOTTOMLEFT", 0, -10)
+    c.who:SetJustifyH("LEFT")
+    c.pick = ns.Pill(c)
+    c.rollPill = ns.Pill(c)
 
-    -- Sanftes Pulsieren von Kartenschein und Symbolglühen
+    -- Sanftes Pulsieren des Kartenscheins
     Pulse(c, c.glow, 1, 0.45, 0.9)
-    Pulse(c, c.iglow, 1, 0.5, 0.9)
 
     -- Einblenden: kurz aufpoppen und einblenden
     c.fadeIn = c:CreateAnimationGroup()
@@ -211,9 +164,20 @@ function W:Display(player, link, pick, roll, sticky)
     Style(c)
 
     local me = ns.SameName(ns.Short(player), ns.Short(UnitName("player")))
-    c.title:SetText(me and ("|cff33ff66" .. T["Du gewinnst!"] .. "|r") or T("%s gewinnt!", ns.ColorName(player)))
+    c.who:SetText(me and ("|cff33ff66" .. T["Du gewinnst!"] .. "|r") or ns.ColorName(player))
     c.item:SetText(link)
-    c.detail:SetText(pick and ("|cffbbbbbb" .. LABEL[pick] .. (roll and (" " .. roll) or "") .. "|r") or "")
+
+    -- Etiketten: Wurfart (grün Bedarf, bernstein Gier, grau Passen), danach das Ergebnis
+    c.pick.tex:ClearAllPoints()
+    c.pick.tex:SetPoint("LEFT", c.who, "RIGHT", 10, 0)
+    if pick and LABEL[pick] then c.pick:Set(TONE[pick], LABEL[pick], nil, 18) else c.pick:Hide() end
+    c.rollPill.tex:ClearAllPoints()
+    if roll then
+        c.rollPill.tex:SetPoint("LEFT", (pick and LABEL[pick]) and c.pick.tex or c.who, "RIGHT", 6, 0)
+        c.rollPill:Set("grey", tostring(roll), nil, 18)
+    else
+        c.rollPill:Hide()
+    end
 
     local tex = select(5, ns.GetItemInfoInstant(link))
     c.icon:SetTexture(tex or FALLBACK_ICON)

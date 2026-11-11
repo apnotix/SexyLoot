@@ -6,22 +6,24 @@ local ADDON, ns = ...
 -- Farben (r, g, b, Deckkraft). Sie stehen in ns.cfg[key].bg / .border und
 -- werden zusätzlich in SexyLootDB.colors gespeichert, weil EditModeExpanded
 -- Farbwahlen nicht ablegt.
-local BORDER = { 0.85, 0.85, 0.9, 0.8 }
+-- Fenster im Look von SexyQuestHelper: dunkelbraune Fläche, Goldrand
+local PANEL_BG = { 0.08, 0.065, 0.05, 0.96 }
+local GOLD = { 0.42, 0.34, 0.15, 1 }
 ns.defaults = {
     roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
-        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
+        bg = PANEL_BG, border = GOLD },
     freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1,
-        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
+        bg = PANEL_BG, border = GOLD },
     winner = { size = 28, hold = 6, max = 3,
-        bg = { 0.04, 0.05, 0.08, 0.88 }, border = BORDER },
+        bg = PANEL_BG, border = GOLD },
     loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34,
-        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
+        bg = PANEL_BG, border = GOLD },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
-        bg = { 0.04, 0.05, 0.08, 0.72 }, border = BORDER },
+        bg = { 0.08, 0.065, 0.05, 0.88 }, border = GOLD },
     mine = { growDown = false, hideTime = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
-        bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
+        bg = PANEL_BG, border = GOLD },
     toast = { hideValue = false, hold = 6, rows = 6 },
-    wallet = { bg = { 0.02, 0.02, 0.03, 0.78 }, border = BORDER },
+    wallet = { bg = PANEL_BG, border = GOLD },
 }
 
 ns.frames  = {}   -- Anker-Fenster, die im Edit Mode bewegt werden
@@ -78,16 +80,6 @@ ns.Actions = {
 
 ns.MEDIA = "Interface/AddOns/SexyLoot/media/"
 
--- Farbverlauf mit Alpha, neue und alte API
-function ns.Gradient(tex, orient, r, g, b, a1, a2)
-    tex:SetColorTexture(1, 1, 1, 1)
-    if CreateColor and tex.SetGradient then
-        tex:SetGradient(orient, CreateColor(r, g, b, a1), CreateColor(r, g, b, a2))
-    elseif tex.SetGradientAlpha then
-        tex:SetGradientAlpha(orient, r, g, b, a1, r, g, b, a2)
-    end
-end
-
 -- Neun Texturteile um ein Ziel: vier Ecken fest, vier Kanten und die Mitte gedehnt.
 --   texSize/tc: Kantenlänge der Textur und Eckgröße darin (Pixel)
 --   disp:       Eckgröße auf dem Bildschirm
@@ -138,19 +130,144 @@ function ns.FadeIn(frame, seconds)
     frame.fadeInAnim:Play()
 end
 
--- Flaches Fenster wie die Loot-Einblendung: dunkle, leicht durchsichtige Fläche
--- mit schmalem Balken links (Farbe: Randfarbe)
-function ns.Panel(parent)
+--------------------------------------------------------------------------
+-- Look von SexyQuestHelper: Goldrahmen, Titelband mit Badge, Etiketten
+--------------------------------------------------------------------------
+
+ns.HEAD = 30                               -- Höhe von Rahmen oben plus Titelband
+ns.BTN = { 0.184, 0.42, 0.235 }            -- grüner Aktionsknopf
+ns.TONES = {
+    ok = { bg = { 0.082, 0.188, 0.11 }, fg = { 0.48, 0.88, 0.56 } },
+    warn = { bg = { 0.227, 0.173, 0.063 }, fg = { 0.94, 0.75, 0.29 } },
+    grey = { bg = { 0.16, 0.145, 0.12 }, fg = { 0.66, 0.61, 0.54 } },
+    lack = { bg = { 0.231, 0.102, 0.09 }, fg = { 1, 0.6, 0.56 } },
+    they = { bg = { 0.078, 0.157, 0.227 }, fg = { 0.53, 0.8, 1 } },
+}
+
+-- Schriften: Marcellus für Titel, Inter für Text (beide SIL OFL, Lizenzen in media/fonts).
+-- Fehlt eine Datei oder braucht die Clientsprache andere Zeichen (Kyrillisch, Asiatisch),
+-- gilt die Spielschrift. SetFont meldet false, wenn die Datei nicht geladen werden kann.
+local probe = CreateFont("SexyLootFontProbe")
+local function LoadFont(file)
+    local loc = GetLocale()
+    if loc == "ruRU" or loc == "koKR" or loc == "zhCN" or loc == "zhTW" then return STANDARD_TEXT_FONT end
+    local path = ns.MEDIA .. "fonts/" .. file
+    if probe:SetFont(path, 12, "") == false then return STANDARD_TEXT_FONT end
+    return path
+end
+ns.FONT_TITLE = LoadFont("Marcellus-Regular.ttf")
+ns.FONT_TEXT = LoadFont("Inter.ttf")
+
+-- Schriftobjekte für FontStrings: SexyLootTitle (Band), SexyLootText (Namen), SexyLootSmall
+-- (Etiketten, Zahlen), SexyLootDim (Nebentext)
+local function MakeFont(name, file, size, r, g, b)
+    local f = CreateFont(name)
+    f:SetFont(file, size, "")
+    f:SetTextColor(r, g, b)
+    f:SetShadowColor(0, 0, 0, 1)
+    f:SetShadowOffset(1, -1)
+end
+MakeFont("SexyLootTitle", ns.FONT_TITLE, 14, 0.91, 0.76, 0.42)
+MakeFont("SexyLootText", ns.FONT_TEXT, 13, 0.95, 0.92, 0.86)
+MakeFont("SexyLootSmall", ns.FONT_TEXT, 11, 0.95, 0.92, 0.86)
+MakeFont("SexyLootDim", ns.FONT_TEXT, 11, 0.61, 0.57, 0.5)
+
+-- Vier Randlinien um einen Rahmen. Liefert ein Objekt mit :SetColorTexture(r, g, b, a).
+function ns.Edges(parent, thick, layer)
+    local e = {}
+    local function tex()
+        local t = parent:CreateTexture(nil, layer or "BORDER")
+        e[#e + 1] = t
+        return t
+    end
+    local t = tex(); t:SetPoint("TOPLEFT"); t:SetPoint("TOPRIGHT"); t:SetHeight(thick)
+    t = tex(); t:SetPoint("BOTTOMLEFT"); t:SetPoint("BOTTOMRIGHT"); t:SetHeight(thick)
+    t = tex(); t:SetPoint("TOPLEFT", 0, -thick); t:SetPoint("BOTTOMLEFT", 0, thick); t:SetWidth(thick)
+    t = tex(); t:SetPoint("TOPRIGHT", 0, -thick); t:SetPoint("BOTTOMRIGHT", 0, thick); t:SetWidth(thick)
+    function e:SetColorTexture(r, g, b, a)
+        for _, x in ipairs(self) do x:SetColorTexture(r, g, b, a) end
+    end
+    return e
+end
+
+-- Etikett (Pille) mit Zustandsfarbe. Verankert wird p.tex, der Text folgt.
+function ns.Pill(parent)
+    local p = {}
+    p.tex = parent:CreateTexture(nil, "ARTWORK")
+    p.text = parent:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    p.text:SetPoint("CENTER", p.tex, "CENTER")
+    function p:Set(tone, text, width, height)
+        local t = ns.TONES[tone]
+        self.tex:SetColorTexture(t.bg[1], t.bg[2], t.bg[3], 1)
+        self.text:SetTextColor(t.fg[1], t.fg[2], t.fg[3])
+        self.text:SetText(text)
+        self.tex:SetSize(width or (self.text:GetStringWidth() + 18), height or 16)
+        self.tex:Show()
+        self.text:Show()
+    end
+    function p:Hide()
+        self.tex:Hide()
+        self.text:Hide()
+    end
+    return p
+end
+
+-- Flaches Fenster im Look des Questfensters: Fläche, 2px Goldrand und (mit Titel)
+-- ein Titelband mit Badge rechts. f.fill = Fläche, f.accent = Rand, f.band = Band,
+-- f.title = Titeltext, f:SetBadge(text) = Badge ("" blendet es aus). Rechts vom
+-- Badge bleibt f.badgeInset Pixel frei (Standard 6, z. B. für einen Schließen-Knopf).
+function ns.FramedPanel(parent, title)
     local f = CreateFrame("Frame", nil, parent)
     f.fill = f:CreateTexture(nil, "BACKGROUND")
     f.fill:SetAllPoints()
-    f.fill:SetColorTexture(0.02, 0.02, 0.03, 0.78)
-    f.accent = f:CreateTexture(nil, "BORDER")
-    f.accent:SetPoint("TOPLEFT")
-    f.accent:SetPoint("BOTTOMLEFT")
-    f.accent:SetWidth(3)
-    f.accent:SetColorTexture(0.85, 0.85, 0.9, 0.8)
+    f.fill:SetColorTexture(0.08, 0.065, 0.05, 0.96)
+    f.accent = ns.Edges(f, 2, "BORDER")
+    f.accent:SetColorTexture(0.42, 0.34, 0.15, 1)
+    if title then
+        f.band = f:CreateTexture(nil, "BACKGROUND", nil, 1)
+        f.band:SetPoint("TOPLEFT", 2, -2)
+        f.band:SetPoint("TOPRIGHT", -2, -2)
+        f.band:SetHeight(ns.HEAD - 2)
+        f.band:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+        f.title = f:CreateFontString(nil, "OVERLAY", "SexyLootTitle")
+        f.title:SetPoint("LEFT", f.band, "LEFT", 8, 0)
+        f.title:SetText(title)
+    end
+    function f:SetBadge(text)
+        if not self.band then return end
+        if not self.badgeBg then
+            self.badgeBg = self:CreateTexture(nil, "ARTWORK")
+            self.badgeBg:SetPoint("RIGHT", self.band, "RIGHT", -(self.badgeInset or 6), 0)
+            self.badgeBg:SetHeight(18)
+            self.badgeBg:SetColorTexture(0.165, 0.14, 0.10, 1)
+            self.badgeText = self:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+            self.badgeText:SetPoint("CENTER", self.badgeBg, "CENTER")
+            self.badgeText:SetTextColor(0.78, 0.73, 0.64)
+        end
+        local show = text and text ~= ""
+        self.badgeBg:SetShown(show and true or false)
+        self.badgeText:SetShown(show and true or false)
+        if show then
+            self.badgeText:SetText(text)
+            self.badgeBg:SetWidth(self.badgeText:GetStringWidth() + 18)
+        end
+    end
     return f
+end
+
+-- Flacher grüner Knopf wie "Teilen" im Questfenster. b.text ist der Beschriftungstext.
+function ns.Button(parent)
+    local b = CreateFrame("Button", nil, parent)
+    b:RegisterForClicks("LeftButtonUp")
+    b.bg = b:CreateTexture(nil, "BACKGROUND")
+    b.bg:SetAllPoints()
+    b.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
+    b.hl = b:CreateTexture(nil, "HIGHLIGHT")
+    b.hl:SetAllPoints()
+    b.hl:SetColorTexture(1, 1, 1, 0.25)
+    b.text = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    b.text:SetAllPoints()
+    return b
 end
 
 -- Auf dem Forever-Client fehlen manche Item-Globals, daher C_Item bevorzugen.
@@ -177,6 +294,7 @@ function ns.ApplyStyle(panel, key)
     local bg, bd = cfg.bg, cfg.border
     panel.fill:SetColorTexture(bg[1], bg[2], bg[3], bg[4])
     panel.accent:SetColorTexture(bd[1], bd[2], bd[3], bd[4])
+    if panel.band then panel.band:SetColorTexture(0.15, 0.12, 0.07, bg[4]) end
 end
 
 function ns.QualityColor(q)

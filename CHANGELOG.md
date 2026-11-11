@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.16
+
+- Neuer Look im Stil von SexyQuestHelper für Gewinner-Anzeige, Freie Würfe, Gruppenbeute (Feed), "Zuletzt gelootet", Geld-Rahmen und Loot-Einblendung: dunkelbraune Fläche, 2-px-Goldrand und Titelband mit Badge, farbige Etiketten und ein grüner Aktionsknopf. Auch Rollfenster und Beutefenster haben den neuen Look.
+- Rollfenster: ein Fenster "Gruppenwurf" mit Band und Anzahl der Gegenstände, darin je Gegenstand eine Karte. Die Wahl der Spieler steht als Etikett (Bedarf grün, Gier bernstein, Passen grau, "wartet" grau) vor dem Wurf; die Würfelknöpfe haben eine dunkle Fläche. Hintergrund- und Randfarbe gelten jetzt für das ganze Fenster.
+- Beutefenster: Band mit Zielname und Anzahl, Zeilen als Karten mit Etikett "Gruppenloot" (blau) oder "Freie Beute" (grau), Fußleiste mit grünem "Alles nehmen"-Knopf.
+- Gewinner-Anzeige: eckige Karte mit Band "Gewinner", Symbolrahmen und Schein in Qualitätsfarbe, Wurfart und Ergebnis als Etiketten. Mehrere Karten zeigen ihre Stapelposition im Badge.
+- Freie Würfe: Platz als Etikett (Sieger bernsteinfarben), Zeitleiste unter dem Band, grüner Ansage-Knopf.
+- "Zuletzt gelootet": Sitzungsdauer als Badge im Band, Gesamtwert in einer Fußleiste.
+- Loot-Einblendung: Questitems tragen zusätzlich ein Etikett "Quest".
+- Neue Schriften: Marcellus für Titel und Gewinnername, Inter für den übrigen Text (mitgeliefert, SIL Open Font License, Lizenzen in media/fonts). Clients in Russisch, Koreanisch und Chinesisch behalten die Spielschrift.
+- Neue Standardfarben (Fläche und Randfarbe) für diese Fenster. Selbst gewählte Farben bleiben erhalten, "Farben zurücksetzen" setzt auf den neuen Standard.
+
 ## 0.1.15
 
 - Release-Workflow repariert: Der Packager brach bei jedem Lauf mit "Found future tag" ab, darum wurde nichts gepackt oder hochgeladen. Der Push-Lauf startet den Paketbau jetzt per workflow_dispatch auf dem Tag.

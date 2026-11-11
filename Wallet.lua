@@ -115,7 +115,7 @@ ns.Apply.wallet = function()
 end
 
 function Wallet:Init()
-    panel = ns.Panel(ns.frames.wallet)
+    panel = ns.FramedPanel(ns.frames.wallet)
     panel:SetAllPoints(ns.frames.wallet)
     SexyLootDB.chars = SexyLootDB.chars or {}
     -- Einträge der ersten Version (Schlüssel "Name-Realm", ohne Namensfeld) verwerfen
@@ -126,19 +126,20 @@ function Wallet:Init()
     panel:SetScript("OnEnter", ShowTooltip)
     panel:SetScript("OnLeave", GameTooltip_Hide)
 
-    local l1 = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    l1:SetPoint("TOPLEFT", 8, -8)
+    local l1 = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    l1:SetPoint("TOPLEFT", 10, -7)
     l1:SetText(T["Geld"])
-    local l2 = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    l2:SetPoint("TOPLEFT", 8, -24)
+    local l2 = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    l2:SetPoint("TOPLEFT", 10, -23)
     l2:SetText(T["Verkaufswert"])
 
-    moneyText = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    moneyText:SetPoint("TOPRIGHT", -8, -8)
+    moneyText = panel:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    moneyText:SetPoint("TOPRIGHT", -10, -7)
     moneyText:SetJustifyH("RIGHT")
-    sellText = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    sellText:SetPoint("TOPRIGHT", -8, -24)
+    sellText = panel:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    sellText:SetPoint("TOPRIGHT", -10, -23)
     sellText:SetJustifyH("RIGHT")
+    sellText:SetTextColor(0.53, 0.8, 1)   -- Verkaufswert in Informationsblau, wie die Etiketten
 
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("PLAYER_MONEY")

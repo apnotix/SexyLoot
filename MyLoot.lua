@@ -11,7 +11,8 @@ table.insert(ns.modules, MyLoot)
 local WIDTH = 280
 local MAXROWS = 10
 local entries, rows = {}, {}
-local panel, title, total, empty, timer, hover
+local FOOT = 24   -- Fußleiste mit dem Gesamtwert
+local panel, total, empty, hover, footer, footerLabel
 local log = {}   -- alles, was in dieser Sitzung gelootet wurde: { link, count }
 local sessionStart = GetTime()   -- Beginn der Sitzung: Login oder letztes Leeren der Liste
 
@@ -101,8 +102,8 @@ end
 
 local function MakeRow(i)
     local b = CreateFrame("Button", nil, panel)
-    b:SetSize(WIDTH - 12, 20)
-    b:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(24 + (i - 1) * 20))
+    b:SetSize(WIDTH - 16, 20)
+    b:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -(ns.HEAD + 2 + (i - 1) * 20))
     b.icon = b:CreateTexture(nil, "ARTWORK")
     b.icon:SetSize(16, 16)
     b.icon:SetPoint("LEFT", 0, 0)
@@ -113,13 +114,13 @@ local function MakeRow(i)
     b.quest:SetSize(14, 14)
     b.quest:SetPoint("CENTER", b.icon, "TOPLEFT", 1, -1)
     b.quest:Hide()
-    b.value = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    b.value = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     b.value:SetPoint("RIGHT", 0, 0)
     b.value:SetWidth(92)
     b.value:SetJustifyH("RIGHT")
-    b.count = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    b.count = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     b.count:SetPoint("RIGHT", b.value, "LEFT", -4, 0)
-    b.name = b:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    b.name = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     b.name:SetPoint("LEFT", b.icon, "RIGHT", 5, 0)
     b.name:SetPoint("RIGHT", b.count, "LEFT", -4, 0)
     b.name:SetJustifyH("LEFT")
@@ -139,14 +140,14 @@ end
 
 -- Dauer der Sitzung als H:MM:SS bzw. M:SS
 local function UpdateTimer()
-    if not timer then return end
+    if not panel then return end
     if ns.cfg.mine.hideTime then
-        timer:SetText("")
+        panel:SetBadge("")
         return
     end
     local s = math.floor(GetTime() - sessionStart)
     local h, m = math.floor(s / 3600), math.floor(s / 60) % 60
-    timer:SetText(h > 0 and ("%d:%02d:%02d"):format(h, m, s % 60) or ("%d:%02d"):format(m, s % 60))
+    panel:SetBadge(h > 0 and ("%d:%02d:%02d"):format(h, m, s % 60) or ("%d:%02d"):format(m, s % 60))
 end
 
 -- Tooltip über dem Gesamtwert: Beute der Sitzung, ihr Wert und die Werte pro Stunde
@@ -187,11 +188,10 @@ function MyLoot:Refresh()
     for _, e in ipairs(entries) do
         sum = sum + UnitPrice(e) * e.count
     end
-    if cfg.hideValue or sum == 0 then
-        total:SetText("")
-    else
-        total:SetText(Coins(sum))
-    end
+    local showTotal = not (cfg.hideValue or sum == 0)
+    total:SetText(showTotal and Coins(sum) or "")
+    footer:SetShown(showTotal)
+    footerLabel:SetShown(showTotal)
     for i = 1, math.max(#rows, shown) do
         local row = rows[i] or MakeRow(i)
         local e = entries[i]
@@ -212,11 +212,10 @@ function MyLoot:Refresh()
     end
     empty:SetShown(#entries == 0)
     local n = math.max(1, math.min(shown, #entries))
-    local height = 24 + n * 20 + 6
-    panel:SetHeight(height)
-    -- Der Anker behält die Höhe für alle Zeilen, das Fenster hängt oben (nach unten
-    -- wachsen) oder steht unten (nach oben wachsen).
-    ns.frames.mine:SetHeight(24 + math.max(1, shown) * 20 + 6)
+    panel:SetHeight(ns.HEAD + 4 + n * 20 + (showTotal and FOOT or 0))
+    -- Der Anker behält die Höhe für alle Zeilen samt Fußleiste, das Fenster hängt oben
+    -- (nach unten wachsen) oder steht unten (nach oben wachsen).
+    ns.frames.mine:SetHeight(ns.HEAD + 4 + math.max(1, shown) * 20 + FOOT)
 end
 
 local function Place()
@@ -234,23 +233,29 @@ ns.Apply.mine = function()
 end
 
 function MyLoot:Init()
-    panel = ns.Panel(ns.frames.mine)
+    panel = ns.FramedPanel(ns.frames.mine, T["Zuletzt gelootet"])
     Place()
 
-    title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    title:SetPoint("TOPLEFT", 8, -7)
-    title:SetText(T["Zuletzt gelootet"])
-    total = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    total:SetPoint("TOPRIGHT", -8, -8)
-    timer = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    timer:SetPoint("RIGHT", total, "LEFT", -10, 0)
+    -- Fußleiste: Gesamtwert aller Einträge
+    footer = panel:CreateTexture(nil, "BACKGROUND", nil, 1)
+    footer:SetPoint("BOTTOMLEFT", 2, 2)
+    footer:SetPoint("BOTTOMRIGHT", -2, 2)
+    footer:SetHeight(FOOT - 2)
+    footer:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+    footerLabel = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    footerLabel:SetPoint("LEFT", footer, "LEFT", 8, 0)
+    footerLabel:SetText(T["Wert gesamt"])
+    total = panel:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    total:SetPoint("RIGHT", footer, "RIGHT", -8, 0)
+    -- Über dem Titelband erscheint der Sitzungs-Tooltip
     hover = CreateFrame("Frame", nil, panel)
+    hover:SetPoint("TOPLEFT", panel, "TOPLEFT")
     hover:SetPoint("TOPRIGHT", panel, "TOPRIGHT")
-    hover:SetSize(160, 24)
+    hover:SetHeight(ns.HEAD)
     hover:SetScript("OnEnter", ShowTooltip)
     hover:SetScript("OnLeave", GameTooltip_Hide)
-    empty = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    empty:SetPoint("TOPLEFT", 8, -28)
+    empty = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    empty:SetPoint("TOPLEFT", 10, -(ns.HEAD + 6))
     empty:SetText(T["Noch nichts gelootet."])
 
     C_Timer.NewTicker(5, function() MyLoot:Refresh() end)

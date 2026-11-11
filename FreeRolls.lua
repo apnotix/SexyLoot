@@ -10,7 +10,7 @@ local FR = {}
 ns.FreeRolls = FR
 table.insert(ns.modules, FR)
 
-local HEAD = 34      -- Titel plus Leiste
+local HEAD = ns.HEAD + 8   -- Titelband plus Leiste
 local entries = {}   -- echte Würfe der laufenden Runde
 local sample = {}    -- Vorschau im Edit Mode
 local lastRoll = 0
@@ -40,10 +40,8 @@ local function GetLine(i)
     l = CreateFrame("Frame", nil, panel)
     l.bg = l:CreateTexture(nil, "BACKGROUND")
     l.bg:SetAllPoints()
-    l.rank = l:CreateFontString(nil, "OVERLAY")
-    l.rank:SetPoint("LEFT", 6, 0)
-    l.rank:SetWidth(18)
-    l.rank:SetJustifyH("RIGHT")
+    l.rank = ns.Pill(l)
+    l.rank.tex:SetPoint("LEFT", 6, 0)
     l.check = l:CreateTexture(nil, "OVERLAY")
     l.check:SetTexture("Interface/RaidFrame/ReadyCheck-Ready")
     l.check:SetPoint("RIGHT", -6, 0)
@@ -54,7 +52,7 @@ local function GetLine(i)
     l.range:SetPoint("RIGHT", l.roll, "LEFT", -6, 0)
     l.range:SetJustifyH("RIGHT")
     l.name = l:CreateFontString(nil, "OVERLAY")
-    l.name:SetPoint("LEFT", l.rank, "RIGHT", 6, 0)
+    l.name:SetPoint("LEFT", l.rank.tex, "RIGHT", 6, 0)
     l.name:SetPoint("RIGHT", l.range, "LEFT", -6, 0)
     l.name:SetJustifyH("LEFT")
     l.name:SetWordWrap(false)
@@ -87,9 +85,12 @@ end
 function FR:UpdateAnnounce()
     if not panel then return end
     local _, _, label = ChannelInfo()
-    panel.btn:SetText(T["Gewinner ansagen"] .. " |cffe8c26a(" .. label .. ")|r")
-    panel.btn:SetWidth(math.max(120, panel.btn:GetTextWidth() + 24))
+    panel.btn.text:SetText(T["Gewinner ansagen"] .. " |cffe8c26a(" .. label .. ")|r")
+    panel.btn:SetWidth(math.max(120, panel.btn.text:GetStringWidth() + 24))
     panel.btn:SetEnabled(not preview)
+    -- Ausgegraut in der Edit-Mode-Vorschau
+    local c = preview and ns.TONES.grey.bg or ns.BTN
+    panel.btn.bg:SetColorTexture(c[1], c[2], c[3], 1)
 end
 
 function FR:NextChannel()
@@ -149,9 +150,7 @@ function FR:Refresh()
     local size = cfg.size
     local lh = size + 8
     local n = math.min(#sorted, cfg.rows)
-    panel.title:SetFont(STANDARD_TEXT_FONT, size, "")
     panel.title:SetText(T("Freie Würfe (%d)", #sorted))
-    panel.timer:SetFont(STANDARD_TEXT_FONT, math.max(9, size - 3), "")
 
     for i = 1, n do
         local e = sorted[i]
@@ -162,11 +161,10 @@ function FR:Refresh()
         l:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(HEAD + (i - 1) * lh))
         l:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -(HEAD + (i - 1) * lh))
         l.check:SetSize(size, size)
-        l.rank:SetFont(STANDARD_TEXT_FONT, size - 1, "")
-        l.name:SetFont(STANDARD_TEXT_FONT, size, "")
-        l.roll:SetFont(STANDARD_TEXT_FONT, size + 2, "OUTLINE")
-        l.range:SetFont(STANDARD_TEXT_FONT, math.max(8, size - 4), "")
-        l.rank:SetText("|cff8a8a8a" .. i .. "|r")
+        l.name:SetFont(ns.FONT_TEXT, size, "")
+        l.roll:SetFont(ns.FONT_TEXT, size + 2, "OUTLINE")
+        l.range:SetFont(ns.FONT_TEXT, math.max(8, size - 4), "")
+        l.rank:Set(best and "warn" or "grey", tostring(i), 24, 16)
         l.name:SetText(ns.ColorName(e.player))
         l.roll:SetText(tostring(e.roll))
         l.roll:SetTextColor(best and 1 or 0.95, best and 0.82 or 0.95, best and 0.2 or 0.95)
@@ -220,7 +218,7 @@ local function Tick()
     end
     panel.bar:SetMinMaxValues(0, ns.cfg.freeroll.hold)
     panel.bar:SetValue(left)
-    panel.timer:SetText(T("Schließt in %ds", math.ceil(left)))
+    panel:SetBadge(T("Schließt in %ds", math.ceil(left)))
 end
 
 -- Beispielwürfe für den Test
@@ -249,7 +247,7 @@ function FR:Preview(active)
         for i, d in ipairs(data) do
             sample[i] = { player = ns.Short(d[1]), roll = d[2], min = 1, max = 100, time = base + i * 0.01 }
         end
-        panel.timer:SetText("")
+        panel:SetBadge("")
         panel.bar:SetValue(0)
     end
     self:Refresh()
@@ -258,29 +256,23 @@ end
 ns.Apply.freeroll = function() FR:Refresh() end
 
 function FR:Init()
-    panel = ns.Panel(ns.frames.freeroll)
+    panel = ns.FramedPanel(ns.frames.freeroll, T["Freie Würfe"])
     panel:SetPoint("TOPLEFT", ns.frames.freeroll, "TOPLEFT")
     panel:SetPoint("TOPRIGHT", ns.frames.freeroll, "TOPRIGHT")
     panel:Hide()
 
-    panel.title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    panel.title:SetPoint("TOPLEFT", 10, -8)
-    panel.timer = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    panel.timer:SetPoint("TOPRIGHT", -10, -9)
-    panel.timer:SetJustifyH("RIGHT")
-
-    -- Leiste: zeigt, wann die Liste nach dem letzten Wurf geleert wird
+    -- Leiste unter dem Band: zeigt, wann die Liste nach dem letzten Wurf geleert wird
     panel.bar = CreateFrame("StatusBar", nil, panel)
-    panel.bar:SetPoint("TOPLEFT", 8, -26)
-    panel.bar:SetPoint("TOPRIGHT", -8, -26)
-    panel.bar:SetHeight(4)
+    panel.bar:SetPoint("TOPLEFT", 2, -ns.HEAD)
+    panel.bar:SetPoint("TOPRIGHT", -2, -ns.HEAD)
+    panel.bar:SetHeight(3)
     panel.bar:SetStatusBarTexture("Interface/TargetingFrame/UI-StatusBar")
-    panel.bar:SetStatusBarColor(0.55, 0.6, 0.7)
+    panel.bar:SetStatusBarColor(0.91, 0.76, 0.42)
     panel.bar.bg = panel.bar:CreateTexture(nil, "BACKGROUND")
     panel.bar.bg:SetAllPoints()
     panel.bar.bg:SetColorTexture(0, 0, 0, 0.6)
 
-    panel.btn = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    panel.btn = ns.Button(panel)
     panel.btn:SetSize(140, 22)
     panel.btn:SetPoint("BOTTOMRIGHT", -8, 6)
     panel.btn:SetScript("OnClick", function() FR:Announce() end)

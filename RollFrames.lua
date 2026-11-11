@@ -21,7 +21,10 @@ local CHECK = "Interface/RaidFrame/ReadyCheck-Ready"
 local ROLLTYPE = { pass = 0, need = 1, greed = 2 }
 local KINDS = { "need", "greed", "pass" }
 
+local TONE = { need = "ok", greed = "warn", pass = "grey" }   -- Etikettenfarbe je Wahl
+
 local pool, active = {}, {}
+local win   -- Fenster "Gruppenwurf" mit Goldrahmen und Band; die Zeilen sind Karten darin
 
 --------------------------------------------------------------------------
 -- Chatmuster
@@ -103,6 +106,10 @@ local function MakeButton(row, kind, x)
     b:SetPushedTexture((TEX[kind]:gsub("Up$", "Down")))
     b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
     b.kind = kind
+    -- flache dunkle Fläche hinter dem Symbol
+    b.bg = b:CreateTexture(nil, "BACKGROUND")
+    b.bg:SetAllPoints()
+    b.bg:SetColorTexture(0.106, 0.086, 0.063, 1)
     -- Auch gesperrte Buttons zeigen den Tooltip mit dem Grund (wie XLoot)
     b:SetMotionScriptsWhileDisabled(true)
     b:SetScript("OnClick", function(self)
@@ -120,9 +127,12 @@ local function MakeButton(row, kind, x)
 end
 
 local function NewRow()
-    local r = ns.Panel(ns.frames.roll)
-    ns.ApplyStyle(r, "roll")
-    r:SetWidth(WIDTH)
+    -- Karte in Zeilenfarbe des Questfensters, im Fenster "Gruppenwurf"
+    local r = CreateFrame("Frame", nil, win)
+    r.fill = r:CreateTexture(nil, "BACKGROUND")
+    r.fill:SetAllPoints()
+    r.fill:SetColorTexture(0.145, 0.125, 0.10, 1)
+    r:SetWidth(WIDTH - 16)
     r:SetHeight(70)
 
     r.qual = r:CreateTexture(nil, "BACKGROUND")
@@ -161,12 +171,12 @@ local function NewRow()
     r.arrow:SetSize(14, 14)
     r.arrow:SetPoint("TOPLEFT", 50, -10)
 
-    r.name = r:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    r.name = r:CreateFontString(nil, "OVERLAY", "SexyLootText")
     r.name:SetPoint("TOPLEFT", 68, -8)
     r.name:SetPoint("RIGHT", r, "RIGHT", -108, 0)
     r.name:SetJustifyH("LEFT")
     r.name:SetWordWrap(false)
-    r.sub = r:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    r.sub = r:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     r.sub:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
     r.sub:SetTextColor(0.6, 0.55, 0.45)
 
@@ -178,7 +188,7 @@ local function NewRow()
     r.bar = CreateFrame("StatusBar", nil, r)
     r.bar:SetPoint("TOPLEFT", 6, -48)
     r.bar:SetPoint("TOPRIGHT", -6, -48)
-    r.bar:SetHeight(6)
+    r.bar:SetHeight(4)
     r.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     r.bar.bg = r.bar:CreateTexture(nil, "BACKGROUND")
     r.bar.bg:SetAllPoints()
@@ -186,13 +196,13 @@ local function NewRow()
 
     -- Spielerzeilen (siehe UpdateChips): Trennlinie, eine Zeile je Spieler, Ergebnisstreifen
     r.sep = r:CreateTexture(nil, "ARTWORK")
-    r.sep:SetColorTexture(1, 1, 1, 0.08)
+    r.sep:SetColorTexture(0.21, 0.19, 0.14, 1)
     r.sep:SetHeight(1)
     r.sep:SetPoint("TOPLEFT", 8, -60)
     r.sep:SetPoint("TOPRIGHT", -8, -60)
     r.lines = {}
     -- Eingeklappte Zeile: eine Kurzzeile, Tooltip zeigt alle Spieler
-    r.summary = r:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    r.summary = r:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     r.summary:SetPoint("TOPLEFT", 10, -64)
     r.summary:SetPoint("TOPRIGHT", -10, -64)
     r.summary:SetJustifyH("LEFT")
@@ -205,12 +215,12 @@ local function NewRow()
     r.sumBtn:SetScript("OnLeave", GameTooltip_Hide)
     r.resultBg = r:CreateTexture(nil, "ARTWORK")
     r.resultBg:SetColorTexture(0.91, 0.76, 0.42, 0.14)
-    r.result = r:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    r.result = r:CreateFontString(nil, "OVERLAY", "SexyLootTitle")
     r.result:SetJustifyH("CENTER")
 
     -- Rest-Anzeige der Leiste: vor der Entscheidung die Rollzeit, danach die Zeit,
     -- bis die Zeile verschwindet
-    r.timerText = r:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    r.timerText = r:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     r.timerText:SetPoint("TOPRIGHT", r, "TOPRIGHT", -8, -37)
     r.timerText:SetJustifyH("RIGHT")
 
@@ -303,12 +313,15 @@ function RF:Layout()
     -- die ältesten. Wartet noch eine Wahl von dir, bleibt die Zeile möglichst offen.
     -- Vom Spieler eingeklappte Zeilen (Klick auf den Kopf) sind von Anfang an klein,
     -- vom Spieler ausgeklappte werden zuletzt automatisch eingeklappt.
+    if not win then return end
+    -- Für die Karten bleibt die maximale Höhe abzüglich Band und Rand
+    local limit = cfg.maxHeight - (ns.HEAD + 16)
     local total = 0
     for _, r in ipairs(active) do
         r.compact = r.userCollapsed == true and (r.fullH or 70) > COMPACT_H
         total = total + (r.compact and COMPACT_H or (r.fullH or 70)) + cfg.gap
     end
-    if total > cfg.maxHeight then
+    if total > limit then
         local order = {}
         for i, r in ipairs(active) do order[#order + 1] = { r = r, i = i } end
         local function rank(r)
@@ -321,7 +334,7 @@ function RF:Layout()
             return x.i < y.i
         end)
         for _, o in ipairs(order) do
-            if total <= cfg.maxHeight then break end
+            if total <= limit then break end
             local r = o.r
             if not r.compact and (r.fullH or 70) > COMPACT_H then
                 total = total - (r.fullH - COMPACT_H)
@@ -336,12 +349,20 @@ function RF:Layout()
         ShowDetail(r, not r.compact)
         r:ClearAllPoints()
         if cfg.growUp then
-            r:SetPoint("BOTTOMLEFT", anchor, "BOTTOMLEFT", 0, y)
+            r:SetPoint("BOTTOMLEFT", win, "BOTTOMLEFT", 8, 8 + y)
         else
-            r:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, -y)
+            r:SetPoint("TOPLEFT", win, "TOPLEFT", 8, -(ns.HEAD + 8 + y))
         end
         y = y + r:GetHeight() + cfg.gap
     end
+
+    -- Das Fenster umschließt alle Karten und hängt oben (oder steht unten bei "nach oben")
+    win:ClearAllPoints()
+    win:SetPoint(cfg.growUp and "BOTTOMLEFT" or "TOPLEFT", anchor, cfg.growUp and "BOTTOMLEFT" or "TOPLEFT")
+    win:SetWidth(WIDTH)
+    win:SetHeight(ns.HEAD + 16 + math.max(0, y - cfg.gap))
+    win:SetBadge(#active .. " " .. (#active == 1 and T["Gegenstand"] or T["Gegenstände"]))
+    win:SetShown(#active > 0)
 end
 
 -- Gibt den Namen zurück, unter dem der Spieler in dieser Zeile geführt wird.
@@ -375,8 +396,6 @@ local function GetLine(r, i)
     l:SetPoint("RIGHT", r, "RIGHT", -6, 0)
     l.bg = l:CreateTexture(nil, "BACKGROUND")
     l.bg:SetAllPoints()
-    l.icon = l:CreateTexture(nil, "ARTWORK")
-    l.icon:SetPoint("LEFT", 4, 0)
     l.name = l:CreateFontString(nil, "OVERLAY")
     l.name:SetJustifyH("LEFT")
     l.name:SetWordWrap(false)
@@ -385,9 +404,13 @@ local function GetLine(r, i)
     l.check:SetPoint("RIGHT", -4, 0)
     l.roll = l:CreateFontString(nil, "OVERLAY")
     l.roll:SetJustifyH("RIGHT")
+    l.roll:SetWidth(28)
     l.roll:SetPoint("RIGHT", l.check, "LEFT", -4, 0)
-    l.name:SetPoint("LEFT", l.icon, "RIGHT", 6, 0)
-    l.name:SetPoint("RIGHT", l.roll, "LEFT", -6, 0)
+    -- Wahl als Etikett (Bedarf grün, Gier bernstein, Passen grau) links vom Wurf
+    l.pill = ns.Pill(l)
+    l.pill.tex:SetPoint("RIGHT", l.roll, "LEFT", -6, 0)
+    l.name:SetPoint("LEFT", l, "LEFT", 8, 0)
+    l.name:SetPoint("RIGHT", l.pill.tex, "LEFT", -6, 0)
     r.lines[i] = l
     return l
 end
@@ -419,20 +442,18 @@ function RF:UpdateChips(r)
         l:ClearAllPoints()
         l:SetPoint("TOPLEFT", r, "TOPLEFT", 6, -y)
         l:SetPoint("TOPRIGHT", r, "TOPRIGHT", -6, -y)
-        l.icon:SetSize(size + 2, size + 2)
         l.check:SetSize(size, size)
-        l.name:SetFont(STANDARD_TEXT_FONT, size, "")
-        l.roll:SetFont(STANDARD_TEXT_FONT, size + 1, "OUTLINE")
+        l.name:SetFont(ns.FONT_TEXT, size, "")
+        l.roll:SetFont(ns.FONT_TEXT, size + 1, "OUTLINE")
         if pick then
-            l.icon:SetTexture(TEX[pick])
-            l.icon:Show()
+            l.pill:Set(TONE[pick], LABEL[pick], 54, 16)
             l.name:SetText(ns.ColorName(name))
             l.roll:SetText(roll and tostring(roll) or "")
             l.roll:SetTextColor(winner and 1 or 0.95, winner and 0.82 or 0.95, winner and 0.2 or 0.95)
             -- Passen tritt optisch zurück
             l:SetAlpha(pick == "pass" and 0.55 or 1)
         else
-            l.icon:Hide()
+            l.pill:Set("grey", T["wartet"], 54, 16)
             l.name:SetText("|cff8a8a8a" .. ns.Short(name) .. "|r")
             l.roll:SetText("|cff8a8a8a…|r")
             l:SetAlpha(0.8)
@@ -451,7 +472,7 @@ function RF:UpdateChips(r)
     -- Ergebnis, sobald der Wurf entschieden ist
     local bottom = (#names > 0) and (y + 4) or 62
     if r.done and not r.winner then
-        r.result:SetFont(STANDARD_TEXT_FONT, size + 1, "")
+        r.result:SetFont(ns.FONT_TEXT, size + 1, "")
         r.result:SetText("|cffe8c26a" .. T["Alle haben gepasst"] .. "|r")
         r.result:ClearAllPoints()
         r.result:SetPoint("TOP", r, "TOP", 0, -(bottom + 5))
@@ -774,11 +795,8 @@ end
 ns.Apply.roll = function()
     -- Der Edit-Mode-Rahmen zeigt die maximale Höhe der Liste
     ns.frames.roll:SetHeight(ns.cfg.roll.maxHeight)
-    for _, r in ipairs(pool) do ns.ApplyStyle(r, "roll") end
-    for _, r in ipairs(active) do
-        ns.ApplyStyle(r, "roll")
-        RF:UpdateChips(r)
-    end
+    ns.ApplyStyle(win, "roll")
+    for _, r in ipairs(active) do RF:UpdateChips(r) end
     RF:Layout()
 end
 
@@ -833,6 +851,9 @@ function RF:Restore()
 end
 
 function RF:Init()
+    win = ns.FramedPanel(ns.frames.roll, T["Gruppenwurf"])
+    win:Hide()
+
     -- Blizzards Gruppenwurf-Fenster abschalten
     UIParent:UnregisterEvent("START_LOOT_ROLL")
     UIParent:UnregisterEvent("CANCEL_LOOT_ROLL")
