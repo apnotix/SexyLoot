@@ -37,7 +37,7 @@ local function BagValue()
         for slot = 1, NumSlots(bag) do
             local link, count = SlotItem(bag, slot)
             if link then
-                sum = sum + (select(11, ns.GetItemInfo(link)) or 0) * count
+                sum = sum + ns.ItemPrice(link, select(11, ns.GetItemInfo(link))) * count
             end
         end
     end

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.19
+
+- Edit Mode: Oben im Dialog verweisen Knöpfe auf zusammengehörige Fenster (Rollfenster, Gewinner-Anzeige, Freie Würfe, Gruppen-Feed; Beutefenster, Loot-Einblendung, Meine Beute, Geld); ein Klick zeigt deren Einstellungen.
+- Neue Option "Preisquelle" (Loot-Einblendung, Zuletzt gelootet, Geld): Verkaufswerte zeigen jetzt den Auktionspreis, wenn Auctionator, TSM, Oribos Exchange oder Auctioneer installiert ist, sonst den Händlerpreis. Umschaltbar auf nur Händlerpreis.
+- Loot-Einblendung zeigt jetzt auch gelootetes Geld (Münzsymbol und Betrag; mehrere Beträge innerhalb der Anzeigedauer werden addiert, mit der Option "Geld einzeln anzeigen" bekommt jeder Betrag eine eigene Zeile).
+- Neuer Edit-Mode-Dialog im Look der Sexy-Addons mit einklappbaren Abschnitten (Darstellung, Andocken, Position und Größe, Sichtbarkeit) aus der eigenen Bibliothek SexyEditMode; EditModeExpanded entfällt. Einstellungen gelten jetzt für alle Edit-Mode-Layouts gemeinsam. Position und Optionen (Schalter, Regler) aus der alten Bibliothek werden einmalig übernommen; nur die Skalierung beginnt wieder bei 100 %.
+- Hintergrund- und Randfarbe lassen sich nicht mehr einstellen: Die Buttons "Hintergrundfarbe wählen", "Randfarbe wählen" und "Farben zurücksetzen" entfallen, gespeicherte Farbwahlen werden nicht mehr benutzt.
+- Würfelfenster: Nach dem Wurf zeigt das Item wieder seinen Tooltip (vorher blieb er leer, weil die Roll-ID dann ungültig ist; jetzt gilt der Item-Link)
+- Die Fenster haben jetzt denselben Rahmen wie SexyQuestHelper (Tooltip-Rand mit abgerundeten Ecken, gold gefärbt) statt der flachen 2-px-Linie. Hintergrund- und Randfarbe bleiben im Edit Mode einstellbar.
+
 ## 0.1.16
 
 - Neuer Look im Stil von SexyQuestHelper für Gewinner-Anzeige, Freie Würfe, Gruppenbeute (Feed), "Zuletzt gelootet", Geld-Rahmen und Loot-Einblendung: dunkelbraune Fläche, 2-px-Goldrand und Titelband mit Badge, farbige Etiketten und ein grüner Aktionsknopf. Auch Rollfenster und Beutefenster haben den neuen Look.

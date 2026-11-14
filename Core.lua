@@ -3,9 +3,7 @@ local ADDON, ns = ...
 -- Standardwerte. Sie stehen hier, weil Schieberegler ihr onChanged
 -- beim Laden nur mit gespeicherten Werten aufrufen.
 -- Checkboxen sind im Standard immer false.
--- Farben (r, g, b, Deckkraft). Sie stehen in ns.cfg[key].bg / .border und
--- werden zusätzlich in SexyLootDB.colors gespeichert, weil EditModeExpanded
--- Farbwahlen nicht ablegt.
+-- Die Farben (bg, border; r, g, b, Deckkraft) sind fest und nicht einstellbar.
 -- Fenster im Look von SexyQuestHelper: dunkelbraune Fläche, Goldrand
 local PANEL_BG = { 0.08, 0.065, 0.05, 0.96 }
 local GOLD = { 0.42, 0.34, 0.15, 1 }
@@ -22,7 +20,7 @@ ns.defaults = {
         bg = { 0.08, 0.065, 0.05, 0.88 }, border = GOLD },
     mine = { growDown = false, hideTime = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
         bg = PANEL_BG, border = GOLD },
-    toast = { hideValue = false, hold = 6, rows = 6 },
+    toast = { hideValue = false, hold = 6, rows = 6, splitMoney = false },
     wallet = { bg = PANEL_BG, border = GOLD },
 }
 
@@ -43,15 +41,62 @@ local START = {
     toast = { 520, 560 },
 }
 
+-- Die frühere Bibliothek (EditModeExpanded) legte Schalter und Regler je Edit-Mode-Layout ab:
+-- SexyLootDB.frames[key].profiles[Layout].settings[12 Schalter | 18 Regler][Option].
+-- Einmalig in SexyLootDB.cfg übernehmen, bevor SexyEditMode die alten Daten wegräumt.
+function ns.MigrateOldOptions()
+    if SexyLootDB.optionsMigrated then return end
+    local active
+    local m = _G.EditModeManagerFrame
+    if m and m.GetActiveLayoutInfo then
+        local ok, info = pcall(m.GetActiveLayoutInfo, m)
+        if ok and type(info) == "table" and info.layoutType and info.layoutName then
+            active = info.layoutType .. "-" .. info.layoutName
+        end
+    end
+    for key, def in pairs(ns.defaults) do
+        local frameDB = SexyLootDB.frames and SexyLootDB.frames[key]
+        local profiles = frameDB and frameDB.profiles
+        if type(profiles) == "table" then
+            local p = profiles[active or ""]
+            if type(p) ~= "table" then
+                -- aktives Layout unbekannt: das Layout nehmen, in dem verschoben wurde (zuletzt sortiert)
+                local keys = {}
+                for k, v in pairs(profiles) do
+                    if type(v) == "table" and (v.x ~= v.defaultX or v.y ~= v.defaultY) then keys[#keys + 1] = k end
+                end
+                if #keys == 0 then
+                    for k, v in pairs(profiles) do
+                        if type(v) == "table" then keys[#keys + 1] = k end
+                    end
+                end
+                table.sort(keys, function(x, y) return x > y end)
+                p = keys[1] and profiles[keys[1]]
+            end
+            local settings = type(p) == "table" and p.settings
+            if type(settings) == "table" then
+                SexyLootDB.cfg[key] = SexyLootDB.cfg[key] or {}
+                for _, kind in ipairs({ 12, 18 }) do
+                    for opt, value in pairs(settings[kind] or {}) do
+                        if def[opt] ~= nil and type(value) == "number" then
+                            SexyLootDB.cfg[key][opt] = (kind == 12) and (value == 1) or value
+                        end
+                    end
+                end
+            end
+        end
+    end
+    SexyLootDB.optionsMigrated = true
+end
+
 function ns.CreateFrames()
     for key, size in pairs(SIZES) do
         local f = CreateFrame("Frame", "SexyLoot" .. key .. "Anchor", UIParent)
         f:SetSize(size[1], size[2])
         f:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", START[key][1], START[key][2])
         f:SetClampedToScreen(true)
-        -- EME erwartet BOTTOMLEFT-Bildschirmkoordinaten in db.x / db.y. Ist die
-        -- Tabelle leer, kann die Bibliothek das Fenster ohne Ankerpunkt zurücklassen
-        -- (unsichtbar auch im Edit Mode). Darum die Startposition selbst eintragen.
+        -- SexyEditMode speichert BOTTOMLEFT-Koordinaten in db.x / db.y; ohne gespeicherte
+        -- Position gilt die Startposition
         local db = SexyLootDB.frames[key]
         if not (db.x and db.y) then
             db.x, db.y = START[key][1], START[key][2]
@@ -135,6 +180,13 @@ end
 --------------------------------------------------------------------------
 
 ns.HEAD = 30                               -- Höhe von Rahmen oben plus Titelband
+ns.INSET = 3                               -- Abstand des Inhalts zum Fensterrand (Rahmenstärke)
+ns.BACKDROP = {
+    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    edgeSize = 12,
+    insets = { left = 3, right = 3, top = 3, bottom = 3 },
+}
 ns.BTN = { 0.184, 0.42, 0.235 }            -- grüner Aktionsknopf
 ns.TONES = {
     ok = { bg = { 0.082, 0.188, 0.11 }, fg = { 0.48, 0.88, 0.56 } },
@@ -212,22 +264,25 @@ function ns.Pill(parent)
     return p
 end
 
--- Flaches Fenster im Look des Questfensters: Fläche, 2px Goldrand und (mit Titel)
+-- Fenster im Look des Questfensters: Tooltip-Fläche und Tooltip-Rand (ns.BACKDROP, Inhalt ab ns.INSET) und (mit Titel)
 -- ein Titelband mit Badge rechts. f.fill = Fläche, f.accent = Rand, f.band = Band,
 -- f.title = Titeltext, f:SetBadge(text) = Badge ("" blendet es aus). Rechts vom
 -- Badge bleibt f.badgeInset Pixel frei (Standard 6, z. B. für einen Schließen-Knopf).
 function ns.FramedPanel(parent, title)
-    local f = CreateFrame("Frame", nil, parent)
-    f.fill = f:CreateTexture(nil, "BACKGROUND")
-    f.fill:SetAllPoints()
-    f.fill:SetColorTexture(0.08, 0.065, 0.05, 0.96)
-    f.accent = ns.Edges(f, 2, "BORDER")
-    f.accent:SetColorTexture(0.42, 0.34, 0.15, 1)
+    -- Rahmen wie im Fenster von SexyQuestHelper: Tooltip-Fläche und Tooltip-Rand,
+    -- Fläche und Rand werden über SetBackdropColor/SetBackdropBorderColor gefärbt.
+    local f = CreateFrame("Frame", nil, parent, BackdropTemplateMixin and "BackdropTemplate" or nil)
+    f:SetBackdrop(ns.BACKDROP)
+    f:SetBackdropColor(0.08, 0.065, 0.05, 0.96)
+    f:SetBackdropBorderColor(0.42, 0.34, 0.15, 1)
+    -- Dieselben Namen wie bisher (ns.ApplyStyle): f.fill = Fläche, f.accent = Rand
+    f.fill = { SetColorTexture = function(_, r, g, b, a) f:SetBackdropColor(r, g, b, a) end }
+    f.accent = { SetColorTexture = function(_, r, g, b, a) f:SetBackdropBorderColor(r, g, b, a) end }
     if title then
         f.band = f:CreateTexture(nil, "BACKGROUND", nil, 1)
-        f.band:SetPoint("TOPLEFT", 2, -2)
-        f.band:SetPoint("TOPRIGHT", -2, -2)
-        f.band:SetHeight(ns.HEAD - 2)
+        f.band:SetPoint("TOPLEFT", ns.INSET, -ns.INSET)
+        f.band:SetPoint("TOPRIGHT", -ns.INSET, -ns.INSET)
+        f.band:SetHeight(ns.HEAD - ns.INSET)
         f.band:SetColorTexture(0.15, 0.12, 0.07, 0.96)
         f.title = f:CreateFontString(nil, "OVERLAY", "SexyLootTitle")
         f.title:SetPoint("LEFT", f.band, "LEFT", 8, 0)
@@ -274,6 +329,57 @@ end
 function ns.GetItemInfo(...)
     local f = (C_Item and C_Item.GetItemInfo) or GetItemInfo
     if f then return f(...) end
+end
+
+-- Preis eines Stücks: Händlerpreis oder Auktionspreis eines installierten Preis-Addons
+-- (Auctionator, TSM, Oribos Exchange, Auctioneer). Einstellung SexyLootDB.priceSource:
+-- "auction" (Standard: Auktionspreis, ohne Treffer der Händlerpreis) oder "vendor".
+local AUCTION_SOURCES = {
+    function(link)
+        local A = _G.Auctionator
+        if A and A.API and A.API.v1 and A.API.v1.GetAuctionPriceByItemLink then
+            return A.API.v1.GetAuctionPriceByItemLink("SexyLoot", link)
+        end
+    end,
+    function(link)
+        local tsm = _G.TSM_API
+        if tsm and tsm.GetCustomPriceValue and tsm.ToItemString then
+            local item = tsm.ToItemString(link)
+            return item and tsm.GetCustomPriceValue("DBMarket", item)
+        end
+    end,
+    function(link)
+        if _G.OEMarketInfo then
+            local t = {}
+            _G.OEMarketInfo(link, t)
+            return t.market
+        end
+    end,
+    function(link)
+        local A = _G.AucAdvanced
+        if A and A.API and A.API.GetMarketValue then return A.API.GetMarketValue(link) end
+    end,
+}
+
+local priceCache = {}   -- [Link] = { Preis, bis }
+
+local function AuctionPrice(link)
+    local c = priceCache[link]
+    local now = GetTime()
+    if c and c[2] > now then return c[1] end
+    local price
+    for _, source in ipairs(AUCTION_SOURCES) do
+        local ok, value = pcall(source, link)
+        if ok and type(value) == "number" and value > 0 then price = value break end
+    end
+    priceCache[link] = { price, now + 30 }
+    return price
+end
+
+function ns.ItemPrice(link, vendor)
+    vendor = vendor or 0
+    if not link or (SexyLootDB and SexyLootDB.priceSource == "vendor") then return vendor end
+    return AuctionPrice(link) or vendor
 end
 
 function ns.GetItemInfoInstant(...)
@@ -394,15 +500,6 @@ function ns.SetEditMode(active)
     end
 end
 
-function ns.HookEditMode()
-    if not EditModeManagerFrame then return end
-    hooksecurefunc(EditModeManagerFrame, "EnterEditMode", function() ns.SetEditMode(true) end)
-    hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function() ns.SetEditMode(false) end)
-    local active = EditModeManagerFrame.IsEditModeActive and EditModeManagerFrame:IsEditModeActive()
-        or EditModeManagerFrame.editModeActive
-    if active then ns.SetEditMode(true) end
-end
-
 --------------------------------------------------------------------------
 -- Start
 --------------------------------------------------------------------------
@@ -415,31 +512,28 @@ f:SetScript("OnEvent", function(_, _, name)
 
     SexyLootDB = SexyLootDB or {}
     SexyLootDB.frames = SexyLootDB.frames or {}
+    SexyLootDB.cfg = SexyLootDB.cfg or {}
+    ns.MigrateOldOptions()
     ns.cfg = {}
     for key, def in pairs(ns.defaults) do
-        -- EME braucht pro Fenster eine bereits vorhandene Tabelle
         SexyLootDB.frames[key] = SexyLootDB.frames[key] or {}
-        ns.cfg[key] = CopyTable(def)
+        -- gespeichert werden nur geänderte Werte; alles andere kommt aus den Standardwerten
+        SexyLootDB.cfg[key] = SexyLootDB.cfg[key] or {}
+        ns.cfg[key] = setmetatable(SexyLootDB.cfg[key], { __index = def })
     end
-    -- Gespeicherte Farben über die Standardfarben legen
-    SexyLootDB.colors = SexyLootDB.colors or {}
-    for key, saved in pairs(SexyLootDB.colors) do
-        if ns.cfg[key] then
-            for _, k in ipairs({ "bg", "border" }) do
-                if type(saved[k]) == "table" and #saved[k] == 4 then ns.cfg[key][k] = CopyTable(saved[k]) end
-            end
-        end
-    end
+    -- Farben sind fest (Quest-Look) und nicht mehr einstellbar; alte gespeicherte Farbwahlen entfallen
+    SexyLootDB.colors = nil
 
-    -- Wachstumsrichtung von "Zuletzt gelootet": gilt für alle Edit-Mode-Layouts
-    -- (EME-Checkboxen sind pro Layout), darum eigener Schalter in SexyLootDB
-    ns.cfg.mine.growDown = SexyLootDB.mineGrowDown and true or false
+    -- frühere Versionen speicherten die Wachstumsrichtung getrennt
+    if SexyLootDB.mineGrowDown ~= nil then
+        ns.cfg.mine.growDown = SexyLootDB.mineGrowDown and true or false
+        SexyLootDB.mineGrowDown = nil
+    end
 
     ns.CreateFrames()
     for _, m in ipairs(ns.modules) do m:Init() end
     ns.SetupEditMode()
     for key in pairs(ns.defaults) do ns.Refresh(key) end
-    ns.HookEditMode()
 end)
 
 SLASH_SEXYLOOT1 = "/sexyloot"

@@ -11,7 +11,7 @@
 ## SavedVariables: SexyLootDB
 
 lib\LibStub\LibStub.lua
-lib\EditModeExpanded-1.0\EditModeExpanded-1.0.xml
+lib\SexyEditMode\SexyEditMode.lua
 
 Locale.lua
 Core.lua

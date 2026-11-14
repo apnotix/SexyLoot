@@ -1,172 +1,166 @@
 local ADDON, ns = ...
 local T = ns.T
-local lib = LibStub:GetLibrary("EditModeExpanded-1.0")
+local SEM = LibStub("SexyEditMode-1.0")
 
--- Standardoptionen, für jedes Fenster gleich
-local function Standard(frame, key, title)
-    lib:RegisterFrame(frame, title, SexyLootDB.frames[key])   -- Position, am Rand geklemmt
-    lib:RegisterResizable(frame, 50, 200, 5)                  -- Skalierung in Prozent
-    lib:RegisterHideable(frame)                               -- "Ausblenden"
-    lib:RegisterToggleInCombat(frame)                         -- erst nach RegisterHideable
-    lib:RegisterHiddenUntilMouseover(frame, T["Nur bei Mouseover anzeigen"])
-    lib:RegisterCoordinates(frame)                            -- X/Y eintippen
-    lib:RegisterCustomButton(frame, T["Andocken: Ziel wechseln"], function() ns.Dock:NextTarget(key) end)
-    lib:RegisterCustomButton(frame, T["Andocken: Seite wechseln"], function() ns.Dock:NextSide(key) end)
-    ns.Dock:Hook(key)                                         -- Ziehen löst das Andocken
+-- Einstellungen: Die Werte stehen in ns.cfg[key] (gespeichert in SexyLootDB.cfg, siehe Core.lua).
+local function Check(key, opt, label)
+    return { type = "check", name = label,
+        get = function() return ns.cfg[key][opt] and true or false end,
+        set = function(v) ns.cfg[key][opt] = v and true or false; ns.Refresh(key) end }
 end
 
--- Aus = Standard: onUnchecked läuft beim Laden immer einmal
-local function Checkbox(frame, key, opt, label)
-    lib:RegisterCustomCheckbox(frame, label,
-        function() ns.cfg[key][opt] = true;  ns.Refresh(key) end,
-        function() ns.cfg[key][opt] = false; ns.Refresh(key) end,
-        opt)
+local function Slider(key, opt, label, min, max, step)
+    return { type = "slider", name = label, min = min, max = max, step = step,
+        get = function() return ns.cfg[key][opt] end,
+        set = function(v) ns.cfg[key][opt] = v; ns.Refresh(key) end }
 end
 
-local function Slider(frame, key, opt, label, min, max, step)
-    lib:RegisterSlider(frame, label, opt, function(value)
-        ns.cfg[key][opt] = value
-        ns.Refresh(key)
-    end, min, max, step)
+-- Preisquelle für Verkaufswerte (gilt für alle Fenster)
+local function PriceSource()
+    return { type = "select", name = T["Preisquelle"],
+        options = {
+            { value = "auction", label = T["Auktionspreis (Preis-Addon)"] },
+            { value = "vendor", label = T["Händlerpreis"] },
+        },
+        get = function() return SexyLootDB.priceSource or "auction" end,
+        set = function(v)
+            SexyLootDB.priceSource = v
+            for _, k in ipairs({ "toast", "mine", "wallet" }) do ns.Refresh(k) end
+        end }
 end
 
--- Farbwahl über Blizzards ColorPickerFrame (kein Dropdown nötig). Edit Mode
--- Expanded speichert Farben nicht, darum liegen sie in SexyLootDB.colors.
-local function SetColor(key, which, r, g, b, a)
-    ns.cfg[key][which] = { r, g, b, a }
-    SexyLootDB.colors = SexyLootDB.colors or {}
-    SexyLootDB.colors[key] = SexyLootDB.colors[key] or {}
-    SexyLootDB.colors[key][which] = { r, g, b, a }
-    ns.Refresh(key)
+-- Zusammengehörige Fenster verweisen oben im Dialog aufeinander (Klick zeigt deren Einstellungen)
+local RELATED = {
+    { "roll", "winner", "freeroll", "feed" },     -- Würfe und Gruppenbeute
+    { "loot", "toast", "mine", "wallet" },        -- eigene Beute und Geld
+}
+local SHORT = {
+    roll = "Rollfenster", winner = "Gewinner-Anzeige", freeroll = "Freie Würfe", feed = "Gruppen-Feed",
+    loot = "Beutefenster", toast = "Loot-Einblendung", mine = "Meine Beute", wallet = "Geld",
+}
+
+local function Links(key)
+    local list = {}
+    for _, group in ipairs(RELATED) do
+        for _, k in ipairs(group) do
+            if k == key then
+                for _, other in ipairs(group) do
+                    if other ~= key then
+                        list[#list + 1] = { type = "link", name = T[SHORT[other]],
+                            frame = function() return ns.frames[other] end }
+                    end
+                end
+            end
+        end
+    end
+    return list
 end
 
-local function PickColor(key, which)
-    local c = ns.cfg[key][which]
-    local r0, g0, b0, a0 = c[1], c[2], c[3], c[4]
-    ColorPickerFrame:SetupColorPickerAndShow({
-        r = r0, g = g0, b = b0, opacity = a0, hasOpacity = true,
-        swatchFunc = function()
-            local r, g, b = ColorPickerFrame:GetColorRGB()
-            SetColor(key, which, r, g, b, ColorPickerFrame:GetColorAlpha())
+local function Button(label, fn) return { type = "button", name = label, onClick = fn } end
+local function Header(label, id, collapsed) return { type = "header", name = label, id = id, collapsed = collapsed } end
+
+-- Fenster im Edit Mode anmelden. Position, Größe und Sichtbarkeit übernimmt die Bibliothek
+-- (Daten in SexyLootDB.frames[key]); jedes Fenster bekommt zuletzt den Abschnitt "Andocken".
+local function Setup(key, title, settings)
+    for i, link in ipairs(Links(key)) do table.insert(settings, i, link) end
+    settings[#settings + 1] = Header(T["Andocken"], "dock", true)
+    settings[#settings + 1] = Button(T["Andocken: Ziel wechseln"], function() ns.Dock:NextTarget(key) end)
+    settings[#settings + 1] = Button(T["Andocken: Seite wechseln"], function() ns.Dock:NextSide(key) end)
+    SEM:Register(ns.frames[key], {
+        name = title,
+        db = SexyLootDB.frames[key],
+        settings = settings,
+        -- jedes Fenster meldet den Wechsel; die Vorschau der Module läuft nur einmal
+        onEditMode = function(active)
+            if ns.editing ~= active then ns.SetEditMode(active) end
         end,
-        opacityFunc = function()
-            local r, g, b = ColorPickerFrame:GetColorRGB()
-            SetColor(key, which, r, g, b, ColorPickerFrame:GetColorAlpha())
-        end,
-        cancelFunc = function() SetColor(key, which, r0, g0, b0, a0) end,
     })
+    ns.Dock:Hook(key)   -- Ziehen löst das Andocken
 end
-
-local function Colors(frame, key)
-    lib:RegisterCustomButton(frame, T["Hintergrundfarbe wählen"], function() PickColor(key, "bg") end)
-    lib:RegisterCustomButton(frame, T["Randfarbe wählen"], function() PickColor(key, "border") end)
-    lib:RegisterCustomButton(frame, T["Farben zurücksetzen"], function()
-        if SexyLootDB.colors then SexyLootDB.colors[key] = nil end
-        ns.cfg[key].bg = CopyTable(ns.defaults[key].bg)
-        ns.cfg[key].border = CopyTable(ns.defaults[key].border)
-        ns.Refresh(key)
-    end)
-end
-
--- Bewusst keine Auswahllisten (RegisterDropdown): Im Forever-Client sind
--- Addon-Frames mit UIDropDownMenuTemplate blockiert.
 
 function ns.SetupEditMode()
 
-    do  -- SexyLoot: Rollfenster
-        local f = ns.frames.roll
-        Standard(f, "roll", T["SexyLoot: Rollfenster"])
-        Checkbox(f, "roll", "hideRolls", T["Würfe am Item ausblenden"])
-        Checkbox(f, "roll", "growUp", T["Neue Fenster nach oben wachsen lassen"])
-        Slider(f, "roll", "gap", T["Abstand zwischen Fenstern"], 0, 24, 2)
-        Slider(f, "roll", "size", T["Schriftgröße der Würfe"], 10, 20, 1)
-        Slider(f, "roll", "maxHeight", T["Maximale Höhe der Liste (darüber klappen Zeilen ein)"], 200, 900, 20)
-        Slider(f, "roll", "hold", T["Fenster nach dem Wurf anzeigen (Sekunden)"], 3, 30, 1)
-        Colors(f, "roll")
-        lib:RegisterCustomButton(f, T["Testwurf starten"], ns.Actions.testRoll)
-    end
+    Setup("roll", T["SexyLoot: Rollfenster"], {
+        Header(T["Darstellung"], "look"),
+        Check("roll", "hideRolls", T["Würfe am Item ausblenden"]),
+        Check("roll", "growUp", T["Neue Fenster nach oben wachsen lassen"]),
+        Slider("roll", "gap", T["Abstand zwischen Fenstern"], 0, 24, 2),
+        Slider("roll", "size", T["Schriftgröße der Würfe"], 10, 20, 1),
+        Slider("roll", "maxHeight", T["Maximale Höhe der Liste (darüber klappen Zeilen ein)"], 200, 900, 20),
+        Slider("roll", "hold", T["Fenster nach dem Wurf anzeigen (Sekunden)"], 3, 30, 1),
+        Button(T["Testwurf starten"], ns.Actions.testRoll),
+    })
 
-    do  -- SexyLoot: Gewinner-Anzeige
-        local f = ns.frames.winner
-        Standard(f, "winner", T["SexyLoot: Gewinner-Anzeige"])
-        Slider(f, "winner", "size", T["Schriftgröße"], 18, 40, 2)
-        Slider(f, "winner", "hold", T["Anzeigedauer (Sekunden)"], 2, 15, 1)
-        Slider(f, "winner", "max", T["Gleichzeitig angezeigte Gewinner"], 1, 5, 1)
-        Colors(f, "winner")
-        lib:RegisterCustomButton(f, T["Test-Gewinner anzeigen"], ns.Actions.testWinner)
-    end
+    Setup("winner", T["SexyLoot: Gewinner-Anzeige"], {
+        Header(T["Darstellung"], "look"),
+        Slider("winner", "size", T["Schriftgröße"], 18, 40, 2),
+        Slider("winner", "hold", T["Anzeigedauer (Sekunden)"], 2, 15, 1),
+        Slider("winner", "max", T["Gleichzeitig angezeigte Gewinner"], 1, 5, 1),
+        Button(T["Test-Gewinner anzeigen"], ns.Actions.testWinner),
+    })
 
-    do  -- SexyLoot: Freie Würfe (/roll, z. B. bei einer Kiste)
-        local f = ns.frames.freeroll
-        Standard(f, "freeroll", T["SexyLoot: Freie Würfe"])
-        Checkbox(f, "freeroll", "single", T["Schon bei einem Würfler anzeigen"])
-        Slider(f, "freeroll", "hold", T["Liste leeren nach (Sekunden ohne Wurf)"], 5, 120, 5)
-        Slider(f, "freeroll", "rows", T["Maximale Zeilen"], 3, 20, 1)
-        Slider(f, "freeroll", "size", T["Schriftgröße"], 10, 22, 1)
-        lib:RegisterCustomButton(f, T["Ansage-Kanal wechseln"], function() ns.FreeRolls:NextChannel() end)
-        Slider(f, "freeroll", "chanNum", T["Kanal-Nummer (für „Kanal Nr.“)"], 1, 10, 1)
-        Colors(f, "freeroll")
-        lib:RegisterCustomButton(f, T["Test-Würfe starten"], ns.Actions.testFree)
-    end
+    -- Freie Würfe (/roll, z. B. bei einer Kiste)
+    Setup("freeroll", T["SexyLoot: Freie Würfe"], {
+        Header(T["Darstellung"], "look"),
+        Check("freeroll", "single", T["Schon bei einem Würfler anzeigen"]),
+        Slider("freeroll", "hold", T["Liste leeren nach (Sekunden ohne Wurf)"], 5, 120, 5),
+        Slider("freeroll", "rows", T["Maximale Zeilen"], 3, 20, 1),
+        Slider("freeroll", "size", T["Schriftgröße"], 10, 22, 1),
+        Header(T["Ansage"], "announce", true),
+        Button(T["Ansage-Kanal wechseln"], function() ns.FreeRolls:NextChannel() end),
+        Slider("freeroll", "chanNum", T["Kanal-Nummer (für „Kanal Nr.“)"], 1, 10, 1),
+        Button(T["Test-Würfe starten"], ns.Actions.testFree),
+    })
 
-    do  -- SexyLoot: Beutefenster
-        local f = ns.frames.loot
-        Standard(f, "loot", T["SexyLoot: Beutefenster"])
-        Checkbox(f, "loot", "auto", T["Graue Items automatisch einsammeln"])
-        Checkbox(f, "loot", "noAutoMoney", T["Geld nicht automatisch einsammeln"])
-        Slider(f, "loot", "thr", T["Gruppenloot-Markierung ab Qualität (2 grün, 3 blau, 4 episch)"], 2, 4, 1)
-        Slider(f, "loot", "icon", T["Symbolgröße"], 24, 48, 2)
-        Colors(f, "loot")
-        lib:RegisterCustomButton(f, T["Hotkey für „Alles nehmen“ festlegen"], function() ns.LootWindow:CaptureHotkey() end)
-        lib:RegisterCustomButton(f, T["Hotkey entfernen"], function() ns.LootWindow:ClearHotkey() end)
-        lib:RegisterCustomButton(f, T["Testbeute öffnen"], ns.Actions.openLoot)
-    end
+    Setup("loot", T["SexyLoot: Beutefenster"], {
+        Header(T["Darstellung"], "look"),
+        Check("loot", "auto", T["Graue Items automatisch einsammeln"]),
+        Check("loot", "noAutoMoney", T["Geld nicht automatisch einsammeln"]),
+        Slider("loot", "thr", T["Gruppenloot-Markierung ab Qualität (2 grün, 3 blau, 4 episch)"], 2, 4, 1),
+        Slider("loot", "icon", T["Symbolgröße"], 24, 48, 2),
+        Header(T["Hotkey"], "hotkey", true),
+        Button(T["Hotkey für „Alles nehmen“ festlegen"], function() ns.LootWindow:CaptureHotkey() end),
+        Button(T["Hotkey entfernen"], function() ns.LootWindow:ClearHotkey() end),
+        Button(T["Testbeute öffnen"], ns.Actions.openLoot),
+    })
 
-    do  -- SexyLoot: Gruppen-Feed
-        local f = ns.frames.feed
-        Standard(f, "feed", T["SexyLoot: Gruppen-Feed"])
-        Checkbox(f, "feed", "hideStamp", T["Zeitstempel ausblenden"])
-        Checkbox(f, "feed", "sortPlayers", T["Wurfdetails nach Spielerreihenfolge sortieren"])
-        Checkbox(f, "feed", "noFade", T["Nachrichten nicht ausblenden"])
-        Slider(f, "feed", "fade", T["Nachrichten ausblenden nach (Sekunden)"], 5, 120, 5)
-        Slider(f, "feed", "width", T["Breite"], 240, 700, 10)
-        Slider(f, "feed", "height", T["Höhe"], 80, 500, 10)
-        Slider(f, "feed", "size", T["Schriftgröße"], 8, 20, 1)
-        Colors(f, "feed")
-        lib:RegisterCustomButton(f, T["Feed leeren"], ns.Actions.clearFeed)
-    end
+    Setup("feed", T["SexyLoot: Gruppen-Feed"], {
+        Header(T["Darstellung"], "look"),
+        Check("feed", "hideStamp", T["Zeitstempel ausblenden"]),
+        Check("feed", "sortPlayers", T["Wurfdetails nach Spielerreihenfolge sortieren"]),
+        Check("feed", "noFade", T["Nachrichten nicht ausblenden"]),
+        Slider("feed", "fade", T["Nachrichten ausblenden nach (Sekunden)"], 5, 120, 5),
+        Slider("feed", "width", T["Breite"], 240, 700, 10),
+        Slider("feed", "height", T["Höhe"], 80, 500, 10),
+        Slider("feed", "size", T["Schriftgröße"], 8, 20, 1),
+        Button(T["Feed leeren"], ns.Actions.clearFeed),
+    })
 
-    do  -- SexyLoot: Meine Beute
-        local f = ns.frames.mine
-        Standard(f, "mine", T["SexyLoot: Meine Beute"])
-        lib:RegisterCustomButton(f, T["Wachstumsrichtung wechseln (oben/unten)"], function()
-            SexyLootDB.mineGrowDown = not SexyLootDB.mineGrowDown
-            ns.cfg.mine.growDown = SexyLootDB.mineGrowDown and true or false
-            ns.Refresh("mine")
-            print("|cffe8c26aSexyLoot|r: " .. (ns.cfg.mine.growDown and T["Meine Beute wächst nach unten"] or T["Meine Beute wächst nach oben"]))
-        end)
-        Checkbox(f, "mine", "hideTime", T["Sitzungsdauer ausblenden"])
-        Checkbox(f, "mine", "hideValue", T["Gesamtwert ausblenden"])
-        Checkbox(f, "mine", "hideItemValue", T["Wert pro Eintrag ausblenden"])
-        Checkbox(f, "mine", "noStack", T["Gleiche Items nicht stapeln"])
-        Slider(f, "mine", "rows", T["Anzahl Einträge"], 3, 10, 1)
-        Colors(f, "mine")
-        lib:RegisterCustomButton(f, T["Liste leeren"], ns.Actions.clearMine)
-    end
+    Setup("mine", T["SexyLoot: Meine Beute"], {
+        Header(T["Darstellung"], "look"),
+        Check("mine", "growDown", T["Nach unten wachsen"]),
+        Check("mine", "hideTime", T["Sitzungsdauer ausblenden"]),
+        Check("mine", "hideValue", T["Gesamtwert ausblenden"]),
+        Check("mine", "hideItemValue", T["Wert pro Eintrag ausblenden"]),
+        PriceSource(),
+        Check("mine", "noStack", T["Gleiche Items nicht stapeln"]),
+        Slider("mine", "rows", T["Anzahl Einträge"], 3, 10, 1),
+        Button(T["Liste leeren"], ns.Actions.clearMine),
+    })
 
-    do  -- SexyLoot: Loot-Einblendung
-        local f = ns.frames.toast
-        Standard(f, "toast", T["SexyLoot: Loot-Einblendung"])
-        Checkbox(f, "toast", "hideValue", T["Wert ausblenden"])
-        Slider(f, "toast", "hold", T["Anzeigedauer (Sekunden)"], 2, 20, 1)
-        Slider(f, "toast", "rows", T["Anzahl Zeilen"], 2, 10, 1)
-        lib:RegisterCustomButton(f, T["Test-Beute anzeigen"], function() ns.Toast:Test() end)
-    end
+    Setup("toast", T["SexyLoot: Loot-Einblendung"], {
+        Header(T["Darstellung"], "look"),
+        Check("toast", "hideValue", T["Wert ausblenden"]),
+        Check("toast", "splitMoney", T["Geld einzeln anzeigen"]),
+        PriceSource(),
+        Slider("toast", "hold", T["Anzeigedauer (Sekunden)"], 2, 20, 1),
+        Slider("toast", "rows", T["Anzahl Zeilen"], 2, 10, 1),
+        Button(T["Test-Beute anzeigen"], function() ns.Toast:Test() end),
+    })
 
-    do  -- SexyLoot: Geld und Verkaufswert
-        local f = ns.frames.wallet
-        Standard(f, "wallet", T["SexyLoot: Geld"])
-        Colors(f, "wallet")
-        lib:RegisterCustomButton(f, T["Gespeicherte Charaktere zurücksetzen"], function() ns.Wallet:ResetChars() end)
-    end
+    -- Geld und Verkaufswert
+    Setup("wallet", T["SexyLoot: Geld"], {
+        PriceSource(),
+        Button(T["Gespeicherte Charaktere zurücksetzen"], function() ns.Wallet:ResetChars() end),
+    })
 end

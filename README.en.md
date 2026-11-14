@@ -19,7 +19,7 @@ A roll window that shows every player's roll right on the item, an XLoot-style l
 
 All eight windows look alike and match **SexyQuestHelper**: dark brown surface, 2-pixel gold frame, a title band with a badge (for example the item count), cards with fine divider lines, colored labels for states (green, amber, grey, red, blue) and a green action button. Fonts: **Marcellus** for titles, **Inter** for all other text (bundled, SIL Open Font License). Russian, Korean and Chinese clients keep the game font.
 
-Background and border color are adjustable per window in Edit Mode, "Reset colors" restores the quest look.
+Background and border are fixed and cannot be changed.
 
 ---
 
@@ -59,6 +59,7 @@ Replaces the default loot window.
 - 🪙 **Auto loot** is supported.
 - 🩶 **Auto-loot grey items** (optional).
 - 💰 **Money** is looted automatically (can be turned off).
+- 🏷️ **Price source:** auction price from Auctionator, TSM, Oribos Exchange or Auctioneer (if installed), otherwise vendor price. Switchable in Edit Mode.
 - 🏷️ **Group loot label:** you choose from which quality an item is labeled as group loot.
 - 🔎 **Icon size** from 24 to 48 pixels.
 
@@ -104,7 +105,7 @@ Perfect while leveling: a small list of your latest finds.
 
 ## 🛠️ Everything adjustable in Edit Mode
 
-Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) library for this.
+Open **Edit Mode**, click a SexyLoot window and adjust it. The dialog has collapsible sections (Look, Docking, Position and size, Visibility) and comes from the own **SexyEditMode** library.
 
 **Every one of the eight windows offers:**
 
@@ -117,7 +118,6 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | 🖱️ Hide until mouseover | Appears when you move the mouse over it |
 | 🧭 Coordinates | Screen position by number entry |
 | 🧲 Docking | Attach to another window (change target and side) |
-| 🎨 Background and border color | Both with a color picker and opacity, plus "Reset colors" (not for the loot popup) |
 
 **Plus each window's own options:**
 
@@ -129,7 +129,7 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. SexyLoot uses the [Ed
 | 🎁 Loot window | Auto-loot grey items · Do not loot money automatically · Group loot label from quality · Icon size · Set or remove hotkey for "Loot all" · Open test loot |
 | 📜 Group feed | Hide timestamps · Sort roll details by player order · Do not fade out messages · Fade out after (seconds) · Width · Height · Font size · Clear feed |
 | ✨ Loot popup | Hide value · Display time · Number of rows · Show test loot |
-| 💰 Money | Position and colors only · Reset saved characters |
+| 💰 Money | Position only · Reset saved characters |
 | 🎒 My loot | Hide session time · Hide total value · Hide value per entry · Do not stack identical items · Switch growth direction · Number of entries · Clear list |
 
 ### 👀 Demo data in Edit Mode
@@ -183,7 +183,7 @@ Please report bugs and requests as an [issue on GitHub](https://github.com/apnot
 
 ## 🙏 Credits
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) by **Teelo** (library `EditModeExpanded-1.0`, embedded, author credited as its license requires)
+- The own **SexyEditMode** library (embedded in `lib/`)
 - **LibStub** (public domain)
 - Fonts [Marcellus](https://fonts.google.com/specimen/Marcellus) and [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
 - Inspired by **XLoot**

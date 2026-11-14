@@ -263,8 +263,8 @@ function FR:Init()
 
     -- Leiste unter dem Band: zeigt, wann die Liste nach dem letzten Wurf geleert wird
     panel.bar = CreateFrame("StatusBar", nil, panel)
-    panel.bar:SetPoint("TOPLEFT", 2, -ns.HEAD)
-    panel.bar:SetPoint("TOPRIGHT", -2, -ns.HEAD)
+    panel.bar:SetPoint("TOPLEFT", ns.INSET, -ns.HEAD)
+    panel.bar:SetPoint("TOPRIGHT", -ns.INSET, -ns.HEAD)
     panel.bar:SetHeight(3)
     panel.bar:SetStatusBarTexture("Interface/TargetingFrame/UI-StatusBar")
     panel.bar:SetStatusBarColor(0.91, 0.76, 0.42)

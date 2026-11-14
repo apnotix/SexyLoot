@@ -78,6 +78,15 @@ local en = {
     ["Gleichstand: %s mit %d (%d-%d)"] = "Tie: %s with %d (%d-%d)",
     ["Automatisch"] = "Automatic",
     ["Kanal Nr. %d"] = "Channel no. %d",
+    ["Geld einzeln anzeigen"] = "Show each money pickup separately",
+    ["Preisquelle"] = "Price source",
+    ["Auktionspreis (Preis-Addon)"] = "Auction price (price addon)",
+    ["Händlerpreis"] = "Vendor price",
+    ["Andocken"] = "Docking",
+    ["Darstellung"] = "Look",
+    ["Ansage"] = "Announcement",
+    ["Hotkey"] = "Hotkey",
+    ["Nach unten wachsen"] = "Grow downwards",
     ["Ansage-Kanal wechseln"] = "Switch announce channel",
     ["Kanal-Nummer (für „Kanal Nr.“)"] = "Channel number (for \"Channel no.\")",
     ["Ansage-Kanal: %s"] = "Announce channel: %s",
@@ -117,9 +126,6 @@ local en = {
 
     -- Edit Mode: Standardoptionen
     ["Nur bei Mouseover anzeigen"] = "Hide until mouseover",
-    ["Hintergrundfarbe wählen"] = "Choose background color",
-    ["Randfarbe wählen"] = "Choose border color",
-    ["Farben zurücksetzen"] = "Reset colors",
 
     -- Edit Mode: Rollfenster
     ["SexyLoot: Rollfenster"] = "SexyLoot: Roll window",

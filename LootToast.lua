@@ -41,6 +41,100 @@ function Toast:Add(link, count)
     self:Layout()
 end
 
+-- Gelootetes Geld: eine Zeile, gleiche Beträge innerhalb der Anzeigedauer werden addiert
+function Toast:AddMoney(copper)
+    if not copper or copper <= 0 then return end
+    local hold = ns.cfg.toast.hold
+    local e
+    for i, x in ipairs(entries) do
+        -- "Geld einzeln anzeigen": jeder Betrag bekommt eine eigene Zeile
+        if x.money and not x.preview and not ns.cfg.toast.splitMoney then
+            e = x
+            table.remove(entries, i)
+            break
+        end
+    end
+    if e then
+        e.copper = e.copper + copper
+        e.expire = GetTime() + hold
+    else
+        e = { money = true, copper = copper, count = 1, expire = GetTime() + hold }
+    end
+    table.insert(entries, 1, e)
+    while #entries > 20 do table.remove(entries) end
+    self:Layout()
+end
+
+-- Geld erkennen. CHAT_MSG_MONEY liefert den Betrag als Text ("Ihr plündert 1 Gold, 20 Silber"):
+-- Aus den Globals GOLD_AMOUNT/SILVER_AMOUNT/COPPER_AMOUNT werden Muster gebaut und der Betrag je
+-- Meldung gelesen; jede Meldung wird einzeln zur Zeile addiert (mehrere Mobs ergeben eine Summe).
+-- Ist der Text nicht lesbar (geheimer Wert, fremdes Format), gilt als Rückfall die Änderung von
+-- GetMoney(), die wir den noch nicht abgerechneten Meldungen zuordnen.
+local unitPatterns
+
+-- "%d Gold" -> "(%d[%d%.,]*) Gold"; Pluralformen "|4Gold:Golds;" werden als ein Wort übersprungen
+local function AmountPattern(template)
+    if type(template) ~= "string" then return nil end
+    local p = template:gsub("|4[^;]*;", "@W@")
+    p = p:gsub("([%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+    p = p:gsub("%%d", "@N@")
+    p = p:gsub("@N@", "(%%d[%%d%%.,]*)")
+    p = p:gsub("@W@", "%%S+")
+    return p
+end
+
+local function ParseCopper(msg)
+    if type(msg) ~= "string" or (issecretvalue and issecretvalue(msg)) then return nil end
+    unitPatterns = unitPatterns or {
+        { AmountPattern(GOLD_AMOUNT), 10000 },
+        { AmountPattern(SILVER_AMOUNT), 100 },
+        { AmountPattern(COPPER_AMOUNT), 1 },
+    }
+    local total = 0
+    for _, u in ipairs(unitPatterns) do
+        if u[1] then
+            local n = msg:match(u[1])
+            if n then total = total + (tonumber((n:gsub("[%.,]", ""))) or 0) * u[2] end
+        end
+    end
+    return total > 0 and total or nil
+end
+
+local lastMoney
+local unmatchedChat = 0        -- Geld-Meldungen ohne lesbaren Betrag, deren Betrag noch fehlt
+local unmatchedSince = 0
+local pendingGain = 0          -- Geld-Zuwachs ohne passende Meldung (die Meldung kommt evtl. später)
+local pendingSince = 0
+
+local function OnMoneyEvent(_, event, msg)
+    local now = GetTime()
+    if event == "CHAT_MSG_MONEY" then
+        local copper = ParseCopper(msg)
+        if copper then
+            Toast:AddMoney(copper)
+        elseif pendingGain > 0 and now - pendingSince < 1 then
+            Toast:AddMoney(pendingGain)
+            pendingGain = 0
+        else
+            unmatchedChat, unmatchedSince = unmatchedChat + 1, now
+        end
+    elseif event == "PLAYER_MONEY" then
+        local money = GetMoney()
+        local delta = lastMoney and (money - lastMoney) or 0
+        lastMoney = money
+        if delta > 0 then
+            if unmatchedChat > 0 and now - unmatchedSince < 1 then
+                unmatchedChat = unmatchedChat - 1
+                Toast:AddMoney(delta)
+            else
+                pendingGain, pendingSince = delta, now
+            end
+        end
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        lastMoney = GetMoney()
+    end
+end
+
 local function MakeRow(i)
     local r = CreateFrame("Frame", nil, ns.frames.toast)
     r:SetSize(WIDTH, ROWH)
@@ -86,12 +180,13 @@ local function MakeRow(i)
     r:SetScript("OnEnter", function(self)
         if not self.e then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if not self.e.link then return end
         GameTooltip:SetHyperlink(self.e.link)
         GameTooltip:Show()
     end)
     r:SetScript("OnLeave", GameTooltip_Hide)
     r:SetScript("OnMouseUp", function(self)
-        if self.e then HandleModifiedItemClick(self.e.link) end
+        if self.e and self.e.link then HandleModifiedItemClick(self.e.link) end
     end)
     rows[i] = r
     return r
@@ -109,6 +204,22 @@ function Toast:Layout()
         r.e = e
         r:ClearAllPoints()
         r:SetPoint("TOPLEFT", ns.frames.toast, "TOPLEFT", 0, -(n - 1) * (ROWH + GAP))
+        if e.money then
+            -- Geld: Münzsymbol, Betrag als Text in der Namensspalte
+            r.bar:SetColorTexture(0.91, 0.76, 0.42, 1)
+            r.iborder:SetColorTexture(0.91, 0.76, 0.42, 1)
+            r.icon:SetTexture("Interface/Icons/INV_Misc_Coin_01")
+            r.name:SetText(Coins(e.copper))
+            r.name:SetTextColor(1, 1, 1)
+            r.quest:Hide()
+            r.pill:Hide()
+            r.name:ClearAllPoints()
+            r.name:SetPoint("LEFT", r.icon, "RIGHT", 8, 0)
+            r.name:SetPoint("RIGHT", r.count, "LEFT", -6, 0)
+            r.count:SetText("")
+            r.value:SetText("")
+            r:Show()
+        else
         local name, _, quality, _, _, _, _, _, _, _, price, classID, _, bindType = ns.GetItemInfo(e.link)
         name = name or e.link:match("%[(.-)%]") or "?"
         local cr, cg, cb = ns.QualityColor(quality)
@@ -130,9 +241,11 @@ function Toast:Layout()
             r.name:SetPoint("RIGHT", r.count, "LEFT", -6, 0)
         end
         r.count:SetText(e.count > 1 and ("×" .. e.count) or "")
-        local value = (e.price or price or 0) * e.count
+        local unit = e.price or ns.ItemPrice(e.link, price)
+        local value = (unit or 0) * e.count
         r.value:SetText((cfg.hideValue or value == 0) and "" or Coins(value))
         r:Show()
+        end
     end
     for i = n + 1, #rows do
         rows[i].e = nil
@@ -173,6 +286,7 @@ function Toast:Preview(active)
             { 2589, T["Leinenstoff"], 13, 13 },
             { 5, T["Questgegenstand"], 1, 0, true },
         }
+        table.insert(entries, 1, { money = true, copper = 123456, count = 1, expire = math.huge, preview = true })
         for _, s in ipairs(sample) do
             table.insert(entries, 1, { id = s[1], link = L(s[1], s[2]), count = s[3], price = s[4],
                 quest = s[5], expire = math.huge, preview = true })
@@ -188,6 +302,7 @@ function Toast:Test()
     self:Add(L(2589, T["Leinenstoff"]), 3)
     self:Add(L(2770, T["Kupfererz"]), 2)
     self:Add(L(118, T["Schwacher Heiltrank"]), 1)
+    self:AddMoney(23456)
 end
 
 ns.Apply.toast = function()
@@ -198,6 +313,11 @@ end
 function Toast:Init()
     driver = CreateFrame("Frame", nil, ns.frames.toast)
     driver:SetScript("OnUpdate", OnUpdate)
+    lastMoney = GetMoney()
+    driver:RegisterEvent("PLAYER_ENTERING_WORLD")
+    driver:RegisterEvent("CHAT_MSG_MONEY")
+    driver:RegisterEvent("PLAYER_MONEY")
+    driver:SetScript("OnEvent", OnMoneyEvent)
     -- Preise noch nicht gecachter Items nachtragen
     C_Timer.NewTicker(1, function() Toast:Layout() end)
 end

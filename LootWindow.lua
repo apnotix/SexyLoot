@@ -81,9 +81,9 @@ function LW:Draw()
         local d = slots[i]
         if d then
             row.data = d
-            row:SetSize(WIDTH - 4, h + 4)
+            row:SetSize(WIDTH - 2 * ns.INSET, h + 4)
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 2, -(HEAD + (i - 1) * (h + 4)))
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", ns.INSET, -(HEAD + (i - 1) * (h + 4)))
 
             row.qual:SetSize(h + 2, h + 2)
             row.qual:ClearAllPoints()
@@ -347,9 +347,9 @@ function LW:Init()
 
     -- Fußleiste mit dem grünen Knopf
     local foot = panel:CreateTexture(nil, "BACKGROUND", nil, 1)
-    foot:SetPoint("BOTTOMLEFT", 2, 2)
-    foot:SetPoint("BOTTOMRIGHT", -2, 2)
-    foot:SetHeight(FOOT - 2)
+    foot:SetPoint("BOTTOMLEFT", ns.INSET, ns.INSET)
+    foot:SetPoint("BOTTOMRIGHT", -ns.INSET, ns.INSET)
+    foot:SetHeight(FOOT - ns.INSET)
     foot:SetColorTexture(0.15, 0.12, 0.07, 0.96)
 
     allBtn = ns.Button(panel)

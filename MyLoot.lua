@@ -90,7 +90,7 @@ end
 
 -- Verkaufspreis eines Stücks in Kupfer (Vorschau-Einträge bringen ihren eigenen mit)
 local function UnitPrice(e)
-    return e.price or select(11, ns.GetItemInfo(e.link)) or 0
+    return e.price or ns.ItemPrice(e.link, select(11, ns.GetItemInfo(e.link)))
 end
 
 -- Questitem: Klasse "Quest" oder Bindungsart "Quest" (bindType 4)
@@ -156,7 +156,7 @@ local function ShowTooltip()
     local items, value = 0, 0
     local best, bestPrice = nil, 0   -- teuerstes einzelnes Item (Stückpreis)
     for _, x in ipairs(log) do
-        local price = select(11, ns.GetItemInfo(x.link)) or 0
+        local price = ns.ItemPrice(x.link, select(11, ns.GetItemInfo(x.link)))
         items = items + x.count
         value = value + price * x.count
         if price > bestPrice then best, bestPrice = x.link, price end
@@ -238,9 +238,9 @@ function MyLoot:Init()
 
     -- Fußleiste: Gesamtwert aller Einträge
     footer = panel:CreateTexture(nil, "BACKGROUND", nil, 1)
-    footer:SetPoint("BOTTOMLEFT", 2, 2)
-    footer:SetPoint("BOTTOMRIGHT", -2, 2)
-    footer:SetHeight(FOOT - 2)
+    footer:SetPoint("BOTTOMLEFT", ns.INSET, ns.INSET)
+    footer:SetPoint("BOTTOMRIGHT", -ns.INSET, ns.INSET)
+    footer:SetHeight(FOOT - ns.INSET)
     footer:SetColorTexture(0.15, 0.12, 0.07, 0.96)
     footerLabel = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     footerLabel:SetPoint("LEFT", footer, "LEFT", 8, 0)

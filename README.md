@@ -19,7 +19,7 @@ Rollfenster mit den Würfen aller Spieler direkt am Item, ein Beutefenster im St
 
 Alle acht Fenster sehen gleich aus und passen zu **SexyQuestHelper**: dunkelbraune Fläche, 2-Pixel-Goldrand, Titelband mit Badge (z. B. Anzahl der Gegenstände), Karten mit feinen Trennlinien, farbige Etiketten für Zustände (grün, bernstein, grau, rot, blau) und ein grüner Aktionsknopf. Schrift: **Marcellus** für Titel, **Inter** für den übrigen Text (mitgeliefert, SIL Open Font License). Clients in Russisch, Koreanisch und Chinesisch behalten die Spielschrift.
 
-Hintergrund- und Randfarbe sind je Fenster im Edit Mode einstellbar, „Farben zurücksetzen“ stellt den Quest-Look wieder her.
+Hintergrund und Rand sind fest und lassen sich nicht einstellen.
 
 ---
 
@@ -85,6 +85,7 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 - 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
 - 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
 - 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer, in einer Fußleiste.
+- 🏷️ **Preisquelle:** Auktionspreis von Auctionator, TSM, Oribos Exchange oder Auctioneer (wenn installiert), sonst Händlerpreis. Im Edit Mode umschaltbar.
 - 📊 **Tooltip** über dem Titelband: Dauer, Anzahl und Wert der Beute der Sitzung, das teuerste Item sowie Wert und Items pro Stunde.
 - ⏱️ **Sitzungsdauer** als Badge im Titelband (seit Login oder dem letzten Leeren der Liste).
 - ❗ **Questitems** tragen ein gelbes Ausrufezeichen am Symbol.
@@ -104,7 +105,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 
 ## 🛠️ Alles im Edit Mode einstellbar
 
-Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. SexyLoot nutzt dafür die Bibliothek [EditModeExpanded](https://github.com/teelolws/EditModeExpanded).
+Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. Der Dialog hat einklappbare Abschnitte (Darstellung, Andocken, Position und Größe, Sichtbarkeit) und stammt aus der eigenen Bibliothek **SexyEditMode**.
 
 **Jedes der acht Fenster bietet:**
 
@@ -117,7 +118,6 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | 🖱️ Nur bei Mouseover | Erscheint erst, wenn du mit der Maus darüberfährst |
 | 🧭 Koordinaten | Bildschirmposition per Zahleneingabe |
 | 🧲 Andocken | An ein anderes Fenster ankoppeln (Ziel und Seite wechseln) |
-| 🎨 Hintergrund- und Randfarbe | Beides mit Farbwähler und Deckkraft, dazu „Farben zurücksetzen“ (nicht bei der Loot-Einblendung) |
 
 **Dazu die eigenen Optionen jedes Fensters:**
 
@@ -129,7 +129,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Geld nicht automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Hotkey für „Alles nehmen“ festlegen oder entfernen · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Nachrichten nicht ausblenden · Ausblenden nach (Sekunden) · Breite · Höhe · Schriftgröße · Feed leeren |
 | ✨ Loot-Einblendung | Wert ausblenden · Anzeigedauer · Anzahl Zeilen · Test-Beute anzeigen |
-| 💰 Geld | Nur Position und Farben · Gespeicherte Charaktere zurücksetzen |
+| 💰 Geld | Nur Position · Gespeicherte Charaktere zurücksetzen |
 | 🎒 Meine Beute | Sitzungsdauer ausblenden · Gesamtwert ausblenden · Wert pro Eintrag ausblenden · Gleiche Items nicht stapeln · Wachstumsrichtung wechseln · Anzahl Einträge · Liste leeren |
 
 ### 👀 Demodaten im Edit Mode
@@ -183,7 +183,7 @@ Fehler und Wünsche bitte als [Issue auf GitHub](https://github.com/apnotix/Sexy
 
 ## 🙏 Danksagung
 
-- [EditModeExpanded](https://github.com/teelolws/EditModeExpanded) von **Teelo** (Bibliothek `EditModeExpanded-1.0`, eingebettet, Autor wird wie in der Lizenz gefordert genannt)
+- Die eigene Bibliothek **SexyEditMode** (eingebettet unter `lib/`)
 - **LibStub** (gemeinfrei)
 - Schriften [Marcellus](https://fonts.google.com/specimen/Marcellus) und [Inter](https://fonts.google.com/specimen/Inter) (SIL Open Font License 1.1)
 - Inspiriert von **XLoot**

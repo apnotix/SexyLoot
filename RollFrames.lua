@@ -148,7 +148,9 @@ local function NewRow()
     r.hit:SetPoint("BOTTOMRIGHT", r, "TOPRIGHT", -108, -42)
     r.hit:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if r.rollID and not r.fake then GameTooltip:SetLootRollItem(r.rollID)
+        -- Läuft der Wurf noch, kennt das Spiel das Item über die Roll-ID. Ist er entschieden,
+        -- ist die ID ungültig (leerer Tooltip): dann gilt der Item-Link.
+        if r.rollID and not r.fake and not r.done then GameTooltip:SetLootRollItem(r.rollID)
         elseif r.link then GameTooltip:SetHyperlink(r.link) end
         if (r.nLines or 0) > 0 then
             GameTooltip:AddLine(" ")

@@ -7,8 +7,8 @@ local T = ns.T
 -- diesem Client blockiert); Zustand: SexyLootDB.dock[key] = { target, side }.
 -- Wer ein angedocktes Fenster im Edit Mode selbst zieht, löst es damit ab.
 --
--- Edit Mode Expanded setzt Positionen bei Layoutwechsel, Größenänderung und
--- Zurücksetzen. Darum prüft ein Treiber jedes Bild, ob der Ankerpunkt noch stimmt,
+-- Die Bibliothek setzt Positionen bei Größenänderung und Zurücksetzen neu.
+-- Darum prüft ein Treiber jedes Bild, ob der Ankerpunkt noch stimmt,
 -- und setzt ihn bei Bedarf neu.
 
 local Dock = {}
@@ -133,7 +133,7 @@ function Dock:NextSide(key)
     Say(T("%s dockt an %s an (%s)", Name(key), Name(d.target), SideName(d.side)))
 end
 
--- Nach lib:RegisterFrame aufrufen: Ziehen im Edit Mode löst die Verbindung
+-- Nach SEM:Register aufrufen: Ziehen im Edit Mode löst die Verbindung
 function Dock:Hook(key)
     local sel = ns.frames[key].Selection
     if not sel then return end
