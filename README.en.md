@@ -49,6 +49,8 @@ Whoever wins a roll appears large in the middle of the screen.
 - 📚 **Several winners:** if several win in quick succession, the cards stack, each with its own timer (1 to 5 at once). The badge shows the stack position ("1/2").
 - 📏 **Font size** and **display time** adjustable.
 
+If someone else wins, a **slim toast** with icon, item, winner and roll replaces the big card.
+
 ### 🎁 Loot window
 Replaces the default loot window.
 
@@ -82,6 +84,8 @@ For chests and anything where the group rolls by hand with `/roll`.
 
 ### ✨ Loot popup
 Items you just looted appear briefly as cards with icon (frame in quality color), name, count and vendor value, then fade out. Quest items also get a "Quest" label. Identical items are added up, hovering a row keeps it visible and shows the item tooltip. Options: display time, number of rows, hide value. `/sexyloot toast` shows samples.
+
+Looted **money** shows up in the popup too, summed or (option) every amount on its own. Items you craft are shown as well.
 
 ### 🧲 Docking
 In Edit Mode every window can be docked to another one: **"Docking: change target"** cycles through off and the other windows, **"Docking: change side"** picks below, above, left or right. The window then follows its target. Dragging it in Edit Mode releases it. The choice is printed to chat.
@@ -173,6 +177,8 @@ Marcellus and Inter live in `media/fonts` (SIL Open Font License, license texts 
 | `/sexyloot toast` | Samples in the loot popup |
 | `/sexyloot winner` | Sample winner |
 | `/sexyloot bags` | Open or close the bag clean-up dialog |
+| `/sexyloot de` | Open or close the disenchant window |
+| `/sexyloot price [item]` | Show what each price addon reports for an item |
 | `/sexyloot freeroll` | Sample rolls in "Free rolls" |
 | `/sexyloot debug` | Toggle debug output for rolls and clicks |
 

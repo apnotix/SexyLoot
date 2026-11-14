@@ -49,6 +49,8 @@ Wer einen Wurf gewinnt, erscheint groß mitten auf dem Bildschirm.
 - 📚 **Mehrere Gewinner:** Gewinnen mehrere kurz nacheinander, stehen die Karten untereinander, jede mit eigenem Timer (1 bis 5 gleichzeitig). Das Badge zeigt die Stapelposition („1/2“).
 - 📏 **Schriftgröße** und **Anzeigedauer** einstellbar.
 
+Gewinnt jemand anderes, erscheint statt der großen Karte ein **schmaler Toast** mit Symbol, Gegenstand, Gewinner und Wurf.
+
 ### 🎁 Beutefenster
 Ersetzt das Standard-Beutefenster.
 
@@ -94,6 +96,8 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 
 ### ✨ Loot-Einblendung
 Gerade gelootete Items erscheinen kurz als Karten mit Symbol (Rahmen in Qualitätsfarbe), Name, Anzahl und Verkaufswert und blenden dann aus. Questitems tragen zusätzlich ein Etikett „Quest“. Gleiche Items werden zusammengezählt, mit der Maus darüber bleibt die Zeile stehen und zeigt den Item-Tooltip. Einstellbar: Anzeigedauer, Anzahl Zeilen, Wert ausblenden. `/sexyloot toast` zeigt Beispiele.
+
+Gelootetes **Geld** erscheint ebenfalls in der Einblendung, summiert oder (Option) jeder Betrag einzeln. Selbst hergestellte Items werden mit angezeigt.
 
 ### 🧲 Andocken
 Jedes Fenster lässt sich im Edit Mode an ein anderes andocken: **„Andocken: Ziel wechseln“** schaltet durch Aus und die anderen Fenster, **„Andocken: Seite wechseln“** wählt unten, oben, links oder rechts. Das Fenster wandert dann mit seinem Ziel. Ziehst du es im Edit Mode selbst, löst es sich wieder. Die Auswahl steht im Chat.
@@ -174,6 +178,8 @@ Marcellus und Inter liegen in `media/fonts` (SIL Open Font License, Lizenztexte 
 | `/sexyloot winner` | Beispiel-Gewinner |
 | `/sexyloot freeroll` | Beispiel-Würfe in „Freie Würfe“ |
 | `/sexyloot bags` | Aufräum-Dialog für die Taschen öffnen oder schließen |
+| `/sexyloot de` | Entzauber-Fenster öffnen oder schließen |
+| `/sexyloot price [Item]` | Zeigt, was jedes Preis-Addon für ein Item liefert |
 | `/sexyloot debug` | Debug-Ausgaben zu Würfen und Klicks ein- oder ausschalten |
 
 Kurzform: `/sl`
