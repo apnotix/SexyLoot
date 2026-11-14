@@ -103,6 +103,16 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 
 ---
 
+### 🧹 Taschen aufräumen
+Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein kleiner Hinweis. Mit **„Aufräumen“** (oder `/sl bags`) öffnet sich ein Dialog mit den **günstigsten Items** deiner Taschen, jeweils mit Anzahl und Wert. Meldet das Spiel beim Looten „Inventar ist voll“, öffnet sich der Dialog von selbst direkt neben dem Beutefenster (abschaltbar). Wegwerfen braucht zwei Klicks („Wegwerfen“, dann „Sicher?“); Questitems und Items mit Preis 0 bleiben außen vor. Den Wert liefert wahlweise ein Preis-Addon (Auctionator, TSM, Oribos Exchange, Auctioneer, Preise in Blau) oder der Händlerpreis. Die Liste lässt sich mit dem Mausrad scrollen. Einstellbar: ab wie vielen freien Plätzen der Hinweis kommt, sichtbare Zeilen, höchste Qualität, „Nur Junk“ (graue Items), „Berufs-Items ignorieren“ (Handwerksmaterial, Rezepte, Reagenzien; Standard an), Items ohne Preis und Preisquelle.
+
+---
+
+### ✨ Entzaubern
+`/sl de` öffnet eine Liste aller **entzauberbaren Waffen und Rüstungsteile** in deinen Taschen (Qualität von Grün bis Blau einstellbar, Items aus Ausrüstungssets bleiben außen vor). Ein Klick auf **„Entzaubern“** wirkt den Zauber direkt auf dieses Item, die Beute erscheint im Beutefenster. Das geht nur außerhalb des Kampfes und mit der Verzauberkunst. Hemden, Wappenröcke, Schmuck und Angelruten werden nicht angeboten. Zum Öffnen gibt es außerdem einen **Knopf**, den du im Edit Mode frei platzierst und skalierst. Er zeigt das Zaubersymbol und die Anzahl entzauberbarer Items und lässt sich auf „nur sichtbar, wenn etwas entzauberbar ist“ stellen.
+
+---
+
 ## 🛠️ Alles im Edit Mode einstellbar
 
 Öffne den **Edit Mode**, klicke ein SexyLoot-Fenster an und stell es ein. Der Dialog hat einklappbare Abschnitte (Darstellung, Andocken, Position und Größe, Sichtbarkeit) und stammt aus der eigenen Bibliothek **SexyEditMode**.
@@ -163,6 +173,7 @@ Marcellus und Inter liegen in `media/fonts` (SIL Open Font License, Lizenztexte 
 | `/sexyloot toast` | Beispiele in der Loot-Einblendung |
 | `/sexyloot winner` | Beispiel-Gewinner |
 | `/sexyloot freeroll` | Beispiel-Würfe in „Freie Würfe“ |
+| `/sexyloot bags` | Aufräum-Dialog für die Taschen öffnen oder schließen |
 | `/sexyloot debug` | Debug-Ausgaben zu Würfen und Klicks ein- oder ausschalten |
 
 Kurzform: `/sl`

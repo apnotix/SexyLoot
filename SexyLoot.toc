@@ -24,4 +24,6 @@ MyLoot.lua
 LootToast.lua
 Dock.lua
 Wallet.lua
+BagCleaner.lua
+Disenchant.lua
 EditMode.lua

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.20
+
+- Loot-Einblendung, Entzauber-Fenster und Aufräum-Dialog zeigen bei einem Auktionspreis darunter klein auch den normalen Händlerpreis.
+- Neu: Entzauber-Fenster (/sl de oder Knopf im Edit Mode). Es listet entzauberbare Waffen und Rüstung in den Taschen (Qualität einstellbar, Ausrüstungssets geschützt); ein Klick auf "Entzaubern" wirkt den Zauber direkt auf das Item. Jede Zeile zeigt den Wert (Auktionspreis eines Preis-Addons in Blau, sonst Händlerpreis). Nur außerhalb des Kampfes bedienbar. Dazu ein Knopf, den du im Edit Mode platzierst und skalierst (Symbol des Zaubers, Anzahl entzauberbarer Items, optional nur sichtbar wenn welche da sind) und der das Fenster öffnet. Selbst hergestellte Items (Berufe) erscheinen jetzt ebenfalls in Loot-Einblendung und "Meine Beute". Items, die sich nicht entzaubern lassen (z. B. die Zauberstäbe des Verzauberers), kannst du per Rechtsklick auf die Zeile dauerhaft ausblenden; im Edit Mode lassen sie sich zurücksetzen. Der Knopf lässt sich ausblenden (Option im Edit Mode). Den Knopf gibt es nur, wenn du Entzaubern kennst (Verzauberkunst). Neuer Befehl /sl price [Item] zeigt, was jedes Preis-Addon für ein Item liefert; Ausrüstung fällt auf den Preis der Basis-ID zurück.
+- Neu: Taschen aufräumen. Bei fast vollem Inventar erscheint ein Hinweis; "Aufräumen" oder /sl bags öffnet einen Dialog mit den günstigsten Items (Auktions- oder Händlerpreis), die sich mit Bestätigung wegwerfen lassen. Die Liste scrollt mit dem Mausrad; neue Optionen "Nur Junk anzeigen" und "Berufs-Items ignorieren". Meldet das Spiel beim Looten "Inventar ist voll", öffnet sich der Dialog direkt neben dem Beutefenster (abschaltbar).
+- Gewinner-Anzeige: Gewinnt jemand anderes, erscheint statt der großen Karte ein schmaler Toast (Symbol, Gegenstand, Gewinner mit Etiketten, Rahmen in Qualitätsfarbe). Bei deinem eigenen Gewinn bleibt die große Karte mit Schein.
+
 ## 0.1.19
 
 - Edit Mode: Oben im Dialog verweisen Knöpfe auf zusammengehörige Fenster (Rollfenster, Gewinner-Anzeige, Freie Würfe, Gruppen-Feed; Beutefenster, Loot-Einblendung, Meine Beute, Geld); ein Klick zeigt deren Einstellungen.

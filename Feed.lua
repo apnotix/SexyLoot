@@ -40,6 +40,9 @@ Def("LOOT_ITEM", { "player", "item" })
 Def("LOOT_ITEM_PUSHED", { "player", "item" })
 Def("LOOT_ITEM_SELF", { "item" }, true)
 Def("LOOT_ITEM_PUSHED_SELF", { "item" }, true)
+-- Selbst hergestellt (Berufe): "Du stellst her: %s"
+Def("LOOT_ITEM_CREATED_SELF_MULTIPLE", { "item", "count" }, true)
+Def("LOOT_ITEM_CREATED_SELF", { "item" }, true)
 
 function ns.ParseLoot(msg)
     for _, d in ipairs(LOOTDEFS) do
@@ -102,7 +105,11 @@ end
 
 function Feed:OnChat(msg)
     local t = ns.ParseLoot(msg)
-    if not t then return end
+    if not t then
+        -- /sl debug: Lootmeldungen, die kein Muster erkennt, im Chat zeigen
+        if ns.debug then print("|cffe8c26aSexyLoot|r: unbekannte Lootmeldung: " .. tostring(msg)) end
+        return
+    end
     if t.self then ns.MyLoot:Add(t.item, t.count); ns.Toast:Add(t.item, t.count) end
     if ns.LinkQuality(t.item) < 2 then return end
     local key = t.player .. ":" .. tostring(ns.ItemID(t.item))

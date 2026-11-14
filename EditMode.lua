@@ -9,8 +9,8 @@ local function Check(key, opt, label)
         set = function(v) ns.cfg[key][opt] = v and true or false; ns.Refresh(key) end }
 end
 
-local function Slider(key, opt, label, min, max, step)
-    return { type = "slider", name = label, min = min, max = max, step = step,
+local function Slider(key, opt, label, min, max, step, format)
+    return { type = "slider", name = label, min = min, max = max, step = step, format = format,
         get = function() return ns.cfg[key][opt] end,
         set = function(v) ns.cfg[key][opt] = v; ns.Refresh(key) end }
 end
@@ -32,11 +32,11 @@ end
 -- Zusammengehörige Fenster verweisen oben im Dialog aufeinander (Klick zeigt deren Einstellungen)
 local RELATED = {
     { "roll", "winner", "freeroll", "feed" },     -- Würfe und Gruppenbeute
-    { "loot", "toast", "mine", "wallet" },        -- eigene Beute und Geld
+    { "loot", "toast", "mine", "wallet", "bags", "deButton" }, -- eigene Beute, Geld, Taschen und Entzauber-Knopf
 }
 local SHORT = {
     roll = "Rollfenster", winner = "Gewinner-Anzeige", freeroll = "Freie Würfe", feed = "Gruppen-Feed",
-    loot = "Beutefenster", toast = "Loot-Einblendung", mine = "Meine Beute", wallet = "Geld",
+    loot = "Beutefenster", toast = "Loot-Einblendung", mine = "Meine Beute", wallet = "Geld", bags = "Taschen-Hinweis", deButton = "Entzauber-Knopf",
 }
 
 local function Links(key)
@@ -156,6 +156,41 @@ function ns.SetupEditMode()
         Slider("toast", "hold", T["Anzeigedauer (Sekunden)"], 2, 20, 1),
         Slider("toast", "rows", T["Anzahl Zeilen"], 2, 10, 1),
         Button(T["Test-Beute anzeigen"], function() ns.Toast:Test() end),
+    })
+
+    -- Hinweis bei fast vollem Inventar und Aufräum-Dialog
+    Setup("bags", T["SexyLoot: Taschen-Hinweis"], {
+        Header(T["Hinweis"], "hint"),
+        Check("bags", "disabled", T["Hinweis ausschalten"]),
+        Check("bags", "noAutoOpen", T["Dialog bei vollem Inventar nicht automatisch öffnen"]),
+        Slider("bags", "threshold", T["Hinweis bei höchstens so vielen freien Plätzen"], 1, 20, 1),
+        Header(T["Aufräum-Dialog"], "clean"),
+        Slider("bags", "rows", T["Sichtbare Zeilen im Dialog"], 5, 20, 1),
+        Check("bags", "onlyJunk", T["Nur Junk (graue Items) anzeigen"]),
+        Check("bags", "ignoreProf", T["Berufs-Items ignorieren"]),
+        Slider("bags", "maxQuality", T["Höchste Qualität im Dialog"], 0, 4, 1,
+            function(v) return _G["ITEM_QUALITY" .. v .. "_DESC"] or tostring(v) end),
+        Check("bags", "showNoValue", T["Items ohne Preis anzeigen"]),
+        PriceSource(),
+        Button(T["Aufräum-Dialog öffnen"], function() ns.Bags:Open() end),
+        Header(T["Entzaubern"], "disenchant", true),
+        Slider("disenchant", "rows", T["Sichtbare Zeilen im Dialog"], 5, 20, 1),
+        Slider("disenchant", "minQuality", T["Niedrigste Qualität"], 2, 4, 1,
+            function(v) return _G["ITEM_QUALITY" .. v .. "_DESC"] or tostring(v) end),
+        Slider("disenchant", "maxQuality", T["Höchste Qualität"], 2, 4, 1,
+            function(v) return _G["ITEM_QUALITY" .. v .. "_DESC"] or tostring(v) end),
+        Check("disenchant", "protectSets", T["Items aus Ausrüstungssets schützen"]),
+        Button(T["Ausgeblendete Items wieder anzeigen"], function() ns.Disenchant:ResetIgnored() end),
+        Button(T["Entzauber-Fenster öffnen"], function() ns.Disenchant:Open() end),
+    })
+
+    -- Knopf zum Öffnen des Entzauber-Fensters
+    Setup("deButton", T["SexyLoot: Entzauber-Knopf"], {
+        Header(T["Knopf"], "button"),
+        Check("deButton", "hidden", T["Knopf ausblenden (Fenster weiter mit /sl de)"]),
+        Check("deButton", "showCount", T["Anzahl entzauberbarer Items anzeigen"]),
+        Check("deButton", "onlyWithItems", T["Nur anzeigen, wenn Items entzauberbar sind"]),
+        Button(T["Entzauber-Fenster öffnen"], function() ns.Disenchant:Open() end),
     })
 
     -- Geld und Verkaufswert

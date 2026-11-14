@@ -103,6 +103,16 @@ Perfect while leveling: a small list of your latest finds.
 
 ---
 
+### 🧹 Clean up bags
+When your bags are almost full (default: 4 free slots or fewer), a small warning appears. **"Clean up"** (or `/sl bags`) opens a dialog with the **cheapest items** in your bags, each with count and value. If the game reports "Inventory is full" while looting, the dialog opens by itself right next to the loot window (can be turned off). Destroying takes two clicks ("Destroy", then "Sure?"); quest items and items worth nothing are left out. The value comes from a price addon (Auctionator, TSM, Oribos Exchange, Auctioneer, prices in blue) or the vendor price, your choice. The list scrolls with the mouse wheel. Adjustable: how many free slots trigger the warning, visible rows, highest quality, "junk only" (grey items), "ignore profession items" (trade goods, recipes, reagents; on by default), items without a price and price source.
+
+---
+
+### ✨ Disenchant
+`/sl de` opens a list of all **disenchantable weapons and armor** in your bags (quality from green to blue adjustable, items from equipment sets are left out). One click on **"Disenchant"** casts the spell on that item, the loot shows up in the loot window. Only works out of combat and with Enchanting. Shirts, tabards, trinkets and fishing poles are not offered. A **button** you place and scale freely in Edit Mode opens it as well. It shows the spell icon and the number of disenchantable items and can be set to "only visible when something can be disenchanted".
+
+---
+
 ## 🛠️ Everything adjustable in Edit Mode
 
 Open **Edit Mode**, click a SexyLoot window and adjust it. The dialog has collapsible sections (Look, Docking, Position and size, Visibility) and comes from the own **SexyEditMode** library.
@@ -162,6 +172,7 @@ Marcellus and Inter live in `media/fonts` (SIL Open Font License, license texts 
 | `/sexyloot mine` | Samples in "My loot" |
 | `/sexyloot toast` | Samples in the loot popup |
 | `/sexyloot winner` | Sample winner |
+| `/sexyloot bags` | Open or close the bag clean-up dialog |
 | `/sexyloot freeroll` | Sample rolls in "Free rolls" |
 | `/sexyloot debug` | Toggle debug output for rolls and clicks |
 

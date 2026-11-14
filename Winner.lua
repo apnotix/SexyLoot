@@ -24,8 +24,11 @@ local FALLBACK_ICON = "Interface/Icons/INV_Misc_QuestionMark"
 local MEDIA = "Interface/AddOns/SexyLoot/media/"
 local CARD_H = 112  -- Höhe einer Karte (Titelband plus Inhalt)
 local GAP = 28      -- Abstand zwischen den Karten (Platz für den Schein)
+local SLIM_H = 46       -- Höhe der schmalen Karte, wenn jemand anderes gewinnt
+local SLIM_GAP = 8      -- Abstand zwischen schmalen Karten
+local SLIM_W = 0.75     -- Breite der schmalen Karte relativ zum Anker
 
-local cards, pool = {}, {}   -- sichtbare Karten (neueste zuerst) und freie Karten
+local cards, pool, slimPool = {}, {}, {}   -- sichtbare Karten (neueste zuerst) und freie Karten (groß: du gewinnst, schmal: andere)
 
 local NineSlice = ns.NineSlice
 
@@ -64,9 +67,15 @@ end
 
 local function Layout()
     local anchor = ns.frames.winner
+    local y = 0
     for i, c in ipairs(cards) do
         c:ClearAllPoints()
-        c:SetPoint("TOPLEFT", anchor, "TOPLEFT", 0, -(i - 1) * (CARD_H + GAP))
+        -- schmale Karten sitzen mittig im Anker
+        local x = c.slim and anchor:GetWidth() * (1 - SLIM_W) / 2 or 0
+        c:SetPoint("TOPLEFT", anchor, "TOPLEFT", x, -y)
+        local nextCard = cards[i + 1]
+        -- der Schein großer Karten braucht Platz; zwischen zwei schmalen Karten reicht wenig
+        y = y + (c.slim and SLIM_H or CARD_H) + ((c.slim and nextCard and nextCard.slim) and SLIM_GAP or GAP)
         -- Mehrere Karten tragen ihre Stapelposition als Badge
         c:SetBadge(#cards > 1 and (i .. "/" .. #cards) or "")
     end
@@ -81,8 +90,37 @@ local function Release(c)
     c.fadeOut:Stop()
     for _, ag in ipairs(c.pulses) do ag:Stop() end
     c:Hide()
-    pool[#pool + 1] = c
+    local p = c.slim and slimPool or pool
+    p[#p + 1] = c
     Layout()
+end
+
+-- Ein- und Ausblenden einer Karte
+local function SetupAnim(c)
+    -- Einblenden: kurz aufpoppen und einblenden
+    c.fadeIn = c:CreateAnimationGroup()
+    do
+        local a = c.fadeIn:CreateAnimation("Alpha")
+        if a.SetFromAlpha then a:SetFromAlpha(0); a:SetToAlpha(1) else a:SetChange(0) end
+        a:SetDuration(0.25)
+        local sc = c.fadeIn:CreateAnimation("Scale")
+        if sc.SetScaleFrom then
+            sc:SetScaleFrom(0.88, 0.88)
+            sc:SetScaleTo(1, 1)
+            sc:SetOrigin("CENTER", 0, 0)
+            sc:SetDuration(0.25)
+            sc:SetSmoothing("OUT")
+        end
+    end
+
+    -- Ausblenden: weich verschwinden, danach freigeben und Stapel neu ordnen
+    c.fadeOut = c:CreateAnimationGroup()
+    do
+        local a = c.fadeOut:CreateAnimation("Alpha")
+        if a.SetFromAlpha then a:SetFromAlpha(1); a:SetToAlpha(0) else a:SetChange(-1) end
+        a:SetDuration(0.5)
+        c.fadeOut:SetScript("OnFinished", function() Release(c) end)
+    end
 end
 
 local function NewCard()
@@ -124,30 +162,45 @@ local function NewCard()
     -- Sanftes Pulsieren des Kartenscheins
     Pulse(c, c.glow, 1, 0.45, 0.9)
 
-    -- Einblenden: kurz aufpoppen und einblenden
-    c.fadeIn = c:CreateAnimationGroup()
-    do
-        local a = c.fadeIn:CreateAnimation("Alpha")
-        if a.SetFromAlpha then a:SetFromAlpha(0); a:SetToAlpha(1) else a:SetChange(0) end
-        a:SetDuration(0.25)
-        local sc = c.fadeIn:CreateAnimation("Scale")
-        if sc.SetScaleFrom then
-            sc:SetScaleFrom(0.88, 0.88)
-            sc:SetScaleTo(1, 1)
-            sc:SetOrigin("CENTER", 0, 0)
-            sc:SetDuration(0.25)
-            sc:SetSmoothing("OUT")
-        end
-    end
+    SetupAnim(c)
+    return c
+end
 
-    -- Ausblenden: weich verschwinden, danach freigeben und Stapel neu ordnen
-    c.fadeOut = c:CreateAnimationGroup()
-    do
-        local a = c.fadeOut:CreateAnimation("Alpha")
-        if a.SetFromAlpha then a:SetFromAlpha(1); a:SetToAlpha(0) else a:SetChange(-1) end
-        a:SetDuration(0.5)
-        c.fadeOut:SetScript("OnFinished", function() Release(c) end)
-    end
+-- Schmale Karte (jemand anderes gewinnt): Symbol, darüber der Gegenstand, darunter Gewinner und Etiketten
+local function NewSlimCard()
+    local c = ns.FramedPanel(ns.frames.winner)
+    c:EnableMouse(false)
+    c:Hide()
+    c.gen = 0
+    c.slim = true
+    c.pulses = {}
+
+    c.icon = c:CreateTexture(nil, "ARTWORK", nil, 1)
+    c.icon:SetSize(30, 30)
+    c.icon:SetPoint("LEFT", c, "LEFT", 10, 0)
+    c.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    c.iborder = c:CreateTexture(nil, "ARTWORK")
+    c.iborder:SetPoint("TOPLEFT", c.icon, "TOPLEFT", -1, 1)
+    c.iborder:SetPoint("BOTTOMRIGHT", c.icon, "BOTTOMRIGHT", 1, -1)
+
+    c.item = c:CreateFontString(nil, "OVERLAY")
+    c.item:SetFont(ns.FONT_TEXT, 13, "")
+    c.item:SetPoint("TOPLEFT", c.icon, "TOPRIGHT", 8, 1)
+    c.item:SetPoint("RIGHT", c, "RIGHT", -10, 0)
+    c.item:SetJustifyH("LEFT")
+    c.item:SetWordWrap(false)
+
+    c.who = c:CreateFontString(nil, "OVERLAY")
+    c.who:SetFont(ns.FONT_TEXT, 11, "")
+    c.who:SetPoint("BOTTOMLEFT", c.icon, "BOTTOMRIGHT", 8, -1)
+    c.who:SetJustifyH("LEFT")
+    c.pick = ns.Pill(c)
+    c.rollPill = ns.Pill(c)
+
+    -- Statt eines Scheins färbt sich der Rahmen in der Qualitätsfarbe
+    c.glowCard = { SetColor = function(_, r, g, b) c.accent:SetColorTexture(r, g, b, 1) end }
+
+    SetupAnim(c)
     return c
 end
 
@@ -158,23 +211,32 @@ function W:Display(player, link, pick, roll, sticky)
     -- Mehr als erlaubt: die älteste Karte weicht sofort
     while #cards >= cfg.max do Release(cards[#cards]) end
 
-    local c = table.remove(pool) or NewCard()
+    local me = ns.SameName(ns.Short(player), ns.Short(UnitName("player")))
+    local c
+    if me then
+        c = table.remove(pool) or NewCard()
+    else
+        c = table.remove(slimPool) or NewSlimCard()
+    end
     table.insert(cards, 1, c)
     c.gen = c.gen + 1
-    Style(c)
-
-    local me = ns.SameName(ns.Short(player), ns.Short(UnitName("player")))
+    if c.slim then
+        ns.ApplyStyle(c, "winner")
+        c:SetSize(ns.frames.winner:GetWidth() * SLIM_W, SLIM_H)
+    else
+        Style(c)
+    end
     c.who:SetText(me and ("|cff33ff66" .. T["Du gewinnst!"] .. "|r") or ns.ColorName(player))
     c.item:SetText(link)
 
     -- Etiketten: Wurfart (grün Bedarf, bernstein Gier, grau Passen), danach das Ergebnis
     c.pick.tex:ClearAllPoints()
-    c.pick.tex:SetPoint("LEFT", c.who, "RIGHT", 10, 0)
-    if pick and LABEL[pick] then c.pick:Set(TONE[pick], LABEL[pick], nil, 18) else c.pick:Hide() end
+    c.pick.tex:SetPoint("LEFT", c.who, "RIGHT", c.slim and 8 or 10, 0)
+    if pick and LABEL[pick] then c.pick:Set(TONE[pick], LABEL[pick], nil, c.slim and 14 or 18) else c.pick:Hide() end
     c.rollPill.tex:ClearAllPoints()
     if roll then
         c.rollPill.tex:SetPoint("LEFT", (pick and LABEL[pick]) and c.pick.tex or c.who, "RIGHT", 6, 0)
-        c.rollPill:Set("grey", tostring(roll), nil, 18)
+        c.rollPill:Set("grey", tostring(roll), nil, c.slim and 14 or 18)
     else
         c.rollPill:Hide()
     end
@@ -220,6 +282,7 @@ function W:Preview(active)
     if active then
         self:Display("Aldrin", SAMPLE, "need", 92, true)
         self:Display("Mirelle", SAMPLE2, "greed", 77, true)
+        self:Display(UnitName("player"), SAMPLE, "need", 88, true)
     end
 end
 
@@ -227,7 +290,9 @@ ns.Apply.winner = function()
     -- Der Edit-Mode-Rahmen umfasst den ganzen Stapel
     local n = ns.cfg.winner.max
     ns.frames.winner:SetHeight(n * CARD_H + (n - 1) * GAP)
-    for _, c in ipairs(cards) do Style(c) end
+    for _, c in ipairs(cards) do
+        if c.slim then c:SetSize(ns.frames.winner:GetWidth() * SLIM_W, SLIM_H) else Style(c) end
+    end
     Layout()
 end
 

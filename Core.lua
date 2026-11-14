@@ -22,6 +22,11 @@ ns.defaults = {
         bg = PANEL_BG, border = GOLD },
     toast = { hideValue = false, hold = 6, rows = 6, splitMoney = false },
     wallet = { bg = PANEL_BG, border = GOLD },
+    deButton = { hidden = false, showCount = true, onlyWithItems = false, bg = PANEL_BG, border = GOLD },
+    disenchant = { rows = 10, minQuality = 2, maxQuality = 3, protectSets = true,
+        bg = PANEL_BG, border = GOLD },
+    bags = { disabled = false, threshold = 4, rows = 10, maxQuality = 2, showNoValue = false, onlyJunk = false, ignoreProf = true, noAutoOpen = false,
+        bg = PANEL_BG, border = GOLD },
 }
 
 ns.frames  = {}   -- Anker-Fenster, die im Edit Mode bewegt werden
@@ -29,7 +34,7 @@ ns.Apply   = {}   -- ns.Apply[key](cfg) wendet die Einstellungen an
 ns.modules = {}   -- Module mit :Init()
 
 -- roll: Platz für etwa vier Rollzeilen, damit der Edit-Mode-Rahmen alle Zeilen umfasst
-local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, freeroll = { 260, 200 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 }, wallet = { 200, 44 }, toast = { 300, 252 } }
+local SIZES = { roll = { 300, 460 }, winner = { 480, 110 }, freeroll = { 260, 200 }, loot = { 250, 220 }, feed = { 340, 160 }, mine = { 280, 150 }, wallet = { 200, 44 }, toast = { 300, 252 }, bags = { 300, 46 }, deButton = { 44, 44 } }
 local START = {
     roll = { 240, 520 },
     freeroll = { 1000, 400 },
@@ -39,6 +44,8 @@ local START = {
     mine = { 900, 190 },
     wallet = { 900, 130 },
     toast = { 520, 560 },
+    bags = { 520, 780 },
+    deButton = { 1200, 300 },
 }
 
 -- Die frühere Bibliothek (EditModeExpanded) legte Schalter und Regler je Edit-Mode-Layout ab:
@@ -334,31 +341,52 @@ end
 -- Preis eines Stücks: Händlerpreis oder Auktionspreis eines installierten Preis-Addons
 -- (Auctionator, TSM, Oribos Exchange, Auctioneer). Einstellung SexyLootDB.priceSource:
 -- "auction" (Standard: Auktionspreis, ohne Treffer der Händlerpreis) oder "vendor".
+-- Jede Quelle bekommt den Item-Link und die Item-ID. Ausrüstung hat im Link Bonus-IDs und Stufen, zu
+-- denen ein Preis-Addon oft nichts kennt; darum probieren die Quellen zusätzlich den Preis der Basis-ID.
 local AUCTION_SOURCES = {
-    function(link)
+    { "Auctionator", function(link, id)
         local A = _G.Auctionator
-        if A and A.API and A.API.v1 and A.API.v1.GetAuctionPriceByItemLink then
-            return A.API.v1.GetAuctionPriceByItemLink("SexyLoot", link)
+        local api = A and A.API and A.API.v1
+        if not api then return end
+        local price = api.GetAuctionPriceByItemLink and api.GetAuctionPriceByItemLink("SexyLoot", link)
+        if (not price or price <= 0) and id and api.GetAuctionPriceByItemID then
+            price = api.GetAuctionPriceByItemID("SexyLoot", id)
         end
-    end,
-    function(link)
+        -- Der Tooltip liest direkt aus der Datenbank: dasselbe versuchen, falls die Schnittstelle nichts liefert
+        if (not price or price <= 0) and A.Database and A.Database.GetPrice then
+            local U = A.Utilities
+            local keys = {}
+            if U and U.BasicDBKeyFromLink then keys[#keys + 1] = U.BasicDBKeyFromLink(link) end
+            if id then keys[#keys + 1] = tostring(id) end
+            for _, key in ipairs(keys) do
+                local ok, value = pcall(A.Database.GetPrice, A.Database, key)
+                if ok and type(value) == "number" and value > 0 then price = value break end
+            end
+        end
+        return price
+    end },
+    { "TSM", function(link, id)
         local tsm = _G.TSM_API
-        if tsm and tsm.GetCustomPriceValue and tsm.ToItemString then
+        if not (tsm and tsm.GetCustomPriceValue) then return end
+        local price
+        if tsm.ToItemString then
             local item = tsm.ToItemString(link)
-            return item and tsm.GetCustomPriceValue("DBMarket", item)
+            price = item and tsm.GetCustomPriceValue("DBMarket", item)
         end
-    end,
-    function(link)
+        if (not price or price <= 0) and id then price = tsm.GetCustomPriceValue("DBMarket", "i:" .. id) end
+        return price
+    end },
+    { "Oribos Exchange", function(link)
         if _G.OEMarketInfo then
             local t = {}
             _G.OEMarketInfo(link, t)
             return t.market
         end
-    end,
-    function(link)
+    end },
+    { "Auctioneer", function(link)
         local A = _G.AucAdvanced
         if A and A.API and A.API.GetMarketValue then return A.API.GetMarketValue(link) end
-    end,
+    end },
 }
 
 local priceCache = {}   -- [Link] = { Preis, bis }
@@ -368,18 +396,41 @@ local function AuctionPrice(link)
     local now = GetTime()
     if c and c[2] > now then return c[1] end
     local price
+    local id = ns.ItemID(link)
     for _, source in ipairs(AUCTION_SOURCES) do
-        local ok, value = pcall(source, link)
+        local ok, value = pcall(source[2], link, id)
         if ok and type(value) == "number" and value > 0 then price = value break end
     end
-    priceCache[link] = { price, now + 30 }
+    priceCache[link] = { price, now + (price and 30 or 5) }  -- "kein Preis" nur kurz merken, die Datenbank lädt evtl. noch
     return price
 end
 
+-- /sl price [Item]: zeigt, welche Preis-Addons geladen sind und was jedes für das Item liefert
+function ns.PriceDebug(link)
+    local say = function(text) print("|cffe8c26aSexyLoot|r: " .. text) end
+    local id = link and ns.ItemID(link)
+    say("Preisquelle: " .. tostring((SexyLootDB and SexyLootDB.priceSource) or "auction") .. ", Item: " .. tostring(link))
+    for _, source in ipairs(AUCTION_SOURCES) do
+        local loaded = (source[1] == "Auctionator" and _G.Auctionator) or (source[1] == "TSM" and _G.TSM_API)
+            or (source[1] == "Oribos Exchange" and _G.OEMarketInfo) or (source[1] == "Auctioneer" and _G.AucAdvanced)
+        if not loaded then
+            say("  " .. source[1] .. ": nicht geladen")
+        elseif link then
+            local ok, value = pcall(source[2], link, id)
+            say("  " .. source[1] .. ": " .. (ok and tostring(value) or ("Fehler: " .. tostring(value))))
+        else
+            say("  " .. source[1] .. ": geladen (Item angeben: /sl price [Item])")
+        end
+    end
+end
+
+-- Liefert den Preis und ob er ein Auktionspreis ist
 function ns.ItemPrice(link, vendor)
     vendor = vendor or 0
-    if not link or (SexyLootDB and SexyLootDB.priceSource == "vendor") then return vendor end
-    return AuctionPrice(link) or vendor
+    if not link or (SexyLootDB and SexyLootDB.priceSource == "vendor") then return vendor, false end
+    local auction = AuctionPrice(link)
+    if auction then return auction, true end
+    return vendor, false
 end
 
 function ns.GetItemInfoInstant(...)
@@ -539,7 +590,8 @@ end)
 SLASH_SEXYLOOT1 = "/sexyloot"
 SLASH_SEXYLOOT2 = "/sl"
 SlashCmdList.SEXYLOOT = function(msg)
-    msg = (msg or ""):lower()
+    local rawMsg = msg or ""
+    msg = rawMsg:lower()
     if msg == "roll" then
         ns.Actions.testRoll()
     elseif msg == "loot" then
@@ -557,10 +609,19 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Actions.testFree()
     elseif msg == "winner" then
         ns.Actions.testWinner()
+    elseif msg:sub(1, 5) == "price" then
+        local link = rawMsg:match("(|c%x+|Hitem:.-|h.-|h|r)")
+        local id = msg:match("^price%s+(%d+)")
+        if not link and id then link = select(2, ns.GetItemInfo(tonumber(id))) end
+        ns.PriceDebug(link)
+    elseif msg == "bags" then
+        ns.Bags:Toggle()
+    elseif msg == "de" or msg == "disenchant" then
+        ns.Disenchant:Toggle()
     elseif msg == "test" then
         ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test(); ns.Toast:Test()
     else
-        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | toast | winner | freeroll")
+        print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | toast | winner | freeroll | bags | de")
         print(ns.T["Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken."])
     end
 end

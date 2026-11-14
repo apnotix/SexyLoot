@@ -16,7 +16,7 @@ ns.Dock = Dock
 table.insert(ns.modules, Dock)
 
 local GAP = 6
-local ORDER = { "roll", "freeroll", "winner", "loot", "feed", "mine", "toast", "wallet" }
+local ORDER = { "roll", "freeroll", "winner", "loot", "feed", "mine", "toast", "wallet", "bags", "deButton" }
 local SIDES = { "BOTTOM", "TOP", "LEFT", "RIGHT" }
 -- Ankerpunkt am angedockten Fenster, am Ziel, Abstand
 local GEOM = {
@@ -30,7 +30,7 @@ local function Name(key)
     local names = {
         roll = T["Rollfenster"], freeroll = T["Freie Würfe"], winner = T["Gewinner-Anzeige"],
         loot = T["Beutefenster"], feed = T["Gruppen-Feed"], mine = T["Meine Beute"],
-        toast = T["Loot-Einblendung"], wallet = T["Geld"],
+        toast = T["Loot-Einblendung"], wallet = T["Geld"], bags = T["Taschen-Hinweis"], deButton = T["Entzauber-Knopf"],
     }
     return names[key] or key
 end

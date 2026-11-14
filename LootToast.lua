@@ -14,7 +14,7 @@ local entries, rows = {}, {}
 local driver
 
 local function Coins(copper)
-    return GetCoinTextureString and GetCoinTextureString(copper) or GetMoneyString(copper)
+    return GetCoinTextureString and GetCoinTextureString(copper, 11) or GetMoneyString(copper)
 end
 
 function Toast:Add(link, count)
@@ -162,8 +162,15 @@ local function MakeRow(i)
     r.quest:Hide()
     r.value = r:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     r.value:SetPoint("RIGHT", -8, 0)
-    r.value:SetWidth(80)
+    r.vendorLine = r:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    r.vendorLine:SetPoint("RIGHT", -8, -7)
+    r.vendorLine:SetWidth(110)
+    r.vendorLine:SetJustifyH("RIGHT")
+    r.vendorLine:SetWordWrap(false)
+    r.vendorLine:Hide()
+    r.value:SetWidth(110)
     r.value:SetJustifyH("RIGHT")
+    r.value:SetWordWrap(false)
     r.count = r:CreateFontString(nil, "OVERLAY", "SexyLootText")
     r.count:SetPoint("RIGHT", r.value, "LEFT", -4, 0)
     r.count:SetJustifyH("RIGHT")
@@ -218,6 +225,7 @@ function Toast:Layout()
             r.name:SetPoint("RIGHT", r.count, "LEFT", -6, 0)
             r.count:SetText("")
             r.value:SetText("")
+            r.vendorLine:Hide()
             r:Show()
         else
         local name, _, quality, _, _, _, _, _, _, _, price, classID, _, bindType = ns.GetItemInfo(e.link)
@@ -241,9 +249,18 @@ function Toast:Layout()
             r.name:SetPoint("RIGHT", r.count, "LEFT", -6, 0)
         end
         r.count:SetText(e.count > 1 and ("×" .. e.count) or "")
-        local unit = e.price or ns.ItemPrice(e.link, price)
+        local unit, auction
+        if e.price then unit = e.price else unit, auction = ns.ItemPrice(e.link, price) end
         local value = (unit or 0) * e.count
-        r.value:SetText((cfg.hideValue or value == 0) and "" or Coins(value))
+        local text = (cfg.hideValue or value == 0) and "" or Coins(value)
+        -- Auktionspreis oben, darunter klein der normale Händlerpreis (zwei Textzeilen, siehe Entzauber-Fenster)
+        local vendorValue = (price or 0) * e.count
+        local two = text ~= "" and auction and vendorValue > 0
+        r.value:ClearAllPoints()
+        r.value:SetPoint("RIGHT", -8, two and 7 or 0)
+        r.value:SetText(text)
+        r.vendorLine:SetShown(two and true or false)
+        if two then r.vendorLine:SetText(Coins(vendorValue)) end
         r:Show()
         end
     end
