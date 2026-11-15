@@ -73,6 +73,8 @@ local function Setup(key, title, settings)
         -- reiner Container: ausgeblendet oder im Kampf versteckt wird er ganz, damit seine Fenster
         -- (auch unsichtbare) keine Mausklicks auf Gegner und Leichen darunter abfangen
         hideWhenInvisible = true,
+        -- nach dem Verschieben gilt die Position für die aktuelle Höhe des Ankers (siehe LootWindow:Draw)
+        onMoved = function(frame) SexyLootDB.frames[key].anchoredHeight = frame:GetHeight() end,
         -- jedes Fenster meldet den Wechsel; die Vorschau der Module läuft nur einmal
         onEditMode = function(active)
             if ns.editing ~= active then ns.SetEditMode(active) end

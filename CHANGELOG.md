@@ -2,6 +2,8 @@
 
 ## 0.1.21
 
+- Loot-Einblendung: Der Geldbetrag steht immer an derselben Stelle (rechts in der Wertspalte wie bei Items); links steht "Geld".
+- Beutefenster: Es baut sich von oben nach unten auf. Die Oberkante bleibt an der im Edit Mode gewählten Stelle stehen, statt dass das Fenster mit jeder Zeile nach oben wuchs.
 - Positionen: Beim Umstieg auf den neuen Edit-Mode-Dialog wurden die alten Positionen mancher Spieler nicht übernommen und die Fenster standen wieder an der Startposition. Die Übernahme prüft jetzt später erneut und bleibt robust, wenn der Name des Layouts beim Laden noch unbekannt ist; die alten Daten werden nicht mehr gelöscht. Bereits zurückgesetzte Fenster müssen einmal neu platziert werden
 - Klicks auf Gegner und Leichen unter SexyLoot-Fenstern: Ein mit "Ausblenden" oder "Im Kampf ausblenden" versteckter Container ist jetzt ganz weg (vorher nur durchsichtig und weiter klickbar), und eine ausblendende Zeile der Loot-Einblendung fängt keine Klicks mehr ab.
 

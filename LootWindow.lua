@@ -124,7 +124,19 @@ function LW:Draw()
     local height = HEAD + #slots * (h + 4) + FOOT
     panel:SetHeight(height)
     panel:SetBadge(#slots .. " " .. (#slots == 1 and T["Beutestück"] or T["Beutestücke"]))
-    ns.frames.loot:SetHeight(height)
+    -- Der Anker sitzt mit der unteren Kante fest; wächst er mit den Zeilen, wanderte die Oberkante nach oben
+    -- und das Fenster baute sich von unten nach oben auf. Darum die Oberkante festhalten: gespeichert ist die
+    -- untere Kante, bezogen auf die Höhe, bei der sie gesetzt wurde (anchoredHeight, überdauert /reload).
+    -- Angedockt gilt der Anker des Docks, dann nichts verschieben.
+    local anchor = ns.frames.loot
+    local SEM = LibStub("SexyEditMode-1.0")
+    local db = SexyLootDB.frames.loot
+    local before = db.anchoredHeight or anchor:GetHeight()
+    anchor:SetHeight(height)
+    if db.x and db.y and not (SexyLootDB.dock and SexyLootDB.dock.loot) and not SEM:IsMoving(anchor) then
+        SEM:SetPosition(anchor, db.x, db.y - (height - before))
+    end
+    db.anchoredHeight = height
     if #slots == 0 then panel:Hide() else panel:Show() end
 end
 
