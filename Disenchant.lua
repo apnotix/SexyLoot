@@ -15,7 +15,7 @@ local dialog
 local rows = {}
 local pending = false             -- Aktualisierung nach dem Kampf nötig
 local ROW_H, DIALOG_W = 38, 460
-local INFO_H, FOOT_H = 34, 30
+local INFO_H, FOOT_H = 34, 62
 local noDE = {}                   -- [Link] = true: Tooltip sagt "nicht entzauberbar"
 
 -- Items, die sich nicht entzaubern lassen, obwohl sie wie Ausrüstung aussehen: die vom Verzauberer
@@ -307,8 +307,35 @@ local function CreateDialog()
     d.empty:SetText(T["Nichts zum Entzaubern gefunden."])
 
     d.foot = d:CreateFontString(nil, "OVERLAY", "SexyLootDim")
-    d.foot:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 10)
+    d.foot:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 40)
     d.foot:SetJustifyH("LEFT")
+
+    -- "Alle entzaubern": Jeder Zauber braucht einen eigenen Klick (Blizzard erlaubt nur einen Zauber je
+    -- Klick). Der Knopf zielt darum immer auf das erste Item der Liste; nach jedem Entzaubern rückt das
+    -- nächste nach, und du klickst einfach wieder auf dieselbe Stelle. Gesicherter Makroknopf wie die Zeilen.
+    local all = CreateFrame("Button", nil, d, "SecureActionButtonTemplate")
+    all:SetHeight(24)
+    all:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 10)
+    all:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", -12, 10)
+    all:RegisterForClicks("AnyUp")
+    all:SetAttribute("useOnKeyDown", false)
+    all:SetAttribute("type", "macro")
+    all.bg = all:CreateTexture(nil, "BACKGROUND")
+    all.bg:SetAllPoints()
+    all.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
+    all.hl = all:CreateTexture(nil, "HIGHLIGHT")
+    all.hl:SetAllPoints()
+    all.hl:SetColorTexture(1, 1, 1, 0.25)
+    all.text = all:CreateFontString(nil, "OVERLAY", "SexyLootText")
+    all.text:SetAllPoints()
+    all:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(T["Alle entzaubern"])
+        GameTooltip:AddLine(T["Jeder Klick entzaubert das nächste Item der Liste (ein Zauber je Klick)."], 0.8, 0.8, 0.8, true)
+        GameTooltip:Show()
+    end)
+    all:SetScript("OnLeave", GameTooltip_Hide)
+    d.all = all
     return d
 end
 
@@ -325,7 +352,7 @@ function DE:Refresh()
     local macroSpell = SpellName()
     local list = Scan()
     local n = #list
-    local view = math.max(2, math.min(n, cfg.rows))
+    local view = cfg.rows   -- feste Höhe: das Fenster bleibt gleich groß, egal wie viele Items es gibt
     for i = 1, n do
         local item = list[i]
         local r = rows[i] or MakeRow(i)
@@ -362,6 +389,14 @@ function DE:Refresh()
     dialog.content:SetHeight(math.max(1, n * ROW_H))
     dialog.scroll:SetHeight(view * ROW_H)
     dialog.empty:SetShown(n == 0)
+    -- "Alle entzaubern" zielt auf das erste Item der Liste; die Zahl sagt, wie viele noch übrig sind
+    local first = list[1]
+    local canAll = known and first ~= nil
+    dialog.all:SetAttribute("macrotext", first
+        and ("/cast " .. macroSpell .. "\n/use " .. first.bag .. " " .. first.slot) or "")
+    dialog.all:SetEnabled(canAll)
+    dialog.all.bg:SetColorTexture(canAll and ns.BTN[1] or 0.2, canAll and ns.BTN[2] or 0.18, canAll and ns.BTN[3] or 0.15, 1)
+    dialog.all.text:SetText(T("Alle entzaubern (%d)", n))
     dialog.info:SetText(known and T["Ein Klick wirkt Entzaubern auf das Item. Die Beute erscheint im Beutefenster."]
         or T["Du kennst Entzaubern nicht (Verzauberkunst nötig). Die Liste zeigt trotzdem, was sich eignen würde."])
     local total = 0

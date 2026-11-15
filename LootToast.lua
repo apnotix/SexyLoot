@@ -259,6 +259,8 @@ function Toast:Layout()
         r.value:ClearAllPoints()
         r.value:SetPoint("RIGHT", -8, two and 7 or 0)
         r.value:SetText(text)
+        -- Auktionspreise in Informationsblau, Händlerpreise in Standardfarbe (wie in den anderen Fenstern)
+        if auction then r.value:SetTextColor(0.53, 0.8, 1) else r.value:SetTextColor(0.95, 0.92, 0.86) end
         r.vendorLine:SetShown(two and true or false)
         if two then r.vendorLine:SetText(Coins(vendorValue)) end
         r:Show()
@@ -287,7 +289,12 @@ local function OnUpdate()
     end
     if removed then Toast:Layout() end
     for _, r in ipairs(rows) do
-        if r.e then r:SetAlpha(math.min(1, (r.e.expire - now) / FADE)) end
+        if r.e then
+            local a = math.min(1, (r.e.expire - now) / FADE)
+            r:SetAlpha(a)
+            -- eine fast durchsichtige Zeile soll keine Klicks mehr abfangen
+            r:EnableMouse(a > 0.1)
+        end
     end
 end
 

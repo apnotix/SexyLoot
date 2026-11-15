@@ -113,7 +113,7 @@ When your bags are almost full (default: 4 free slots or fewer), a small warning
 ---
 
 ### ✨ Disenchant
-`/sl de` opens a list of all **disenchantable weapons and armor** in your bags (quality from green to blue adjustable, items from equipment sets are left out). One click on **"Disenchant"** casts the spell on that item, the loot shows up in the loot window. Only works out of combat and with Enchanting. Shirts, tabards, trinkets and fishing poles are not offered. A **button** you place and scale freely in Edit Mode opens it as well. It shows the spell icon and the number of disenchantable items and can be set to "only visible when something can be disenchanted".
+`/sl de` opens a list of all **disenchantable weapons and armor** in your bags (quality from green to blue adjustable, items from equipment sets are left out). One click on **"Disenchant"** casts the spell on that item, **"Disenchant all"** at the bottom on the next one (click the same spot repeatedly, the game allows only one spell per click), the loot shows up in the loot window. Only works out of combat and with Enchanting. Shirts, tabards, trinkets and fishing poles are not offered. A **button** you place and scale freely in Edit Mode opens it as well. It shows the spell icon and the number of disenchantable items and can be set to "only visible when something can be disenchanted".
 
 ---
 

@@ -70,6 +70,9 @@ local function Setup(key, title, settings)
         name = title,
         db = SexyLootDB.frames[key],
         settings = settings,
+        -- reiner Container: ausgeblendet oder im Kampf versteckt wird er ganz, damit seine Fenster
+        -- (auch unsichtbare) keine Mausklicks auf Gegner und Leichen darunter abfangen
+        hideWhenInvisible = true,
         -- jedes Fenster meldet den Wechsel; die Vorschau der Module läuft nur einmal
         onEditMode = function(active)
             if ns.editing ~= active then ns.SetEditMode(active) end

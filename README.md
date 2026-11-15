@@ -113,7 +113,7 @@ Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein
 ---
 
 ### ✨ Entzaubern
-`/sl de` öffnet eine Liste aller **entzauberbaren Waffen und Rüstungsteile** in deinen Taschen (Qualität von Grün bis Blau einstellbar, Items aus Ausrüstungssets bleiben außen vor). Ein Klick auf **„Entzaubern“** wirkt den Zauber direkt auf dieses Item, die Beute erscheint im Beutefenster. Das geht nur außerhalb des Kampfes und mit der Verzauberkunst. Hemden, Wappenröcke, Schmuck und Angelruten werden nicht angeboten. Zum Öffnen gibt es außerdem einen **Knopf**, den du im Edit Mode frei platzierst und skalierst. Er zeigt das Zaubersymbol und die Anzahl entzauberbarer Items und lässt sich auf „nur sichtbar, wenn etwas entzauberbar ist“ stellen.
+`/sl de` öffnet eine Liste aller **entzauberbaren Waffen und Rüstungsteile** in deinen Taschen (Qualität von Grün bis Blau einstellbar, Items aus Ausrüstungssets bleiben außen vor). Ein Klick auf **„Entzaubern“** wirkt den Zauber direkt auf dieses Item, **„Alle entzaubern“** unten auf das jeweils nächste (du klickst wiederholt dieselbe Stelle, Blizzard erlaubt nur einen Zauber je Klick), die Beute erscheint im Beutefenster. Das geht nur außerhalb des Kampfes und mit der Verzauberkunst. Hemden, Wappenröcke, Schmuck und Angelruten werden nicht angeboten. Zum Öffnen gibt es außerdem einen **Knopf**, den du im Edit Mode frei platzierst und skalierst. Er zeigt das Zaubersymbol und die Anzahl entzauberbarer Items und lässt sich auf „nur sichtbar, wenn etwas entzauberbar ist“ stellen.
 
 ---
 
