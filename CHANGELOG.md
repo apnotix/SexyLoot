@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.23
+
+- Gruppenwurf: Die Spalte mit dem Würfelergebnis war zu schmal, eine 100 wurde abgeschnitten. Sie ist jetzt breiter.
+- Neue Preisquelle Mastercraft: Auktionspreise aus den gespeicherten Scans von Mastercraft (nach Auctionator, vor TSM). Prüfen mit `/sl price [Item]`.
+
 ## 0.1.21
 
 - Loot-Einblendung: Der Geldbetrag steht immer an derselben Stelle (rechts in der Wertspalte wie bei Items); links steht "Geld".

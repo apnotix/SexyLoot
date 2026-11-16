@@ -20,7 +20,7 @@ Works on **World of Warcraft: Forever** and **Retail**. Styled like the other Se
 - 💰 **Wallet** - your gold and the sell value of your bags, plus all your characters in the tooltip.
 - 🧹 **Bag clean-up** - warns when your bags are almost full. A dialog lists your cheapest items to destroy (two clicks, never quest items) and opens by itself next to the loot window when the loot does not fit.
 - ✨ **Disenchanting** - a window with every disenchantable weapon and armor piece, one click casts the spell. An optional button opens it, shown only if you know Disenchant.
-- 🏷️ **Real prices** - values come from **Auctionator**, **TSM**, **Oribos Exchange** or **Auctioneer** if installed (vendor price shown below), otherwise the vendor price.
+- 🏷️ **Real prices** - values come from **Auctionator**, **Mastercraft**, **TSM**, **Oribos Exchange** or **Auctioneer** if installed (vendor price shown below), otherwise the vendor price.
 
 ## Edit Mode
 
@@ -54,7 +54,7 @@ Long form: `/sexyloot`
 
 - Würfelfenster, Gewinner-Anzeige, Beutefenster, Gruppen-Feed, freie Würfe, Loot-Einblendung mit Geld, „Meine Beute“ und Geld-Anzeige
 - Taschen aufräumen (Hinweis bei fast vollem Inventar) und Entzauber-Fenster mit Knopf
-- Preise von Auctionator, TSM, Oribos Exchange oder Auctioneer, sonst Händlerpreis
+- Preise von Auctionator, Mastercraft, TSM, Oribos Exchange oder Auctioneer, sonst Händlerpreis
 - Alles im Edit Mode einstellbar, funktioniert auf Deutsch und Englisch
 
 Ausführliche deutsche Beschreibung: https://github.com/apnotix/SexyLoot

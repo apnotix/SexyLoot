@@ -365,6 +365,22 @@ local AUCTION_SOURCES = {
         end
         return price
     end },
+    -- Mastercraft hat keine öffentliche Schnittstelle: die gespeicherten Scan-Preise (MastercraftDB) direkt lesen,
+    -- je Server+Fraktion ein Buch; das jüngste Buch dieser Fraktion mit dem Item gewinnt
+    { "Mastercraft", function(link, id)
+        local db = _G.MastercraftDB
+        if not (id and db and type(db.prices) == "table") then return end
+        local faction = UnitFactionGroup and UnitFactionGroup("player") or ""
+        local best, bestT
+        for key, book in pairs(db.prices) do
+            local e = type(book) == "table" and type(book.items) == "table" and book.items[id]
+            if type(e) == "table" and not e.gone and type(e.p) == "number" and e.p > 0
+                and tostring(key):sub(-#faction - 1) == "-" .. faction and (not bestT or (e.t or 0) > bestT) then
+                best, bestT = e.p, e.t or 0
+            end
+        end
+        return best
+    end },
     { "TSM", function(link, id)
         local tsm = _G.TSM_API
         if not (tsm and tsm.GetCustomPriceValue) then return end
@@ -411,7 +427,7 @@ function ns.PriceDebug(link)
     local id = link and ns.ItemID(link)
     say("Preisquelle: " .. tostring((SexyLootDB and SexyLootDB.priceSource) or "auction") .. ", Item: " .. tostring(link))
     for _, source in ipairs(AUCTION_SOURCES) do
-        local loaded = (source[1] == "Auctionator" and _G.Auctionator) or (source[1] == "TSM" and _G.TSM_API)
+        local loaded = (source[1] == "Auctionator" and _G.Auctionator) or (source[1] == "TSM" and _G.TSM_API) or (source[1] == "Mastercraft" and _G.MastercraftDB)
             or (source[1] == "Oribos Exchange" and _G.OEMarketInfo) or (source[1] == "Auctioneer" and _G.AucAdvanced)
         if not loaded then
             say("  " .. source[1] .. ": nicht geladen")

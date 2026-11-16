@@ -61,7 +61,7 @@ Replaces the default loot window.
 - 🪙 **Auto loot** is supported.
 - 🩶 **Auto-loot grey items** (optional).
 - 💰 **Money** is looted automatically (can be turned off).
-- 🏷️ **Price source:** auction price from Auctionator, TSM, Oribos Exchange or Auctioneer (if installed), otherwise vendor price. Switchable in Edit Mode.
+- 🏷️ **Price source:** auction price from Auctionator, Mastercraft, TSM, Oribos Exchange or Auctioneer (if installed), otherwise vendor price. Switchable in Edit Mode.
 - 🏷️ **Group loot label:** you choose from which quality an item is labeled as group loot.
 - 🔎 **Icon size** from 24 to 48 pixels.
 
@@ -108,7 +108,7 @@ Perfect while leveling: a small list of your latest finds.
 ---
 
 ### 🧹 Clean up bags
-When your bags are almost full (default: 4 free slots or fewer), a small warning appears. **"Clean up"** (or `/sl bags`) opens a dialog with the **cheapest items** in your bags, each with count and value. If the game reports "Inventory is full" while looting, the dialog opens by itself right next to the loot window (can be turned off). Destroying takes two clicks ("Destroy", then "Sure?"); quest items and items worth nothing are left out. The value comes from a price addon (Auctionator, TSM, Oribos Exchange, Auctioneer, prices in blue) or the vendor price, your choice. The list scrolls with the mouse wheel. Adjustable: how many free slots trigger the warning, visible rows, highest quality, "junk only" (grey items), "ignore profession items" (trade goods, recipes, reagents; on by default), items without a price and price source.
+When your bags are almost full (default: 4 free slots or fewer), a small warning appears. **"Clean up"** (or `/sl bags`) opens a dialog with the **cheapest items** in your bags, each with count and value. If the game reports "Inventory is full" while looting, the dialog opens by itself right next to the loot window (can be turned off). Destroying takes two clicks ("Destroy", then "Sure?"); quest items and items worth nothing are left out. The value comes from a price addon (Auctionator, Mastercraft, TSM, Oribos Exchange, Auctioneer, prices in blue) or the vendor price, your choice. The list scrolls with the mouse wheel. Adjustable: how many free slots trigger the warning, visible rows, highest quality, "junk only" (grey items), "ignore profession items" (trade goods, recipes, reagents; on by default), items without a price and price source.
 
 ---
 

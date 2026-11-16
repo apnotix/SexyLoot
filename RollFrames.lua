@@ -406,7 +406,8 @@ local function GetLine(r, i)
     l.check:SetPoint("RIGHT", -4, 0)
     l.roll = l:CreateFontString(nil, "OVERLAY")
     l.roll:SetJustifyH("RIGHT")
-    l.roll:SetWidth(28)
+    l.roll:SetWordWrap(false)
+    l.roll:SetWidth(40)   -- "100" in der größeren Schrift braucht mehr als 28 px
     l.roll:SetPoint("RIGHT", l.check, "LEFT", -4, 0)
     -- Wahl als Etikett (Bedarf grün, Gier bernstein, Passen grau) links vom Wurf
     l.pill = ns.Pill(l)

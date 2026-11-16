@@ -87,7 +87,7 @@ Perfekt beim Leveln: die kleine Liste deiner letzten Funde.
 - 🧵 **Stapel:** Leinenstoff, Erz und Co. werden zusammengezählt („x5“).
 - 💵 **Wert pro Eintrag:** Hinter jedem Item steht der Verkaufswert, bei Stapeln für den ganzen Stapel.
 - 💰 **Verkaufswert** der gesamten Liste in Gold, Silber und Kupfer, in einer Fußleiste.
-- 🏷️ **Preisquelle:** Auktionspreis von Auctionator, TSM, Oribos Exchange oder Auctioneer (wenn installiert), sonst Händlerpreis. Im Edit Mode umschaltbar.
+- 🏷️ **Preisquelle:** Auktionspreis von Auctionator, Mastercraft, TSM, Oribos Exchange oder Auctioneer (wenn installiert), sonst Händlerpreis. Im Edit Mode umschaltbar.
 - 📊 **Tooltip** über dem Titelband: Dauer, Anzahl und Wert der Beute der Sitzung, das teuerste Item sowie Wert und Items pro Stunde.
 - ⏱️ **Sitzungsdauer** als Badge im Titelband (seit Login oder dem letzten Leeren der Liste).
 - ❗ **Questitems** tragen ein gelbes Ausrufezeichen am Symbol.
@@ -108,7 +108,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 ---
 
 ### 🧹 Taschen aufräumen
-Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein kleiner Hinweis. Mit **„Aufräumen“** (oder `/sl bags`) öffnet sich ein Dialog mit den **günstigsten Items** deiner Taschen, jeweils mit Anzahl und Wert. Meldet das Spiel beim Looten „Inventar ist voll“, öffnet sich der Dialog von selbst direkt neben dem Beutefenster (abschaltbar). Wegwerfen braucht zwei Klicks („Wegwerfen“, dann „Sicher?“); Questitems und Items mit Preis 0 bleiben außen vor. Den Wert liefert wahlweise ein Preis-Addon (Auctionator, TSM, Oribos Exchange, Auctioneer, Preise in Blau) oder der Händlerpreis. Die Liste lässt sich mit dem Mausrad scrollen. Einstellbar: ab wie vielen freien Plätzen der Hinweis kommt, sichtbare Zeilen, höchste Qualität, „Nur Junk“ (graue Items), „Berufs-Items ignorieren“ (Handwerksmaterial, Rezepte, Reagenzien; Standard an), Items ohne Preis und Preisquelle.
+Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein kleiner Hinweis. Mit **„Aufräumen“** (oder `/sl bags`) öffnet sich ein Dialog mit den **günstigsten Items** deiner Taschen, jeweils mit Anzahl und Wert. Meldet das Spiel beim Looten „Inventar ist voll“, öffnet sich der Dialog von selbst direkt neben dem Beutefenster (abschaltbar). Wegwerfen braucht zwei Klicks („Wegwerfen“, dann „Sicher?“); Questitems und Items mit Preis 0 bleiben außen vor. Den Wert liefert wahlweise ein Preis-Addon (Auctionator, Mastercraft, TSM, Oribos Exchange, Auctioneer, Preise in Blau) oder der Händlerpreis. Die Liste lässt sich mit dem Mausrad scrollen. Einstellbar: ab wie vielen freien Plätzen der Hinweis kommt, sichtbare Zeilen, höchste Qualität, „Nur Junk“ (graue Items), „Berufs-Items ignorieren“ (Handwerksmaterial, Rezepte, Reagenzien; Standard an), Items ohne Preis und Preisquelle.
 
 ---
 
