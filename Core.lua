@@ -630,6 +630,8 @@ SlashCmdList.SEXYLOOT = function(msg)
         local id = msg:match("^price%s+(%d+)")
         if not link and id then link = select(2, ns.GetItemInfo(tonumber(id))) end
         ns.PriceDebug(link)
+    elseif msg == "minimap" then
+        SexyLoot_ToggleMinimapButton()
     elseif msg == "bags" then
         ns.Bags:Toggle()
     elseif msg == "de" or msg == "disenchant" then

@@ -860,7 +860,20 @@ function RF:Init()
     -- Blizzards Gruppenwurf-Fenster abschalten
     UIParent:UnregisterEvent("START_LOOT_ROLL")
     UIParent:UnregisterEvent("CANCEL_LOOT_ROLL")
-    if GroupLootContainer then GroupLootContainer:UnregisterAllEvents() end
+    -- Der Container wird von Blizzard beim ersten Gruppenwurf eingeblendet und fängt in der
+    -- Bildschirmmitte Mausklicks ab, auch wenn seine Wurf-Fenster leer sind: dauerhaft verstecken
+    local container = _G.GroupLootContainer
+    if container then
+        container:UnregisterAllEvents()
+        container:EnableMouse(false)
+        container:HookScript("OnShow", function(self) self:Hide() end)
+        container:Hide()
+    end
+    if _G.hooksecurefunc and _G.GroupLootContainer_Update then
+        hooksecurefunc("GroupLootContainer_Update", function()
+            if container and container:IsShown() then container:Hide() end
+        end)
+    end
     for i = 1, 4 do
         local f = _G["GroupLootFrame" .. i]
         if f then

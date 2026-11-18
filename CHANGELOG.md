@@ -2,6 +2,8 @@
 
 ## 0.1.23
 
+- Blizzards "GroupLootContainer" wird jetzt ebenfalls dauerhaft ausgeblendet; er blockierte nach einem Gruppenloot in der Bildschirmmitte die Maus.
+- Neuer Minimap-Knopf: Linksklick öffnet bzw. schließt den Edit Mode. Ausblenden mit `/sl minimap`.
 - Gruppenwurf: Die Spalte mit dem Würfelergebnis war zu schmal, eine 100 wurde abgeschnitten. Sie ist jetzt breiter.
 - Neue Preisquelle Mastercraft: Auktionspreise aus den gespeicherten Scans von Mastercraft (nach Auctionator, vor TSM). Prüfen mit `/sl price [Item]`.
 
