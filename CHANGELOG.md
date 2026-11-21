@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.25
+
+- SexyEditMode is now a required dependency (CurseForge installs it automatically).
+- Docking: new selection "Alignment" next to the side. Windows docked below or above can line up with the left edge, the center or the right edge of the target; windows docked left or right with the top edge, the center or the bottom edge.
+- Loot toast: animations (switched with "Animations" in the roll window settings): new items fly in from the right with a light streak in the quality color, epic and quest items pulse once, repeated items count up, money counts up, rows slide into their new place and glide out to the right when they expire.
+- Roll window: animations (can be turned off with "Animations" in the roll window settings): cards slide and fade in and out, grow and shrink smoothly, shift to their new place, player rows glide when the order changes, new picks fade in, rolls count up, the winner gets a light streak (twice if it is you), and the timer bar pulses when time is running out.
+- Roll window: the roll buttons always look normal (no dimming); the one you clicked gets a gold border.
+- Roll window: the armor class (Cloth, Leather, Mail, Plate) is shown as a badge below the item name; "Binds when picked up" sits next to it.
+- Roll window: the Need / Greed / Pass buttons now sit side by side below the progress bar (icon and text) instead of at the top right; the item name uses the full width.
+- The disenchant options (rows, quality, protect sets, key for "Disenchant all", reset hidden items) moved from the bag hint to the "Disenchant button" window, where they belong.
+- Disenchant: "Disenchant all" has a key, default CTRL + D (change or remove it in the settings window, Disenchant section). While the window is open, every press disenchants the next item of the list (WoW allows one spell per press, an automatic repeat is not possible). The key is shown on the button.
+- Minimap button, right click: Edit Mode only for the windows of SexyLoot (the others stay as they are). Needs the SexyEditMode addon.
+- Edit Mode: Windows that belong together have tabs at the top of their dialog (rolls: roll window, winner, free rolls, group feed; loot: loot window, my loot, loot toast, money; tools: bag hint, disenchant button). Needs the SexyEditMode addon.
+- Edit Mode: The dialogs of the windows now look like the settings window and show only visual options (look, size, position, docking, visibility). Behavior (display times, automatic looting, hotkey, prices, sounds, announce channel, clean-up and disenchant options) is in the settings window (/sem). Without SexyEditMode everything stays in the dialogs.
+- Minimap button: left click opens the settings window (SexyEditMode) at the first area of SexyLoot, right click toggles Edit Mode.
+- Winner: a sound can be played when you are the winner yourself ("Sound when I win"): game sounds plus the sounds of LibSharedMedia (now embedded). Picking a sound or channel plays it. The volume follows the chosen sound channel, WoW cannot set the volume of a single sound.
+- "Gruppenloot-Markierung ab Qualität" ist jetzt eine Auswahl (Grün, Blau, Episch) statt eines Reglers mit Zahlen.
+- Ansage-Kanal (Freie Würfe) ist jetzt ein Auswahlfeld mit Beschriftung statt eines Wechsel-Knopfs mit Chatmeldung.
+- Hotkey für „Alles nehmen“: Beschriftung und ein Knopf, der die gewählte Taste zeigt (Klick startet die Abfrage, „Taste drücken …“ während des Wartens), daneben ein X zum Entfernen.
+- Andocken: Statt zweier Wechsel-Knöpfe mit Chatmeldung gibt es jetzt zwei Auswahlfelder mit Beschriftung: "Andocken an" (Fenster oder "Nicht angedockt") und "Seite" (unten, oben, links, rechts).
+- Meldet sich beim neuen Addon SexyEditMode an: Ist es installiert, erscheinen die Fenster von SexyLoot im gemeinsamen Einstellungsfenster (/sem). Ohne das Addon ändert sich nichts.
+
 ## 0.1.23
 
 - Blizzards "GroupLootContainer" wird jetzt ebenfalls dauerhaft ausgeblendet; er blockierte nach einem Gruppenloot in der Bildschirmmitte die Maus.

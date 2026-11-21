@@ -8,11 +8,11 @@ local ADDON, ns = ...
 local PANEL_BG = { 0.08, 0.065, 0.05, 0.96 }
 local GOLD = { 0.42, 0.34, 0.15, 1 }
 ns.defaults = {
-    roll = { hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
+    roll = { animate = true, hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
         bg = PANEL_BG, border = GOLD },
     freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1,
         bg = PANEL_BG, border = GOLD },
-    winner = { size = 28, hold = 6, max = 3,
+    winner = { size = 28, hold = 6, max = 3, sound = false, soundKey = "UI_EPICLOOT_TOAST", soundChannel = "Master",
         bg = PANEL_BG, border = GOLD },
     loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34,
         bg = PANEL_BG, border = GOLD },

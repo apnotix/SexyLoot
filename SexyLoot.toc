@@ -8,16 +8,20 @@
 ## IconTexture: Interface\AddOns\SexyLoot\icon.tga
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
+## Dependencies: SexyEditMode
 ## SavedVariables: SexyLootDB
 
 lib\LibStub\LibStub.lua
 lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
+lib\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 lib\SexyEditMode\SexyEditMode.lua
 
 Locale.lua
+Sounds.lua
 Core.lua
+Motion.lua
 RollFrames.lua
 LootWindow.lua
 Feed.lua

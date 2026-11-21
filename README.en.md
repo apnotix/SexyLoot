@@ -137,7 +137,7 @@ Open **Edit Mode**, click a SexyLoot window and adjust it. The dialog has collap
 
 | Window | Options |
 | --- | --- |
-| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Spacing between windows · Font size of rolls · Maximum list height · Show window after the roll (seconds) · Start test roll |
+| 🎲 Roll window | Hide rolls on the item · Let new windows grow upward · Animations · Spacing between windows · Font size of rolls · Maximum list height · Show window after the roll (seconds) · Start test roll |
 | 🎯 Free rolls | Show even for a single roller · Clear list after (seconds without a roll) · Maximum rows · Font size · Switch announce channel · Channel number · Start test rolls |
 | 🏆 Winner announcement | Font size · Display time · Winners shown at once · Show test winner |
 | 🎁 Loot window | Auto-loot grey items · Do not loot money automatically · Group loot label from quality · Icon size · Set or remove hotkey for "Loot all" · Open test loot |

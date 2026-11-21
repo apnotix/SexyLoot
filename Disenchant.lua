@@ -14,6 +14,16 @@ local SPELL_ID = 13262            -- Entzaubern
 local dialog
 local rows = {}
 local pending = false             -- Aktualisierung nach dem Kampf nötig
+local bindPending = false         -- Taste für "Alle entzaubern" nach dem Kampf neu belegen
+
+-- Standard: STRG + D. Wer die Taste entfernt, behält "keine" (false); nil heißt "nie gesetzt" = Standard.
+local DEFAULT_KEY = "CTRL-D"
+local function Hotkey()
+    local key = SexyLootDB.deHotkey
+    if key == nil then return DEFAULT_KEY end
+    return key or nil
+end
+
 local ROW_H, DIALOG_W = 38, 460
 local INFO_H, FOOT_H = 34, 62
 local noDE = {}                   -- [Link] = true: Tooltip sagt "nicht entzauberbar"
@@ -313,7 +323,7 @@ local function CreateDialog()
     -- "Alle entzaubern": Jeder Zauber braucht einen eigenen Klick (Blizzard erlaubt nur einen Zauber je
     -- Klick). Der Knopf zielt darum immer auf das erste Item der Liste; nach jedem Entzaubern rückt das
     -- nächste nach, und du klickst einfach wieder auf dieselbe Stelle. Gesicherter Makroknopf wie die Zeilen.
-    local all = CreateFrame("Button", nil, d, "SecureActionButtonTemplate")
+    local all = CreateFrame("Button", "SexyLootDisenchantAll", d, "SecureActionButtonTemplate")
     all:SetHeight(24)
     all:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 10)
     all:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", -12, 10)
@@ -336,10 +346,14 @@ local function CreateDialog()
     end)
     all:SetScript("OnLeave", GameTooltip_Hide)
     d.all = all
+    -- Die Taste für "Alle entzaubern" gilt nur, solange das Fenster offen ist
+    d:HookScript("OnShow", function() DE:ApplyBinding() end)
+    d:HookScript("OnHide", function() DE:ApplyBinding() end)
     return d
 end
 
 function DE:Refresh()
+    if bindPending and not InCombatLockdown() then self:ApplyBinding() end
     if not (dialog and dialog:IsShown()) then return end
     -- Gesicherte Knöpfe lassen sich im Kampf nicht ändern: nach dem Kampf nachholen
     if InCombatLockdown() then
@@ -396,7 +410,8 @@ function DE:Refresh()
         and ("/cast " .. macroSpell .. "\n/use " .. first.bag .. " " .. first.slot) or "")
     dialog.all:SetEnabled(canAll)
     dialog.all.bg:SetColorTexture(canAll and ns.BTN[1] or 0.2, canAll and ns.BTN[2] or 0.18, canAll and ns.BTN[3] or 0.15, 1)
-    dialog.all.text:SetText(T("Alle entzaubern (%d)", n))
+    local key = Hotkey() and ns.LootWindow.PrettyKey(Hotkey())
+    dialog.all.text:SetText(T("Alle entzaubern (%d)", n) .. (key and ("  |cffe8c26a[" .. key .. "]|r") or ""))
     dialog.info:SetText(known and T["Ein Klick wirkt Entzaubern auf das Item. Die Beute erscheint im Beutefenster."]
         or T["Du kennst Entzaubern nicht (Verzauberkunst nötig). Die Liste zeigt trotzdem, was sich eignen würde."])
     local total = 0
@@ -412,6 +427,44 @@ function DE:ResetIgnored()
     SexyLootDB.deIgnore = nil
     self:UpdateButton()
     self:Refresh()
+end
+
+-- Taste für "Alle entzaubern" (SexyLootDB.deHotkey, z. B. "CTRL-F"): belegt den Knopf per Override-Bindung, solange
+-- das Fenster offen ist. Jeder Tastendruck entzaubert das nächste Item; Blizzard erlaubt nur einen Zauber je Druck.
+function DE:HotkeyText() return ns.LootWindow.PrettyKey(Hotkey()) end
+function DE:IsCapturing() return ns.LootWindow:IsCapturing() end
+
+function DE:ApplyBinding()
+    if InCombatLockdown() then
+        bindPending, pending = true, true
+        return
+    end
+    bindPending = false
+    if not dialog then return end
+    ClearOverrideBindings(dialog)
+    if Hotkey() and dialog:IsShown() then
+        SetOverrideBindingClick(dialog, true, Hotkey(), "SexyLootDisenchantAll", "LeftButton")
+    end
+end
+
+local function SayKey(text) print("|cffe8c26aSexyLoot|r: " .. text) end
+
+function DE:CaptureHotkey()
+    ns.LootWindow:CaptureKey(function(combo)
+        SexyLootDB.deHotkey = combo
+        DE:ApplyBinding()
+        DE:Refresh()
+        SayKey(T("Taste für „Alle entzaubern“: %s", ns.LootWindow.PrettyKey(combo)))
+    end)
+end
+
+function DE:ClearHotkey()
+    SexyLootDB.deHotkey = false   -- bewusst keine Taste
+    self:ApplyBinding()
+    self:Refresh()
+    local SEM = LibStub("SexyEditMode-1.0", true)
+    if SEM and SEM.RefreshDialog then SEM:RefreshDialog() end
+    SayKey(T["Hotkey entfernt."])
 end
 
 function DE:Open()

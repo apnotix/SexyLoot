@@ -61,8 +61,7 @@ local function GetLine(i)
 end
 
 -- Gewinner ansagen -----------------------------------------------------
--- Kanal: SexyLootDB.freeChannel (per Button im Edit Mode durchgeschaltet), bei
--- "CHANNEL" die Nummer aus cfg.chanNum. Keine Auswahlliste, die sind gesperrt.
+-- Kanal: SexyLootDB.freeChannel (Auswahlfeld in den Einstellungen), bei "CHANNEL" die Nummer aus cfg.chanNum.
 local CHANNELS = { "AUTO", "SAY", "PARTY", "RAID", "INSTANCE_CHAT", "GUILD", "YELL", "CHANNEL" }
 
 local function ChannelInfo()
@@ -93,16 +92,23 @@ function FR:UpdateAnnounce()
     panel.btn.bg:SetColorTexture(c[1], c[2], c[3], 1)
 end
 
-function FR:NextChannel()
-    local cur = SexyLootDB.freeChannel or "AUTO"
-    for i, k in ipairs(CHANNELS) do
-        if k == cur then
-            SexyLootDB.freeChannel = CHANNELS[i % #CHANNELS + 1]
-            break
-        end
+-- Auswahl "Ansage-Kanal"
+function FR:ChannelOptions()
+    local list = {}
+    for _, k in ipairs(CHANNELS) do
+        local label
+        if k == "AUTO" then label = T["Automatisch"]
+        elseif k == "CHANNEL" then label = T("Kanal Nr. %d", ns.cfg.freeroll.chanNum)
+        else label = _G[k] or k end
+        list[#list + 1] = { value = k, label = label }
     end
-    local _, _, label = ChannelInfo()
-    print("|cffe8c26aSexyLoot|r: " .. T("Ansage-Kanal: %s", label))
+    return list
+end
+
+function FR:GetChannel() return SexyLootDB.freeChannel or "AUTO" end
+
+function FR:SetChannel(key)
+    SexyLootDB.freeChannel = key
     self:UpdateAnnounce()
 end
 

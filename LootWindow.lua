@@ -269,6 +269,26 @@ end
 
 local function Say(text) print("|cffe8c26aSexyLoot|r: " .. text) end
 
+-- "CTRL-F" wird zu "Strg + F" (Namen der Spieltasten, in der Sprache des Clients)
+local function Pretty(hk)
+    if not hk then return end
+    local mods, rest = "", hk
+    for _, m in ipairs({ { "ALT-", ALT_KEY_TEXT or "Alt" }, { "CTRL-", CTRL_KEY_TEXT or "Ctrl" }, { "SHIFT-", SHIFT_KEY_TEXT or "Shift" } }) do
+        if rest:sub(1, #m[1]) == m[1] then mods = mods .. m[2] .. " + "; rest = rest:sub(#m[1] + 1) end
+    end
+    return mods .. (_G["KEY_" .. rest] or rest)
+end
+
+-- Aktualisiert den Hotkey-Eintrag in den Einstellungen (falls offen)
+local function RefreshSettings()
+    local SEM = LibStub and LibStub("SexyEditMode-1.0", true)
+    if SEM and SEM.RefreshDialog then SEM:RefreshDialog() end
+end
+
+LW.PrettyKey = Pretty
+function LW:HotkeyText() return Pretty(SexyLootDB.hotkey) end
+function LW:IsCapturing() return LW.capturing and true or false end
+
 local listener
 local lootOpen = false   -- LOOT_OPENED bis LOOT_CLOSED, unabhängig vom Anzeige-Zustand
 
@@ -294,8 +314,9 @@ function LW:UpdateHotkey()
     self:UpdateListener()
 end
 
+-- Wartet auf die nächste Taste (mit Modifikatoren) und ruft onPick("CTRL-F") auf; Esc bricht ab
 local capture
-function LW:CaptureHotkey()
+function LW:CaptureKey(onPick)
     if not capture then
         capture = CreateFrame("Frame", nil, UIParent)
         capture:SetFrameStrata("TOOLTIP")
@@ -305,24 +326,41 @@ function LW:CaptureHotkey()
             if not combo then return end
             self:EnableKeyboard(false)
             self:Hide()
-            if key == "ESCAPE" then return end
-            SexyLootDB.hotkey = combo
-            LW:UpdateHotkey()
-            Say(T("Hotkey für „Alles nehmen“: %s", combo))
+            LW.capturing = false
+            local pick = self.onPick
+            self.onPick = nil
+            if key ~= "ESCAPE" and pick then pick(combo) end
+            RefreshSettings()
         end)
     end
+    capture.onPick = onPick
     capture:Show()
     capture:EnableKeyboard(true)
+    LW.capturing = true
     -- nach 10 Sekunden aufgeben, damit die Tastaturabfrage nie hängen bleibt
     C_Timer.After(10, function()
-        if capture:IsShown() then capture:EnableKeyboard(false); capture:Hide() end
+        if capture:IsShown() then
+            capture:EnableKeyboard(false)
+            capture:Hide()
+            LW.capturing = false
+            RefreshSettings()
+        end
     end)
     Say(T["Drücke die gewünschte Taste (Esc bricht ab) …"])
+end
+
+function LW:CaptureHotkey()
+    self:CaptureKey(function(combo)
+        SexyLootDB.hotkey = combo
+        LW:UpdateHotkey()
+        Say(T("Hotkey für „Alles nehmen“: %s", Pretty(combo)))
+    end)
 end
 
 function LW:ClearHotkey()
     SexyLootDB.hotkey = nil
     self:UpdateHotkey()
+    RefreshSettings()
     Say(T["Hotkey entfernt."])
 end
 

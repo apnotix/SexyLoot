@@ -12,6 +12,8 @@ table.insert(ns.modules, Toast)
 local WIDTH, ROWH, GAP, FADE = 300, 40, 2, 0.6
 local entries, rows = {}, {}
 local driver
+local M = ns.Motion
+local GOLD = { 0.91, 0.76, 0.42 }
 
 local function Coins(copper)
     return GetCoinTextureString and GetCoinTextureString(copper, 11) or GetMoneyString(copper)
@@ -172,7 +174,9 @@ local function MakeRow(i)
     r.value:SetJustifyH("RIGHT")
     r.value:SetWordWrap(false)
     r.count = r:CreateFontString(nil, "OVERLAY", "SexyLootText")
-    r.count:SetPoint("RIGHT", r.value, "LEFT", -4, 0)
+    -- an der Zeile statt an der Wertspalte verankert: die Wertspalte rückt bei zwei Preiszeilen nach oben,
+    -- die Anzahl bleibt vertikal mittig (Wertspalte: 110 breit, 8 vom Rand, 4 Abstand)
+    r.count:SetPoint("RIGHT", r, "RIGHT", -(8 + 110 + 4), 0)
     r.count:SetJustifyH("RIGHT")
     r.count:SetTextColor(0.61, 0.57, 0.5)   -- Anzahl gedämpft wie Nebentext
     -- Questitem: Etikett "Quest" zwischen Name und Anzahl
@@ -195,8 +199,47 @@ local function MakeRow(i)
     r:SetScript("OnMouseUp", function(self)
         if self.e and self.e.link then HandleModifiedItemClick(self.e.link) end
     end)
+    -- Bewegung: der Lichtstreifen liegt im Rahmen der Zeile und wird am Rand abgeschnitten
+    if r.SetClipsChildren then r:SetClipsChildren(true) end
+    r.sweep = M.NewSweep(r)
+    r.offX, r.offY, r.exitX, r.enterA = 0, 0, 0, 1
     rows[i] = r
     return r
+end
+
+-- Position der Zeile: Platz in der Liste plus die laufenden Verschiebungen (Einflug, Nachrücken, Abflug)
+local function Place(r)
+    r:ClearAllPoints()
+    r:SetPoint("TOPLEFT", ns.frames.toast, "TOPLEFT", (r.offX or 0) + (r.exitX or 0), -(r.slotY or 0) + (r.offY or 0))
+end
+
+-- Eintrag e erscheint auf Platz n in Zeile r. Neue Einträge fliegen von rechts ein, Einträge, die ihren Platz
+-- wechseln, gleiten dorthin. Liefert true für einen neuen Eintrag.
+local function Arrive(r, e, n)
+    local step = ROWH + GAP
+    r.slotY = (n - 1) * step
+    local fresh = false
+    if r.shownE ~= e then
+        M.Cancel(r)
+        M.Cancel(r.sweep)
+        r.offX, r.offY, r.exitX, r.enterA = 0, 0, 0, 1
+        r.iborder:SetAlpha(1)
+        r.bar:SetAlpha(1)
+        if e.preview then
+            -- Vorschau im Edit Mode steht still
+        elseif e.slot == nil then
+            fresh = true
+            M.Tween(r, "enter", 28, 0, 0.28, function(v) r.offX = v; r.enterA = 1 - v / 28; Place(r) end, function() r.enterA = 1 end)
+        elseif e.slot ~= n then
+            -- startet dort, wo der Eintrag gerade zu sehen war (auch mitten in einer früheren Bewegung)
+            local from = (n - e.slot) * step + (e.off or 0)
+            M.Tween(r, "glide", from, 0, 0.25, function(v) r.offY = v; e.off = v; Place(r) end, function() e.off = 0 end)
+        end
+        r.shownE = e
+    end
+    e.slot = n
+    Place(r)
+    return fresh
 end
 
 -- Zeilen neu aufbauen (neue Items, Ablauf, Einstellungen)
@@ -209,8 +252,7 @@ function Toast:Layout()
         n = n + 1
         local r = rows[n] or MakeRow(n)
         r.e = e
-        r:ClearAllPoints()
-        r:SetPoint("TOPLEFT", ns.frames.toast, "TOPLEFT", 0, -(n - 1) * (ROWH + GAP))
+        local fresh = Arrive(r, e, n)
         if e.money then
             -- Geld: Münzsymbol, links der Name "Geld", der Betrag in der Wertspalte rechts, genau dort, wo bei
             -- Items der Wert steht (feste Stelle, egal wie hoch der Betrag ist)
@@ -230,6 +272,16 @@ function Toast:Layout()
             r.value:SetText(Coins(e.copper))
             r.value:SetTextColor(0.95, 0.92, 0.86)
             r.vendorLine:Hide()
+            -- neuer Betrag zählt von 0 hoch, ein zusätzlicher von der alten Summe
+            if not e.preview then
+                local from = fresh and 0 or e.shownCopper
+                if from and e.copper > from then
+                    M.Tween(r, "count", from, e.copper, 0.5, function(v) r.value:SetText(Coins(math.floor(v))) end)
+                    r.sweep.tex:SetVertexColor(GOLD[1], GOLD[2], GOLD[3])
+                    M.Sweep(r.sweep, 80, 0.6, 0.5, 1)
+                end
+            end
+            e.shownCopper = e.copper
             r:Show()
         else
         local name, _, quality, _, _, _, _, _, _, _, price, classID, _, bindType = ns.GetItemInfo(e.link)
@@ -253,6 +305,26 @@ function Toast:Layout()
             r.name:SetPoint("RIGHT", r.count, "LEFT", -6, 0)
         end
         r.count:SetText(e.count > 1 and ("×" .. e.count) or "")
+        if not e.preview then
+            -- gleiches Item nochmal: die Anzahl zählt hoch; neues Item: Lichtstreifen in Qualitätsfarbe, seltene und Quest-Items pulsieren
+            local tint = (quality or 1) >= 2 and { cr, cg, cb } or GOLD
+            if fresh then
+                r.sweep.tex:SetVertexColor(tint[1], tint[2], tint[3])
+                M.Sweep(r.sweep, 80, 0.6, 0.55, 1)
+                if (quality or 0) >= 4 or isQuest then
+                    M.Tween(r, "pulse", 0, 1, 0.9, function(v)
+                        local a = 1 - 0.65 * math.abs(math.sin(v * math.pi * 3))
+                        r.iborder:SetAlpha(a)
+                        r.bar:SetAlpha(a)
+                    end, function() r.iborder:SetAlpha(1); r.bar:SetAlpha(1) end)
+                end
+            elseif e.shownCount and e.count > e.shownCount then
+                M.Tween(r, "count", e.shownCount, e.count, 0.3, function(v) r.count:SetText("×" .. math.floor(v + 0.5)) end)
+                r.sweep.tex:SetVertexColor(tint[1], tint[2], tint[3])
+                M.Sweep(r.sweep, 80, 0.5, 0.4, 1)
+            end
+        end
+        e.shownCount = e.count
         local unit, auction
         if e.price then unit = e.price else unit, auction = ns.ItemPrice(e.link, price) end
         local value = (unit or 0) * e.count
@@ -271,8 +343,11 @@ function Toast:Layout()
         end
     end
     for i = n + 1, #rows do
-        rows[i].e = nil
-        rows[i]:Hide()
+        local r = rows[i]
+        r.e, r.shownE = nil, nil
+        M.Cancel(r)
+        M.Cancel(r.sweep)
+        r:Hide()
     end
 end
 
@@ -295,7 +370,13 @@ local function OnUpdate()
     for _, r in ipairs(rows) do
         if r.e then
             local a = math.min(1, (r.e.expire - now) / FADE)
-            r:SetAlpha(a)
+            r:SetAlpha(a * (r.enterA or 1))
+            -- beim Ausblenden gleitet die Zeile nach rechts hinaus
+            local ex = (M.On() and a < 1) and (1 - a) * 36 or 0
+            if ex ~= (r.exitX or 0) then
+                r.exitX = ex
+                Place(r)
+            end
             -- eine fast durchsichtige Zeile soll keine Klicks mehr abfangen
             r:EnableMouse(a > 0.1)
         end

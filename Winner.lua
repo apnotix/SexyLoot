@@ -212,6 +212,8 @@ function W:Display(player, link, pick, roll, sticky)
     while #cards >= cfg.max do Release(cards[#cards]) end
 
     local me = ns.SameName(ns.Short(player), ns.Short(UnitName("player")))
+    -- Ton, wenn du selbst gewinnst (nicht in der Edit-Mode-Vorschau)
+    if me and cfg.sound and not sticky then pcall(ns.Sounds.Play, cfg.soundKey, cfg.soundChannel) end
     local c
     if me then
         c = table.remove(pool) or NewCard()
