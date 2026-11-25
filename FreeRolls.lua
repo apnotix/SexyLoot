@@ -209,6 +209,8 @@ function FR:Refresh()
 end
 
 function FR:OnSystem(msg)
+    -- Im Kampf kann die Chatzeile ein geheimer Wert sein: er lässt sich weder durchsuchen noch vergleichen
+    if type(msg) ~= "string" or (issecretvalue and issecretvalue(msg)) then return end
     local caps = { msg:match(PAT) }
     if #caps == 0 then return end
     local t = {}

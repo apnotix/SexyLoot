@@ -104,6 +104,8 @@ function Feed:AddRoll(r)
 end
 
 function Feed:OnChat(msg)
+    -- Im Kampf kann die Chatzeile ein geheimer Wert sein: er lässt sich weder durchsuchen noch vergleichen
+    if type(msg) ~= "string" or (issecretvalue and issecretvalue(msg)) then return end
     local t = ns.ParseLoot(msg)
     if not t then
         -- /sl debug: Lootmeldungen, die kein Muster erkennt, im Chat zeigen

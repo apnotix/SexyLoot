@@ -847,6 +847,8 @@ function RF:Finish(r, winner)
 end
 
 function RF:OnChat(msg)
+    -- Im Kampf kann die Chatzeile ein geheimer Wert sein: er lässt sich weder durchsuchen noch vergleichen
+    if type(msg) ~= "string" or (issecretvalue and issecretvalue(msg)) then return end
     for _, d in ipairs(DEFS) do
         local t = Match(msg, d)
         if t then
