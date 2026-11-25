@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Project overview
 
-SexyLoot is a World of Warcraft addon (pure Lua, no build step) for **World of Warcraft: Forever** (Interface `16001`, Classic-based client, see the sibling repo SexyInterrupter's CLAUDE.md). It replaces the loot window and the group-loot roll frames, shows roll results per player on the item, keeps a group loot feed, and lists the player's recent loot. All frames are positioned and configured through Edit Mode via the own embedded SexyEditMode-1.0 library (lib/SexyEditMode, source of truth: ../SexyEditMode).
+SexyLoot is a World of Warcraft addon (pure Lua, no build step) for **World of Warcraft: Forever** (Interface `16001`, Classic-based client, see the sibling repo SexyInterrupter's CLAUDE.md). It replaces the loot window and the group-loot roll frames, shows roll results per player on the item, keeps a group loot feed, and lists the player's recent loot. All frames are positioned and configured through Edit Mode via the own SexyEditMode-1.0 library, which comes from the required addon SexyEditMode (source: ../SexyEditMode; it is no longer embedded in this addon).
 
 There is no compiler, linter or test suite. Deploy by copying or symlinking this folder as `SexyLoot` into `Interface/AddOns/`, then `/reload`. `/sexyloot test` fills every window with sample data.
 
@@ -25,7 +25,7 @@ There is no compiler, linter or test suite. Deploy by copying or symlinking this
 
 ## Architecture
 
-Load order (see [SexyLoot.toc](SexyLoot.toc)): LibStub, SexyEditMode, then `Locale.lua`, `Core.lua`, `RollFrames.lua`, `LootWindow.lua`, `Feed.lua`, `Winner.lua`, `FreeRolls.lua`, `MyLoot.lua`, `EditMode.lua`.
+Load order (see [SexyLoot.toc](SexyLoot.toc)): LibStub; the library SexyEditMode is already loaded as a required dependency; then `Locale.lua`, `Core.lua`, `RollFrames.lua`, `LootWindow.lua`, `Feed.lua`, `Winner.lua`, `FreeRolls.lua`, `MyLoot.lua`, `EditMode.lua`.
 
 - **Locale.lua** provides `ns.T`. German is the source language: the key is the German text and comes back unchanged on deDE; every other client gets the English table in that file. Use `T["text"]` or `T("text %s", value)` for every user-visible string (Edit Mode labels included) and add the English text to `Locale.lua`. Prefer Blizzard globals (`NEED`, `GREED`, `PASS`, `LOOT`, `ITEM_BIND_ON_PICKUP`) where they exist, they are already localized.
 - **Core.lua** defines `ns.defaults`, creates one invisible anchor frame per window (`ns.frames.roll/winner/freeroll/loot/feed/mine`), and on `ADDON_LOADED` builds `ns.cfg`, calls every module's `Init()`, then `ns.SetupEditMode()`, then `ns.Refresh(key)` for each window. `ns.Apply[key](cfg)` is how a module applies its settings.

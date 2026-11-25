@@ -24,8 +24,13 @@ local function Hotkey()
     return key or nil
 end
 
-local ROW_H, DIALOG_W = 38, 460
+local ROW_H, DIALOG_W = 34, 460
 local INFO_H, FOOT_H = 34, 62
+local HEAD_H, ROW_GAP, GROUP_GAP = 26, 2, 8   -- Gruppenzeile (Qualität), Abstand der Zeilen, Abstand der Gruppen
+local STEP = ROW_H + ROW_GAP
+local strip                       -- Fenster "Als Nächstes" (nach "Alle entzaubern")
+local skipped = {}                -- [Schlüssel] = true: in dieser Runde übersprungene Items
+local stripTotal                  -- Zahl der Items beim Start der Runde (für den Fortschrittsbalken)
 local noDE = {}                   -- [Link] = true: Tooltip sagt "nicht entzauberbar"
 
 -- Items, die sich nicht entzaubern lassen, obwohl sie wie Ausrüstung aussehen: die vom Verzauberer
@@ -35,6 +40,11 @@ local NEVER = { [11287] = true, [11288] = true, [11289] = true, [11290] = true }
 -- Vom Spieler ausgeblendete Items (Rechtsklick auf die Zeile), gespeichert nach Item-ID
 local function Ignored(itemID)
     return itemID and SexyLootDB.deIgnore and SexyLootDB.deIgnore[itemID]
+end
+
+-- Fach und Link bestimmen ein Item für "Überspringen" (Fächer rücken beim Entzaubern nicht nach)
+local function ItemKey(item)
+    return item.bag .. ":" .. item.slot .. ":" .. item.link
 end
 
 local function Coins(copper)
@@ -169,7 +179,7 @@ end
 function ScrollBy(delta)
     local d = dialog
     local maxScroll = math.max(0, d.content:GetHeight() - d.scroll:GetHeight())
-    d.scroll:SetVerticalScroll(math.max(0, math.min(maxScroll, d.scroll:GetVerticalScroll() - delta * ROW_H)))
+    d.scroll:SetVerticalScroll(math.max(0, math.min(maxScroll, d.scroll:GetVerticalScroll() - delta * STEP)))
     UpdateScroll()
 end
 
@@ -203,6 +213,7 @@ local function MakeRow(i)
     b.hl:SetColorTexture(1, 1, 1, 0.25)
     b.text = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     b.text:SetAllPoints()
+    ns.StyleButton(b)
     b.text:SetText(T["Entzaubern"])
     r.btn = b
 
@@ -254,8 +265,32 @@ local function MakeRow(i)
     return r
 end
 
+-- Gruppenzeile je Qualität (wie in SexyHarvester): dunkles Band, links das Etikett mit dem Namen der Qualität, rechts die Summe
+local function GetHeader(i)
+    local h = dialog.heads[i]
+    if h then return h end
+    h = CreateFrame("Frame", nil, dialog.content)
+    h:SetHeight(HEAD_H)
+    h.bg = h:CreateTexture(nil, "BACKGROUND")
+    h.bg:SetAllPoints()
+    h.bg:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+    h.pill = h:CreateTexture(nil, "ARTWORK")
+    h.pill:SetPoint("LEFT", 8, 0)
+    h.pill:SetHeight(16)
+    h.label = h:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    h.label:SetPoint("CENTER", h.pill, "CENTER")
+    h.sum = h:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    h.sum:SetPoint("RIGHT", -8, 0)
+    h:EnableMouse(true)
+    h:EnableMouseWheel(true)
+    h:SetScript("OnMouseWheel", function(_, delta) ScrollBy(delta) end)
+    dialog.heads[i] = h
+    return h
+end
+
 local function CreateDialog()
     local d = ns.FramedPanel(UIParent, T["Entzaubern"])
+    d.heads = {}
     d:SetFrameStrata("DIALOG")
     d:SetWidth(DIALOG_W)
     d:SetClampedToScreen(true)
@@ -320,16 +355,14 @@ local function CreateDialog()
     d.foot:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 40)
     d.foot:SetJustifyH("LEFT")
 
-    -- "Alle entzaubern": Jeder Zauber braucht einen eigenen Klick (Blizzard erlaubt nur einen Zauber je
-    -- Klick). Der Knopf zielt darum immer auf das erste Item der Liste; nach jedem Entzaubern rückt das
-    -- nächste nach, und du klickst einfach wieder auf dieselbe Stelle. Gesicherter Makroknopf wie die Zeilen.
-    local all = CreateFrame("Button", "SexyLootDisenchantAll", d, "SecureActionButtonTemplate")
+    -- "Alle entzaubern": öffnet das Fenster "Als Nächstes". Jeder Zauber braucht einen eigenen Klick (Blizzard
+    -- erlaubt nur einen Zauber je Klick); dort zielt ein gesicherter Knopf immer auf das nächste Item der Liste.
+    local all = CreateFrame("Button", "SexyLootDisenchantAll", d)
     all:SetHeight(24)
     all:SetPoint("BOTTOMLEFT", d, "BOTTOMLEFT", 12, 10)
     all:SetPoint("BOTTOMRIGHT", d, "BOTTOMRIGHT", -12, 10)
-    all:RegisterForClicks("AnyUp")
-    all:SetAttribute("useOnKeyDown", false)
-    all:SetAttribute("type", "macro")
+    all:RegisterForClicks("LeftButtonUp")
+    all:SetScript("OnClick", function() DE:ShowStrip() end)
     all.bg = all:CreateTexture(nil, "BACKGROUND")
     all.bg:SetAllPoints()
     all.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
@@ -338,10 +371,11 @@ local function CreateDialog()
     all.hl:SetColorTexture(1, 1, 1, 0.25)
     all.text = all:CreateFontString(nil, "OVERLAY", "SexyLootText")
     all.text:SetAllPoints()
+    ns.StyleButton(all)
     all:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
         GameTooltip:SetText(T["Alle entzaubern"])
-        GameTooltip:AddLine(T["Jeder Klick entzaubert das nächste Item der Liste (ein Zauber je Klick)."], 0.8, 0.8, 0.8, true)
+        GameTooltip:AddLine(T["Öffnet das Fenster „Als Nächstes“: jeder Klick entzaubert das nächste Item der Liste (ein Zauber je Klick)."], 0.8, 0.8, 0.8, true)
         GameTooltip:Show()
     end)
     all:SetScript("OnLeave", GameTooltip_Hide)
@@ -352,28 +386,42 @@ local function CreateDialog()
     return d
 end
 
-function DE:Refresh()
-    if bindPending and not InCombatLockdown() then self:ApplyBinding() end
-    if not (dialog and dialog:IsShown()) then return end
-    -- Gesicherte Knöpfe lassen sich im Kampf nicht ändern: nach dem Kampf nachholen
-    if InCombatLockdown() then
-        pending = true
-        return
-    end
-    pending = false
+-- Liste nach Qualität gruppiert: je Gruppe eine Zeile mit Etikett und Summe, darunter die Items
+local function FillList(list, known, macroSpell)
     local cfg = ns.cfg.disenchant
-    local known = KnowsDisenchant()
-    local macroSpell = SpellName()
-    local list = Scan()
     local n = #list
     local view = cfg.rows   -- feste Höhe: das Fenster bleibt gleich groß, egal wie viele Items es gibt
+    local y, headers, lastQ = 0, 0, nil
     for i = 1, n do
         local item = list[i]
+        if item.quality ~= lastQ then
+            if lastQ then y = y + GROUP_GAP end
+            lastQ = item.quality
+            headers = headers + 1
+            local h = GetHeader(headers)
+            local sum = 0
+            for j = i, n do
+                if list[j].quality ~= item.quality then break end
+                sum = sum + list[j].value
+            end
+            local hr, hg, hb = ns.QualityColor(item.quality)
+            h.pill:SetColorTexture(hr * 0.2, hg * 0.2, hb * 0.2, 1)
+            h.label:SetText(_G["ITEM_QUALITY" .. item.quality .. "_DESC"] or tostring(item.quality))
+            h.label:SetTextColor(hr, hg, hb)
+            h.pill:SetWidth(h.label:GetStringWidth() + 18)
+            h.sum:SetText(sum > 0 and Coins(sum) or "")
+            h:ClearAllPoints()
+            h:SetPoint("TOPLEFT", dialog.content, "TOPLEFT", 0, -y)
+            h:SetPoint("TOPRIGHT", dialog.content, "TOPRIGHT", 0, -y)
+            h:Show()
+            y = y + HEAD_H + ROW_GAP
+        end
         local r = rows[i] or MakeRow(i)
         r.item = item
         r:ClearAllPoints()
-        r:SetPoint("TOPLEFT", dialog.content, "TOPLEFT", 0, -(i - 1) * ROW_H)
-        r:SetPoint("TOPRIGHT", dialog.content, "TOPRIGHT", 0, -(i - 1) * ROW_H)
+        r:SetPoint("TOPLEFT", dialog.content, "TOPLEFT", 0, -y)
+        r:SetPoint("TOPRIGHT", dialog.content, "TOPRIGHT", 0, -y)
+        y = y + STEP
         r.bg:SetColorTexture(0.15, 0.12, 0.07, i % 2 == 1 and 0.55 or 0.25)
         local cr, cg, cb = ns.QualityColor(item.quality)
         r.border:SetColorTexture(cr, cg, cb, 1)
@@ -400,14 +448,13 @@ function DE:Refresh()
         rows[i].item = nil
         rows[i]:Hide()
     end
-    dialog.content:SetHeight(math.max(1, n * ROW_H))
-    dialog.scroll:SetHeight(view * ROW_H)
+    for i = headers + 1, #dialog.heads do dialog.heads[i]:Hide() end
+    dialog.content:SetHeight(math.max(1, y - ROW_GAP))
+    local viewH = view * STEP + HEAD_H + ROW_GAP   -- Platz für die Zeilen und eine Gruppenzeile
+    dialog.scroll:SetHeight(viewH)
     dialog.empty:SetShown(n == 0)
-    -- "Alle entzaubern" zielt auf das erste Item der Liste; die Zahl sagt, wie viele noch übrig sind
-    local first = list[1]
-    local canAll = known and first ~= nil
-    dialog.all:SetAttribute("macrotext", first
-        and ("/cast " .. macroSpell .. "\n/use " .. first.bag .. " " .. first.slot) or "")
+    -- "Alle entzaubern" öffnet das Fenster "Als Nächstes"; die Zahl sagt, wie viele Items es sind
+    local canAll = known and n > 0
     dialog.all:SetEnabled(canAll)
     dialog.all.bg:SetColorTexture(canAll and ns.BTN[1] or 0.2, canAll and ns.BTN[2] or 0.18, canAll and ns.BTN[3] or 0.15, 1)
     local key = Hotkey() and ns.LootWindow.PrettyKey(Hotkey())
@@ -418,8 +465,343 @@ function DE:Refresh()
     for _, item in ipairs(list) do total = total + item.value end
     dialog.foot:SetText(T("%d Items", n) .. "   " .. T["Gesamtwert"] .. ": " .. (total > 0 and Coins(total) or "-")
         .. "   |cff88ccff" .. T["Blau: Auktionspreis, darunter Händlerpreis"] .. "|r")
-    dialog:SetHeight(ns.HEAD + INFO_H + view * ROW_H + FOOT_H)
+    dialog:SetHeight(ns.HEAD + INFO_H + viewH + FOOT_H)
     UpdateScroll()
+end
+
+-- Fenster "Als Nächstes": das nächste Item groß, ein gesicherter Knopf entzaubert es, "Überspringen" nimmt es aus der Runde
+local function FillStrip(list, known, macroSpell)
+    local s = strip
+    local n = #list
+    local nextItem, restValue, skippedHere = nil, 0, 0
+    for _, item in ipairs(list) do
+        if skipped[ItemKey(item)] then
+            skippedHere = skippedHere + 1
+        else
+            restValue = restValue + item.value
+            nextItem = nextItem or item
+        end
+    end
+    if not stripTotal or n > stripTotal then stripTotal = n end
+    s.nextItem = nextItem
+    s.skippedHere = skippedHere
+
+    s:SetBadge(T("noch %d", n - skippedHere))
+    s.iconBox:SetShown(nextItem ~= nil)
+    s.label:SetShown(nextItem ~= nil)
+    s.name:SetShown(nextItem ~= nil)
+    s.ilvl.tex:SetShown(false)
+    s.value:SetShown(nextItem ~= nil)
+    s.vendor:SetShown(false)
+    s.empty:SetShown(nextItem == nil)
+    if nextItem then
+        local cr, cg, cb = ns.QualityColor(nextItem.quality)
+        s.border:SetColorTexture(cr, cg, cb, 1)
+        s.icon:SetTexture(nextItem.icon)
+        s.name:SetText(nextItem.name)
+        s.name:SetTextColor(cr, cg, cb)
+        if nextItem.ilvl > 0 then
+            s.ilvl:Set("grey", "iLvl " .. nextItem.ilvl, nil, 16)
+        else
+            s.ilvl:Hide()
+        end
+        s.value:SetText(nextItem.value > 0 and Coins(nextItem.value) or "-")
+        if nextItem.auction then s.value:SetTextColor(0.53, 0.8, 1) else s.value:SetTextColor(0.95, 0.92, 0.86) end
+        if nextItem.auction and nextItem.vendorValue > 0 then
+            s.vendor:SetText(Coins(nextItem.vendorValue))
+            s.vendor:Show()
+        end
+    else
+        s.ilvl:Hide()
+        s.empty:SetText(skippedHere > 0 and T["Alle übrigen Items übersprungen."] or T["Nichts mehr zu entzaubern."])
+    end
+
+    s.next:SetAttribute("macrotext", nextItem
+        and ("/cast " .. macroSpell .. "\n/use " .. nextItem.bag .. " " .. nextItem.slot) or "")
+    local canNext = known and nextItem ~= nil
+    s.next:SetEnabled(canNext)
+    s.next.bg:SetColorTexture(canNext and ns.BTN[1] or 0.2, canNext and ns.BTN[2] or 0.18, canNext and ns.BTN[3] or 0.15, 1)
+    -- Überspringen; sind alle übrigen übersprungen, bietet derselbe Knopf sie wieder an
+    s.skip.text:SetText(nextItem and T["Überspringen"] or T["Übersprungene wieder anbieten"])
+    s.skip:SetShown(nextItem ~= nil or skippedHere > 0)
+
+    local done = stripTotal and stripTotal > 0 and (stripTotal - n) / stripTotal or 0
+    s.barFill:SetWidth(math.max(0.001, s.barW * math.min(1, done)))
+    local key = Hotkey() and ns.LootWindow.PrettyKey(Hotkey())
+    s.hint:SetText(T["Jeder Klick entzaubert das nächste Item"] .. (key and ("  |cffe8c26a[" .. key .. "]|r") or ""))
+    s.rest:SetText(restValue > 0 and (T["Rest"] .. " " .. Coins(restValue)) or "")
+end
+
+function DE:Refresh()
+    if bindPending and not InCombatLockdown() then self:ApplyBinding() end
+    local listShown = dialog and dialog:IsShown()
+    local stripShown = strip and strip:IsShown()
+    if not (listShown or stripShown) then return end
+    -- Gesicherte Knöpfe lassen sich im Kampf nicht ändern: nach dem Kampf nachholen
+    if InCombatLockdown() then
+        pending = true
+        return
+    end
+    pending = false
+    local known = KnowsDisenchant()
+    local macroSpell = SpellName()
+    local list = Scan()
+    if listShown then FillList(list, known, macroSpell) end
+    if stripShown then
+        FillStrip(list, known, macroSpell)
+        -- Nichts mehr zu entzaubern: das Fenster geht zu (übersprungene Items zählen mit, sie sind noch da)
+        if #list == 0 then
+            strip:Hide()
+            stripTotal, skipped = nil, {}
+        end
+    elseif strip then
+        -- Nur die Liste offen: der versteckte Knopf zielt schon auf das erste Item, damit die Taste sofort entzaubert
+        local first = list[1]
+        strip.next:SetAttribute("macrotext", first and ("/cast " .. macroSpell .. "\n/use " .. first.bag .. " " .. first.slot) or "")
+        strip.next:SetEnabled(known and first ~= nil)
+    end
+end
+
+local BAR_W = DIALOG_W - 28
+
+local function CreateStrip()
+    local s = ns.FramedPanel(UIParent, T["Entzaubern"])
+    s:SetFrameStrata("DIALOG")
+    s:SetSize(DIALOG_W, ns.HEAD + 166)
+    s:SetClampedToScreen(true)
+    s:SetMovable(true)
+    s:EnableMouse(true)
+    s:RegisterForDrag("LeftButton")
+    s:SetScript("OnDragStart", s.StartMoving)
+    s:SetScript("OnDragStop", s.StopMovingOrSizing)
+    ns.ApplyStyle(s, "disenchant")
+    s:Hide()
+    s.badgeInset = 32
+    strip = s
+
+    local close = CreateFrame("Button", nil, s, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", 2, 2)
+    close:SetFrameLevel(s:GetFrameLevel() + 10)
+    close:SetScript("OnClick", function() s:Hide() end)
+    _G.SexyLootDisenchantStrip = s
+    tinsert(UISpecialFrames, "SexyLootDisenchantStrip")
+
+    local top = ns.HEAD + 14
+    -- Symbol des nächsten Items (Rand in der Qualitätsfarbe)
+    s.iconBox = CreateFrame("Frame", nil, s)
+    s.iconBox:SetSize(56, 56)
+    s.iconBox:SetPoint("TOPLEFT", s, "TOPLEFT", 14, -top)
+    s.border = s.iconBox:CreateTexture(nil, "BACKGROUND")
+    s.border:SetAllPoints()
+    s.icon = s.iconBox:CreateTexture(nil, "ARTWORK")
+    s.icon:SetPoint("TOPLEFT", 2, -2)
+    s.icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    s.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+    s.label = s:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    s.label:SetPoint("TOPLEFT", s.iconBox, "TOPRIGHT", 12, -2)
+    s.label:SetText(T["Als Nächstes"])
+    s.name = s:CreateFontString(nil, "OVERLAY", "SexyLootTitle")
+    s.name:SetPoint("TOPLEFT", s.label, "BOTTOMLEFT", 0, -3)
+    s.name:SetPoint("RIGHT", s, "RIGHT", -156, 0)
+    s.name:SetJustifyH("LEFT")
+    s.name:SetWordWrap(false)
+    s.ilvl = ns.Pill(s)
+    s.ilvl.tex:SetPoint("TOPLEFT", s.name, "BOTTOMLEFT", 0, -6)
+    s.value = s:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    s.value:SetPoint("LEFT", s.ilvl.tex, "RIGHT", 8, 0)
+    s.vendor = s:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    s.vendor:SetPoint("LEFT", s.value, "RIGHT", 8, 0)
+    s.empty = s:CreateFontString(nil, "OVERLAY", "SexyLootText")
+    s.empty:SetPoint("LEFT", s, "LEFT", 14, 0)
+    s.empty:SetPoint("RIGHT", s, "RIGHT", -156, 0)
+    s.empty:SetPoint("TOP", s, "TOP", 0, -(top + 14))
+    s.empty:SetJustifyH("LEFT")
+
+    -- Tooltip des nächsten Items: über Symbol, Name und Etiketten
+    s.hit = CreateFrame("Frame", nil, s)
+    s.hit:SetPoint("TOPLEFT", s.iconBox, "TOPLEFT", 0, 0)
+    s.hit:SetPoint("BOTTOMRIGHT", s, "TOPRIGHT", -156, -(top + 56))
+    s.hit:EnableMouse(true)
+    s.hit:SetScript("OnEnter", function(self)
+        local item = s.nextItem
+        if not item then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if not pcall(GameTooltip.SetBagItem, GameTooltip, item.bag, item.slot) then
+            GameTooltip:SetHyperlink(item.link)
+        end
+        GameTooltip:Show()
+    end)
+    s.hit:SetScript("OnLeave", GameTooltip_Hide)
+
+    -- Knopf "Entzaubern": gesicherter Makroknopf, zielt immer auf das nächste Item (jeder Klick ein Zauber)
+    local nb = CreateFrame("Button", "SexyLootDisenchantNext", s, "SecureActionButtonTemplate")
+    nb:SetSize(130, 30)
+    nb:SetPoint("TOPRIGHT", s, "TOPRIGHT", -14, -top)
+    nb:RegisterForClicks("AnyUp")
+    nb:SetAttribute("useOnKeyDown", false)
+    nb:SetAttribute("type", "macro")
+    nb.bg = nb:CreateTexture(nil, "BACKGROUND")
+    nb.bg:SetAllPoints()
+    nb.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
+    nb.hl = nb:CreateTexture(nil, "HIGHLIGHT")
+    nb.hl:SetAllPoints()
+    nb.hl:SetColorTexture(1, 1, 1, 0.25)
+    nb.text = nb:CreateFontString(nil, "OVERLAY", "SexyLootText")
+    nb.text:SetAllPoints()
+    ns.StyleButton(nb)
+    nb.text:SetText(T["Entzaubern"])
+    s.next = nb
+    -- Taste in der Liste: der Zauber läuft über diesen gesicherten Knopf, danach öffnet sich das Fenster "Als Nächstes"
+    nb:SetScript("PostClick", function()
+        if dialog and dialog:IsShown() and not s:IsShown() and not InCombatLockdown() then DE:ShowStrip() end
+    end)
+
+    -- Überspringen: das Item bleibt in der Tasche und kommt in dieser Runde nicht mehr dran
+    local sk = CreateFrame("Button", nil, s)
+    sk:SetSize(130, 22)
+    sk:SetPoint("TOP", nb, "BOTTOM", 0, -6)
+    sk:RegisterForClicks("LeftButtonUp")
+    sk.bg = sk:CreateTexture(nil, "BACKGROUND")
+    sk.bg:SetAllPoints()
+    sk.bg:SetColorTexture(0.15, 0.12, 0.07, 1)
+    sk.hl = sk:CreateTexture(nil, "HIGHLIGHT")
+    sk.hl:SetAllPoints()
+    sk.hl:SetColorTexture(1, 1, 1, 0.18)
+    sk.text = sk:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    sk.text:SetPoint("LEFT", 4, 0)
+    sk.text:SetPoint("RIGHT", -4, 0)
+    sk.text:SetWordWrap(false)
+    sk:SetScript("OnClick", function()
+        if InCombatLockdown() then return end
+        if s.nextItem then skipped[ItemKey(s.nextItem)] = true else skipped = {} end
+        DE:Refresh()
+    end)
+    s.skip = sk
+
+    -- Fortschritt: Balken über die Breite, darunter Hinweis, Restwert und der Weg zurück zur Liste
+    s.barBg = s:CreateTexture(nil, "ARTWORK")
+    s.barBg:SetHeight(6)
+    s.barBg:SetPoint("BOTTOMLEFT", s, "BOTTOMLEFT", 14, 44)
+    s.barBg:SetWidth(BAR_W)
+    s.barBg:SetColorTexture(0.15, 0.12, 0.07, 1)
+    s.barFill = s:CreateTexture(nil, "OVERLAY")
+    s.barFill:SetHeight(6)
+    s.barFill:SetPoint("BOTTOMLEFT", s.barBg, "BOTTOMLEFT", 0, 0)
+    s.barFill:SetColorTexture(0.91, 0.76, 0.42, 1)
+    s.barW = BAR_W
+
+    -- Zauberbalken: läuft, solange Entzaubern gewirkt wird (Zeit aus UnitCastingInfo), sonst leer
+    local cb = CreateFrame("StatusBar", nil, s)
+    cb:SetSize(BAR_W, 14)
+    cb:SetPoint("BOTTOMLEFT", s, "BOTTOMLEFT", 14, 60)
+    cb:SetStatusBarTexture("Interface/TargetingFrame/UI-StatusBar")
+    cb:SetStatusBarColor(0.91, 0.76, 0.42)
+    cb:SetMinMaxValues(0, 1)
+    cb:SetValue(0)
+    cb.bg = cb:CreateTexture(nil, "BACKGROUND")
+    cb.bg:SetAllPoints()
+    cb.bg:SetColorTexture(0.15, 0.12, 0.07, 1)
+    cb.text = cb:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    cb.text:SetPoint("CENTER")
+    cb.text:SetText(T["Entzaubern"])
+    cb.text:SetTextColor(0.62, 0.57, 0.5)
+    s.castBar = cb
+
+    local castFrom, castTo
+    local function CastReset()
+        castFrom, castTo = nil, nil
+        cb:SetScript("OnUpdate", nil)
+        cb:SetValue(0)
+        cb.text:SetText(T["Entzaubern"])
+        cb.text:SetTextColor(0.62, 0.57, 0.5)
+    end
+    local function CastStart()
+        local ok, name, _, _, startMS, endMS = pcall(UnitCastingInfo, "player")
+        if not (ok and type(startMS) == "number" and type(endMS) == "number" and endMS > startMS) then return end
+        castFrom, castTo = startMS / 1000, endMS / 1000
+        cb:SetMinMaxValues(0, castTo - castFrom)
+        cb.text:SetTextColor(1, 1, 1)
+        cb:SetScript("OnUpdate", function()
+            local now = GetTime()
+            if now >= castTo then CastReset() return end
+            cb:SetValue(now - castFrom)
+            cb.text:SetText(("%s  %.1f s"):format(SpellName(), castTo - now))
+        end)
+    end
+    local ev = CreateFrame("Frame", nil, s)
+    for _, e in ipairs({ "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP", "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
+        "UNIT_SPELLCAST_SUCCEEDED" }) do
+        pcall(ev.RegisterUnitEvent, ev, e, "player")
+    end
+    ev:SetScript("OnEvent", function(_, event, _, _, spellID)
+        if event == "UNIT_SPELLCAST_START" then
+            if spellID == SPELL_ID then CastStart() end
+        elseif castFrom then
+            CastReset()
+        end
+    end)
+    s:HookScript("OnHide", CastReset)
+    s.hint = s:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    s.hint:SetPoint("BOTTOMLEFT", s, "BOTTOMLEFT", 14, 22)
+    s.hint:SetJustifyH("LEFT")
+    s.rest = s:CreateFontString(nil, "OVERLAY", "SexyLootDim")
+    s.rest:SetPoint("BOTTOMLEFT", s, "BOTTOMLEFT", 14, 8)
+    s.rest:SetJustifyH("LEFT")
+
+    local back = CreateFrame("Button", nil, s)
+    back:SetSize(96, 22)
+    back:SetPoint("BOTTOMRIGHT", s, "BOTTOMRIGHT", -14, 10)
+    back:RegisterForClicks("LeftButtonUp")
+    back.bg = back:CreateTexture(nil, "BACKGROUND")
+    back.bg:SetAllPoints()
+    back.bg:SetColorTexture(0.15, 0.12, 0.07, 1)
+    back.hl = back:CreateTexture(nil, "HIGHLIGHT")
+    back.hl:SetAllPoints()
+    back.hl:SetColorTexture(1, 1, 1, 0.18)
+    back.text = back:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
+    back.text:SetAllPoints()
+    back.text:SetText(T["Zur Liste"])
+    back:SetScript("OnClick", function() DE:ShowList() end)
+
+    -- Die Taste gilt nur, solange eines der beiden Fenster offen ist
+    s:HookScript("OnShow", function() DE:ApplyBinding() end)
+    s:HookScript("OnHide", function() DE:ApplyBinding() end)
+    return s
+end
+
+-- Von der Liste zum Fenster "Als Nächstes": beginnt eine neue Runde (nichts übersprungen)
+function DE:ShowStrip()
+    if InCombatLockdown() then
+        print("|cffe8c26aSexyLoot|r: " .. T["Im Kampf nicht möglich."])
+        return
+    end
+    if not dialog then CreateDialog() end
+    if not strip then CreateStrip() end
+    skipped, stripTotal = {}, nil
+    strip:ClearAllPoints()
+    local l, t = dialog:GetLeft(), dialog:GetTop()
+    if l and t then strip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", l, t) else strip:SetPoint("CENTER", UIParent, "CENTER", 0, 80) end
+    dialog:Hide()
+    strip:Show()
+    self:Refresh()
+end
+
+-- Zurück zur Liste (am Platz des Fensters "Als Nächstes")
+function DE:ShowList()
+    if InCombatLockdown() then
+        print("|cffe8c26aSexyLoot|r: " .. T["Im Kampf nicht möglich."])
+        return
+    end
+    if not dialog then CreateDialog() end
+    if strip and strip:IsShown() then
+        local l, t = strip:GetLeft(), strip:GetTop()
+        dialog:ClearAllPoints()
+        if l and t then dialog:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", l, t) end
+        strip:Hide()
+    end
+    dialog:Show()
+    self:Refresh()
 end
 
 -- Ausgeblendete Items wieder anbieten
@@ -442,8 +824,11 @@ function DE:ApplyBinding()
     bindPending = false
     if not dialog then return end
     ClearOverrideBindings(dialog)
-    if Hotkey() and dialog:IsShown() then
-        SetOverrideBindingClick(dialog, true, Hotkey(), "SexyLootDisenchantAll", "LeftButton")
+    -- Fenster "Als Nächstes" offen: die Taste entzaubert das nächste Item; in der Liste öffnet sie dieses Fenster
+    local stripOpen = strip and strip:IsShown()
+    if Hotkey() and (stripOpen or dialog:IsShown()) then
+        -- gibt es das Fenster "Als Nächstes" schon, entzaubert die Taste sofort (auch aus der Liste); sonst öffnet sie es
+        SetOverrideBindingClick(dialog, true, Hotkey(), strip and "SexyLootDisenchantNext" or "SexyLootDisenchantAll", "LeftButton")
     end
 end
 
@@ -473,19 +858,25 @@ function DE:Open()
         return
     end
     if not dialog then CreateDialog() end
+    if not strip then CreateStrip() end
+    if strip:IsShown() then strip:Hide() end
     dialog:Show()
     self:Refresh()
 end
 
 function DE:Toggle()
-    if dialog and dialog:IsShown() then dialog:Hide() else self:Open() end
+    if (dialog and dialog:IsShown()) or (strip and strip:IsShown()) then
+        if dialog then dialog:Hide() end
+        if strip then strip:Hide() end
+    else
+        self:Open()
+    end
 end
 
 ns.Apply.disenchant = function()
-    if dialog then
-        ns.ApplyStyle(dialog, "disenchant")
-        DE:Refresh()
-    end
+    if dialog then ns.ApplyStyle(dialog, "disenchant") end
+    if strip then ns.ApplyStyle(strip, "disenchant") end
+    DE:Refresh()
 end
 
 ---------------------------------------------------------------------------
@@ -571,6 +962,8 @@ function DE:Preview(active)
 end
 
 ns.Apply.deButton = function()
+    local size = ns.cfg.deButton.size or 44
+    ns.frames.deButton:SetSize(size, size)
     if button then
         ns.ApplyStyle(button, "deButton")
         DE:UpdateButton()

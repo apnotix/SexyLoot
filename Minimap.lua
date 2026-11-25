@@ -1,14 +1,10 @@
 -- Minimap-Knopf (LibDBIcon): Linksklick öffnet das Einstellungsfenster (Addon SexyEditMode) beim ersten Bereich
--- von SexyLoot, Rechtsklick öffnet bzw. schließt den Edit Mode. Ohne SexyEditMode öffnet auch Linksklick den Edit Mode. Ein-/Ausblenden: /sl minimap
+-- von SexyLoot, Rechtsklick startet bzw. beendet den Verschiebe-Modus (SexyEditMode ist Pflichtabhängigkeit). Ein-/Ausblenden: /sl minimap
 local DE = GetLocale() == "deDE"
 
 local function ToggleEditMode()
-    -- mit SexyEditMode nur für die Fenster dieses Addons, sonst Blizzards Edit Mode wie er ist
-    local SEM = LibStub("SexyEditMode-1.0", true)
-    if SEM and SEM.ToggleEditMode then SEM:ToggleEditMode("SexyLoot") return end
-    local m = _G.EditModeManagerFrame
-    if not m then return end
-    if m:IsShown() then HideUIPanel(m) else ShowUIPanel(m) end
+    -- Verschiebe-Modus nur für die Fenster dieses Addons
+    LibStub("SexyEditMode-1.0"):ToggleEditMode("SexyLoot")
 end
 
 local function Settings()
@@ -44,18 +40,17 @@ f:SetScript("OnEvent", function(self)
         text = "SexyLoot",
         icon = "Interface/AddOns/SexyLoot/icon.tga",
         OnClick = function(_, button)
-            local SEM = LibStub("SexyEditMode-1.0", true)
-            if button == "RightButton" or not (SEM and SEM.OpenHub) then
+            if button == "RightButton" then
                 ToggleEditMode()
             else
-                SEM:OpenHub("SexyLoot")
+                LibStub("SexyEditMode-1.0"):OpenHub("SexyLoot")
             end
         end,
         OnTooltipShow = function(tip)
             if not (tip and tip.AddLine) then return end
             tip:AddLine("SexyLoot")
             tip:AddLine(DE and "Linksklick: Einstellungen" or "Left click: settings", 1, 1, 1)
-            tip:AddLine(DE and "Rechtsklick: Edit Mode" or "Right click: Edit Mode", 1, 1, 1)
+            tip:AddLine(DE and "Rechtsklick: Fenster verschieben" or "Right click: move windows", 1, 1, 1)
         end,
     })
     if obj and not icon:IsRegistered("SexyLoot") then icon:Register("SexyLoot", obj, s) end

@@ -10,6 +10,12 @@ ns.Toast = Toast
 table.insert(ns.modules, Toast)
 
 local WIDTH, ROWH, GAP, FADE = 300, 40, 2, 0.6
+local MONEY_GAP = 8   -- Abstand zwischen dem Geld-Bereich oben und den Items darunter
+-- Breite, Zeilenhöhe und Abstand kommen aus den Einstellungen
+local function Sizes()
+    local c = ns.cfg.toast
+    WIDTH, ROWH, GAP = c.width or 300, c.rowH or 40, c.gap or 2
+end
 local entries, rows = {}, {}
 local driver
 local M = ns.Motion
@@ -29,17 +35,15 @@ function Toast:Add(link, count)
         if x.id == id and not x.preview then e = x break end
     end
     if e then
+        -- gleiches Item: bleibt an seinem Platz, nur die Anzahl wächst (nichts sortiert sich um)
         e.count = e.count + count
         e.link = link
         e.expire = GetTime() + hold
-        for i, x in ipairs(entries) do
-            if x == e then table.remove(entries, i) break end
-        end
-        table.insert(entries, 1, e)
     else
-        table.insert(entries, 1, { id = id, link = link, count = count, expire = GetTime() + hold })
+        -- neue Items hängen unten an; die ältesten (oben) fallen als Erste heraus
+        entries[#entries + 1] = { id = id, link = link, count = count, expire = GetTime() + hold }
     end
-    while #entries > 20 do table.remove(entries) end
+    while #entries > 20 do table.remove(entries, 1) end
     self:Layout()
 end
 
@@ -48,11 +52,10 @@ function Toast:AddMoney(copper)
     if not copper or copper <= 0 then return end
     local hold = ns.cfg.toast.hold
     local e
-    for i, x in ipairs(entries) do
+    for _, x in ipairs(entries) do
         -- "Geld einzeln anzeigen": jeder Betrag bekommt eine eigene Zeile
         if x.money and not x.preview and not ns.cfg.toast.splitMoney then
             e = x
-            table.remove(entries, i)
             break
         end
     end
@@ -60,10 +63,9 @@ function Toast:AddMoney(copper)
         e.copper = e.copper + copper
         e.expire = GetTime() + hold
     else
-        e = { money = true, copper = copper, count = 1, expire = GetTime() + hold }
+        entries[#entries + 1] = { money = true, copper = copper, count = 1, expire = GetTime() + hold }
     end
-    table.insert(entries, 1, e)
-    while #entries > 20 do table.remove(entries) end
+    while #entries > 20 do table.remove(entries, 1) end
     self:Layout()
 end
 
@@ -215,9 +217,9 @@ end
 
 -- Eintrag e erscheint auf Platz n in Zeile r. Neue Einträge fliegen von rechts ein, Einträge, die ihren Platz
 -- wechseln, gleiten dorthin. Liefert true für einen neuen Eintrag.
-local function Arrive(r, e, n)
+local function Arrive(r, e, n, y)
     local step = ROWH + GAP
-    r.slotY = (n - 1) * step
+    r.slotY = y or (n - 1) * step
     local fresh = false
     if r.shownE ~= e then
         M.Cancel(r)
@@ -246,13 +248,41 @@ end
 function Toast:Layout()
     if not driver then return end
     local cfg = ns.cfg.toast
-    local n = 0
+    Sizes()
+    -- Geld ist ein eigener Bereich ganz oben (höchstens eine Zeile, bei "Geld einzeln anzeigen" drei), darunter die Items
+    -- bis zur eingestellten Zeilenzahl, getrennt durch einen kleinen Abstand
+    local moneyMax = cfg.splitMoney and 3 or 1
+    local moneyList, itemList = {}, {}
     for _, e in ipairs(entries) do
-        if n >= cfg.rows then break end
+        if e.money then moneyList[#moneyList + 1] = e else itemList[#itemList + 1] = e end
+    end
+    -- Reihenfolge des Eintreffens (älteste oben, neue unten); passen nicht alle, fallen die ältesten oben heraus
+    local order, m = {}, 0
+    for i = math.max(1, #moneyList - moneyMax + 1), #moneyList do
+        m = m + 1
+        order[#order + 1] = moneyList[i]
+    end
+    for i = math.max(1, #itemList - cfg.rows + 1), #itemList do
+        order[#order + 1] = itemList[i]
+    end
+    local n, bottom = 0, 0
+    for _, e in ipairs(order) do
         n = n + 1
+        local slotY = (n - 1) * (ROWH + GAP) + ((m > 0 and n > m) and MONEY_GAP or 0)
+        bottom = slotY + ROWH
         local r = rows[n] or MakeRow(n)
+        r:SetSize(WIDTH, ROWH)
+        local icon = (cfg.iconSize or 0) > 0 and cfg.iconSize or (ROWH - 8)
+        r.icon:SetSize(icon, icon)
+        r.bar:SetShown(cfg.showStripe ~= false)
+        r.count:SetShown(cfg.showCount ~= false)
+        if (cfg.nameSize or 0) > 0 then
+            r.name:SetFont(ns.FONT_TEXT, cfg.nameSize, "")
+            r.count:SetFont(ns.FONT_TEXT, cfg.nameSize, "")
+            r.value:SetFont(ns.FONT_TEXT, math.max(8, cfg.nameSize - 2), "")
+        end
         r.e = e
-        local fresh = Arrive(r, e, n)
+        local fresh = Arrive(r, e, n, slotY)
         if e.money then
             -- Geld: Münzsymbol, links der Name "Geld", der Betrag in der Wertspalte rechts, genau dort, wo bei
             -- Items der Wert steht (feste Stelle, egal wie hoch der Betrag ist)
@@ -349,6 +379,8 @@ function Toast:Layout()
         M.Cancel(r.sweep)
         r:Hide()
     end
+    -- Anker so hoch wie die sichtbaren Zeilen (mindestens eine); die Liste hängt oben und wächst nach unten
+    ns.ResizeAnchor("toast", WIDTH, math.max(ROWH, bottom), true)
 end
 
 -- Blendet aus und entfernt Abgelaufenes
@@ -395,10 +427,10 @@ function Toast:Preview(active)
             { 2589, T["Leinenstoff"], 13, 13 },
             { 5, T["Questgegenstand"], 1, 0, true },
         }
-        table.insert(entries, 1, { money = true, copper = 123456, count = 1, expire = math.huge, preview = true })
+        entries[#entries + 1] = { money = true, copper = 123456, count = 1, expire = math.huge, preview = true }
         for _, s in ipairs(sample) do
-            table.insert(entries, 1, { id = s[1], link = L(s[1], s[2]), count = s[3], price = s[4],
-                quest = s[5], expire = math.huge, preview = true })
+            entries[#entries + 1] = { id = s[1], link = L(s[1], s[2]), count = s[3], price = s[4],
+                quest = s[5], expire = math.huge, preview = true }
         end
     end
     self:Layout()
@@ -415,7 +447,7 @@ function Toast:Test()
 end
 
 ns.Apply.toast = function()
-    ns.frames.toast:SetHeight(ns.cfg.toast.rows * (ROWH + GAP))
+    Sizes()
     Toast:Layout()
 end
 

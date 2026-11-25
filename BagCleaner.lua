@@ -459,6 +459,26 @@ function Bags:Preview(active)
 end
 
 ns.Apply.bags = function()
+    local cfg = ns.cfg.bags
+    ns.frames.bags:SetSize(cfg.width or 300, 46)
+    if banner then
+        local size = cfg.iconSize or 28
+        banner.icon:SetSize(size, size)
+        banner.icon:SetShown(cfg.showIcon ~= false)
+        banner.text:ClearAllPoints()
+        if cfg.showIcon ~= false then
+            banner.text:SetPoint("TOPLEFT", banner.icon, "TOPRIGHT", 8, 1)
+        else
+            banner.text:SetPoint("TOPLEFT", banner, "TOPLEFT", 12, -8)
+        end
+        banner.pill.tex:ClearAllPoints()
+        if cfg.showIcon ~= false then
+            banner.pill.tex:SetPoint("BOTTOMLEFT", banner.icon, "BOTTOMRIGHT", 8, 0)
+        else
+            banner.pill.tex:SetPoint("BOTTOMLEFT", banner, "BOTTOMLEFT", 12, 8)
+        end
+        banner.open:SetShown(cfg.showButton ~= false)
+    end
     if banner then ns.ApplyStyle(banner, "bags") end
     if dialog then ns.ApplyStyle(dialog, "bags") end
     Recount()

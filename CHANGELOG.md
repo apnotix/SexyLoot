@@ -2,6 +2,38 @@
 
 ## 0.1.25
 
+- Loot window: the footer (with "Take all") is brown like the other windows, and there is some space between the title band, the list and the footer.
+- Roll buttons: the rim matches the other windows and the icons sit exactly in the middle; the preview in the settings window looks the same.
+- "Announce winner": the button shows the channel only when it is not set to automatic.
+
+- Buttons (Take all, Announce winner, disenchant and clean-up buttons) look like those in the SexyEditMode settings window: title band color, gold text, rounded gold border. "Announce winner" no longer shows "(Automatic)" when the channel is automatic.
+
+- Recently looted, loot popup and winner display: the anchor (the rectangle you place and dock to) is now as big as what is shown instead of the largest possible size, so there is no gap when you dock another window to it. The window grows with its content; growing down keeps the top edge in place, growing up keeps the bottom edge (the saved position follows the height).
+
+- Disenchant window "Next up": a cast bar shows the cast time of Disenchant (name and seconds left); idle it is an empty dark bar. The window is a bit taller for it.
+
+- Loot popup: the rows no longer re-sort. New items attach at the bottom (oldest on top), a repeated item keeps its place and only its count grows; if more items arrive than rows fit, the oldest ones at the top drop out first.
+
+- Loot popup: looted gold is its own area at the very top (one line, three with "Show money separately"), above the items, with a small gap in between; new items no longer push it down. The preview shows it the same way.
+
+- Disenchant window "Next up": when nothing is left to disenchant the window closes by itself (skipped items still count as left, then the window stays).
+
+- Disenchant window: the hotkey disenchants right away, also while the list is open (before, the first press only opened the window "Next up"). The window then opens.
+
+- Disenchant window "Next up": hovering the icon, name or labels of the next item shows the item tooltip.
+
+- Disenchant window: the list is grouped by quality (a row with a label per quality and the sum of its value). "Disenchant all" now opens the window "Next up": the next item big with its value, a button that disenchants it (every click one spell, the hotkey does the same), "Skip" (the item stays in the bag and is not offered again in this round; when only skipped items are left, the same button offers them again), a progress bar, the remaining value and "Back to list".
+
+- Settings window: the other windows have their own preview windows with their own logic (free rolls, loot window, group feed, my loot, loot popup, winner display, money, bags hint, disenchant button; new file SamplesMore.lua, Live.lua is gone: needs a full client restart). They are built with the same blocks as the real windows, follow the settings, and every part is clickable. The first settings group ("Look") holds only what changes the preview; behavior, tests and actions sit in a second group ("Behavior").
+- New look settings: window opacity, background color and border color for the roll window, winner display, free rolls, loot window, group feed, my loot, money, bags hint and disenchant button (the cards of the loot window follow the opacity). Winner display: glow around the card, labels. Free rolls: rank label, time bar, announce button. Loot window: labels, "Take all" button. Group feed: line spacing. My loot: row height, icons. Loot popup: width, row height, quality stripe. Money: sell value, width, font size, labels. Disenchant button: size. Many more: winner display (icon size, item and name font size, width, gap between the cards, width of the slim cards), free rolls (width, line spacing, check, alternate shading), loot window (width, name size, row spacing, "Take all" button), group feed (outlined text, timestamp color), my loot (width, font size, count), loot popup (icon size, name size, row spacing, count), bags hint (width, icon size, icon, clean-up button). In the roll window "Grow new windows upward" and the maximum list height now sit in the behavior group. The clickable parts of the previews are measured at the real parts (icon, name, labels, buttons, gaps) instead of estimated. Each setting has its own spot in the preview.
+- Roll window: many more look settings (card opacity, item name size, armor label, "Binds when picked up", time bar, time left, button labels, check on the best roll, alternate shading, line spacing); the preview follows and each part is clickable.
+- Roll window settings: the "Start test roll" button is gone (`/sexyloot test` still works). Turning on "Animations" plays a roll in the preview: the card flies in, the players pick one after another (icon fades in, rolls count up) and the winner lights up (no yellow light streak any more, also not in the real roll window; the rolls count up in the real window as well).
+- Settings window: the roll window page shows a live sample in a panel on the right side of the window (window, header, item, time bar, buttons, player list, spacing). Hover a part to outline it, click it to jump to its settings; the sample follows every change. New file Samples.lua: needs a full client restart.
+- New checkbox "Hide header" for the roll window, free rolls, loot window, group feed and my loot: the title band disappears and the content moves up.
+- Roll window: picks, rolls and the winner now also come from the loot history of the client (like DaylightUI), faster and more reliable than the chat lines. Your own pick shows as soon as the game closes its roll window. The buttons stay clickable while the client has not yet told what you may roll (before, a roll could sometimes not be rolled), and the permissions are read again after 0.4 s and 1.5 s. "All rolls cancelled" closes the open rows.
+- Roll buttons: a nicer hover (the surface lightens slightly, thin gold border, brighter text) instead of the square glow.
+- Bars (roll timer, free-roll timer) have a glassy gloss like the XP bar, the roll timer has rounded ends (needs the SexyEditMode addon).
+- Roll window: the players' picks show as an icon (die, coin, pass) in front of the name instead of a text badge. The expand/collapse icon is gone: a click on the header of an item expands or collapses its list.
 - SexyEditMode is now a required dependency (CurseForge installs it automatically).
 - Docking: new selection "Alignment" next to the side. Windows docked below or above can line up with the left edge, the center or the right edge of the target; windows docked left or right with the top edge, the center or the bottom edge.
 - Loot toast: animations (switched with "Animations" in the roll window settings): new items fly in from the right with a light streak in the quality color, epic and quest items pulse once, repeated items count up, money counts up, rows slide into their new place and glide out to the right when they expire.

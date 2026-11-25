@@ -284,9 +284,10 @@ function Feed:Refresh()
     if not panel then return end
     local cfg = ns.cfg.feed
     ns.ApplyStyle(panel, "feed")
-    local h = cfg.size + 4
+    local h = cfg.size + 4 + (cfg.lineGap or 0)
     -- Breite und Höhe stellt man direkt ein, die Zeilenzahl ergibt sich daraus
-    local lines = math.max(1, math.floor((cfg.height - ns.HEAD - 6) / h))
+    panel:SetHeaderShown(not cfg.hideHeader)
+    local lines = math.max(1, math.floor((cfg.height - panel.headH - 6) / h))
     panel:SetHeight(cfg.height)
     ns.frames.feed:SetSize(cfg.width, cfg.height)
     local n = #entries
@@ -299,9 +300,11 @@ function Feed:Refresh()
             row:SetSize(cfg.width - 16, h)
             row:ClearAllPoints()
             row:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", 8, 4 + (j - 1) * h)
-            row.text:SetFont(ns.FONT_TEXT, cfg.size, "")
+            row.text:SetFont(ns.FONT_TEXT, cfg.size, cfg.outline and "OUTLINE" or "")
             if e then
-                local full = (cfg.hideStamp and "" or ("|cff888888" .. e.stamp .. "|r ")) .. e.text
+                local sc = cfg.stampColor
+                local stampHex = ("%02x%02x%02x"):format(sc[1] * 255, sc[2] * 255, sc[3] * 255)
+                local full = (cfg.hideStamp and "" or ("|cff" .. stampHex .. e.stamp .. "|r ")) .. e.text
                 row.text:SetText(full)
                 row.itemFrom, row.itemTo = nil, nil
                 local a = e.link and full:find(e.link, 1, true)
@@ -325,6 +328,8 @@ ns.Apply.feed = function() Feed:Refresh() end
 
 function Feed:Init()
     panel = ns.FramedPanel(ns.frames.feed, T["Gruppenbeute"])
+    ns.Panels = ns.Panels or {}
+    ns.Panels.feed = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     panel:SetPoint("BOTTOMLEFT", ns.frames.feed, "BOTTOMLEFT")
     panel:SetPoint("BOTTOMRIGHT", ns.frames.feed, "BOTTOMRIGHT")
     panel:EnableMouseWheel(true)

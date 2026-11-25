@@ -137,7 +137,7 @@ Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein
 
 | Fenster | Optionen |
 | --- | --- |
-| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Animationen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) · Testwurf starten |
+| 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Animationen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) |
 | 🎯 Freie Würfe | Schon bei einem Würfler anzeigen · Liste leeren nach (Sekunden ohne Wurf) · Maximale Zeilen · Schriftgröße · Ansage-Kanal wechseln · Kanal-Nummer · Test-Würfe starten |
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Gleichzeitig angezeigte Gewinner · Test-Gewinner anzeigen |
 | 🎁 Beutefenster | Graue Items automatisch einsammeln · Geld nicht automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Hotkey für „Alles nehmen“ festlegen oder entfernen · Testbeute öffnen |

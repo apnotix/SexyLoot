@@ -1,0 +1,20 @@
+-- Neuigkeiten für das gemeinsame Fenster (SexyEditMode, /sem news). Neueste Version zuerst.
+-- Eintrag: { deutscher Titel, deutscher Text, englischer Titel, englischer Text }
+local SEM = LibStub and LibStub("SexyEditMode-1.0", true)
+if not (SEM and SEM.RegisterNews) then return end
+
+SEM:RegisterNews("SexyLoot", {
+	color = { 0.79, 0.64, 0.35 },
+	{ v = "0.1.25",
+		{ "Aussehen", "Beute-Fenster mit braunem Fuß und Abstand zwischen Titel, Liste und Fuß. Die Würfel-Knöpfe haben den Rand der anderen Fenster, ihre Symbole sitzen genau in der Mitte. „Gewinner melden“ nennt den Kanal nur, wenn er nicht automatisch ist.",
+		  "Look", "The loot window has a brown footer and space between title, list and footer. The roll buttons have the rim of the other windows and their icons sit exactly in the middle. \"Announce winner\" only names the channel when it is not automatic." },
+		{ "Entzaubern", "Die Liste ist nach Qualität gruppiert. „Alle entzaubern“ öffnet das Fenster „Als Nächstes“ mit Überspringen, Zauberbalken und Item-Tooltip. Die Taste entzaubert sofort, und das Fenster schließt sich, wenn nichts mehr übrig ist.",
+		  "Disenchant", "The list is grouped by quality. \"Disenchant all\" opens the \"Next up\" window with Skip, a cast bar and the item tooltip. The hotkey disenchants right away, and the window closes when nothing is left." },
+		{ "Loot-Popup", "Das Gold steht oben als eigener Bereich, neue Items hängen unten an, nichts sortiert sich mehr um.",
+		  "Loot popup", "Looted gold is its own area on top, new items attach at the bottom, nothing re-sorts anymore." },
+		{ "Fenstergröße", "Zuletzt gelootet, Loot-Popup und Gewinneranzeige wachsen mit ihrem Inhalt. Beim Andocken bleibt keine Lücke mehr.",
+		  "Window size", "Recently looted, loot popup and winner display grow with their content. No gap is left when docking." },
+		{ "Einstellungen", "Eigene Vorschau je Fenster und viele neue Einstellungen für Aussehen, Deckkraft, Farben und Schriften.",
+		  "Settings", "Own preview for every window and many new settings for look, opacity, colors and fonts." },
+	},
+})

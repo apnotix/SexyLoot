@@ -8,24 +8,24 @@ local ADDON, ns = ...
 local PANEL_BG = { 0.08, 0.065, 0.05, 0.96 }
 local GOLD = { 0.42, 0.34, 0.15, 1 }
 ns.defaults = {
-    roll = { animate = true, hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
+    roll = { cardOpacity = 1, nameSize = 0, showArmor = true, showBound = true, showBar = true, showTimer = true, btnLabels = true, showCheck = true, zebra = true, lineGap = 0, animate = true, hideRolls = false, growUp = false, gap = 10, size = 14, hold = 12, maxHeight = 440,
         bg = PANEL_BG, border = GOLD },
-    freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1,
+    freeroll = { single = false, size = 14, hold = 30, rows = 10, chanNum = 1, showRank = true, showButton = true, showBar = true, width = 260, lineGap = 0, showCheck = true, zebra = true,
         bg = PANEL_BG, border = GOLD },
-    winner = { size = 28, hold = 6, max = 3, sound = false, soundKey = "UI_EPICLOOT_TOAST", soundChannel = "Master",
+    winner = { size = 28, hold = 6, max = 3, glow = true, showPills = true, iconSize = 0, itemSize = 0, whoSize = 0, width = 480, cardGap = 28, slimWidth = 75, sound = false, soundKey = "UI_EPICLOOT_TOAST", soundChannel = "Master",
         bg = PANEL_BG, border = GOLD },
-    loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34,
+    loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34, showPills = true, showAll = true, width = 250, nameSize = 0, rowGap = 0,
         bg = PANEL_BG, border = GOLD },
-    feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15,
+    feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15, lineGap = 0, outline = false, stampColor = { 0.53, 0.53, 0.53 },
         bg = { 0.08, 0.065, 0.05, 0.88 }, border = GOLD },
-    mine = { growDown = false, hideTime = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7,
+    mine = { growDown = false, hideTime = false, hideValue = false, hideItemValue = false, noStack = false, rows = 7, showIcons = true, rowH = 20, width = 280, nameSize = 0, showCount = true,
         bg = PANEL_BG, border = GOLD },
-    toast = { hideValue = false, hold = 6, rows = 6, splitMoney = false },
-    wallet = { bg = PANEL_BG, border = GOLD },
-    deButton = { hidden = false, showCount = true, onlyWithItems = false, bg = PANEL_BG, border = GOLD },
+    toast = { hideValue = false, hold = 6, rows = 6, splitMoney = false, rowH = 40, width = 300, showStripe = true, iconSize = 0, nameSize = 0, gap = 2, showCount = true },
+    wallet = { showSell = true, width = 200, fontSize = 0, showLabels = true, bg = PANEL_BG, border = GOLD },
+    deButton = { hidden = false, showCount = true, onlyWithItems = false, size = 44, bg = PANEL_BG, border = GOLD },
     disenchant = { rows = 10, minQuality = 2, maxQuality = 3, protectSets = true,
         bg = PANEL_BG, border = GOLD },
-    bags = { disabled = false, threshold = 4, rows = 10, maxQuality = 2, showNoValue = false, onlyJunk = false, ignoreProf = true, noAutoOpen = false,
+    bags = { width = 300, iconSize = 28, showIcon = true, showButton = true, disabled = false, threshold = 4, rows = 10, maxQuality = 2, showNoValue = false, onlyJunk = false, ignoreProf = true, noAutoOpen = false,
         bg = PANEL_BG, border = GOLD },
 }
 
@@ -194,7 +194,7 @@ ns.BACKDROP = {
     edgeSize = 12,
     insets = { left = 3, right = 3, top = 3, bottom = 3 },
 }
-ns.BTN = { 0.184, 0.42, 0.235 }            -- grüner Aktionsknopf
+ns.BTN = { 0.15, 0.12, 0.07 }              -- Aktionsknopf in der Farbe des Titelbands (wie im Einstellungsfenster)
 ns.TONES = {
     ok = { bg = { 0.082, 0.188, 0.11 }, fg = { 0.48, 0.88, 0.56 } },
     warn = { bg = { 0.227, 0.173, 0.063 }, fg = { 0.94, 0.75, 0.29 } },
@@ -275,6 +275,27 @@ end
 -- ein Titelband mit Badge rechts. f.fill = Fläche, f.accent = Rand, f.band = Band,
 -- f.title = Titeltext, f:SetBadge(text) = Badge ("" blendet es aus). Rechts vom
 -- Badge bleibt f.badgeInset Pixel frei (Standard 6, z. B. für einen Schließen-Knopf).
+-- Kopfzeile je Fenster ein-/ausblendbar ("Kopfzeile ausblenden" im Edit Mode): ns.HEAD ist die Höhe von Rahmen und Band
+for _, key in ipairs({ "roll", "freeroll", "loot", "feed", "mine" }) do ns.defaults[key].hideHeader = false end
+
+-- Anker eines Fensters auf die Größe des tatsächlichen Inhalts bringen (statt auf die größtmögliche): so bleibt beim Andocken kein
+-- Freiraum. growDown: das Fenster hängt oben am Anker und wächst nach unten, dann bleibt die Oberkante an ihrem Platz (die gespeicherte
+-- Position gilt für die untere Kante und wird um die Höhenänderung verschoben; angedockt oder beim Ziehen nicht). Wächst es nach oben,
+-- bleibt die Unterkante stehen, nichts ist zu tun.
+function ns.ResizeAnchor(key, width, height, growDown)
+    local anchor = ns.frames[key]
+    if not anchor then return end
+    height = math.max(1, math.floor(height + 0.5))
+    local db = SexyLootDB and SexyLootDB.frames and SexyLootDB.frames[key]
+    local before = db and db.anchoredHeight or anchor:GetHeight()
+    anchor:SetSize(width, height)
+    if db and growDown and db.x and db.y and before ~= height and not (SexyLootDB.dock and SexyLootDB.dock[key]) then
+        local SEM = LibStub("SexyEditMode-1.0", true)
+        if SEM and not SEM:IsMoving(anchor) then SEM:SetPosition(anchor, db.x, db.y - (height - before)) end
+    end
+    if db then db.anchoredHeight = height end
+end
+
 function ns.FramedPanel(parent, title)
     -- Rahmen wie im Fenster von SexyQuestHelper: Tooltip-Fläche und Tooltip-Rand,
     -- Fläche und Rand werden über SetBackdropColor/SetBackdropBorderColor gefärbt.
@@ -295,7 +316,18 @@ function ns.FramedPanel(parent, title)
         f.title:SetPoint("LEFT", f.band, "LEFT", 8, 0)
         f.title:SetText(title)
     end
+    -- f.headH: Abstand der Fensterinhalte zur Oberkante (mit Titelband ns.HEAD, ohne nur der Rand)
+    f.headH = ns.HEAD
+    function f:SetHeaderShown(show)
+        if not self.band then return end
+        self.headerHidden = not show
+        self.headH = show and ns.HEAD or (ns.INSET + 3)
+        self.band:SetShown(show)
+        self.title:SetShown(show)
+        self:SetBadge(self.badgeValue)
+    end
     function f:SetBadge(text)
+        self.badgeValue = text
         if not self.band then return end
         if not self.badgeBg then
             self.badgeBg = self:CreateTexture(nil, "ARTWORK")
@@ -306,7 +338,7 @@ function ns.FramedPanel(parent, title)
             self.badgeText:SetPoint("CENTER", self.badgeBg, "CENTER")
             self.badgeText:SetTextColor(0.78, 0.73, 0.64)
         end
-        local show = text and text ~= ""
+        local show = text and text ~= "" and not self.headerHidden
         self.badgeBg:SetShown(show and true or false)
         self.badgeText:SetShown(show and true or false)
         if show then
@@ -318,17 +350,39 @@ function ns.FramedPanel(parent, title)
 end
 
 -- Flacher grüner Knopf wie "Teilen" im Questfenster. b.text ist der Beschriftungstext.
+-- Look der Knöpfe wie im Einstellungsfenster (SexyEditMode): Bandfarbe, goldene Schrift, Tooltip-Rand in der Randfarbe.
+-- Erwartet b.bg, b.hl und b.text; auch für gesicherte Knöpfe.
+function ns.StyleButton(b)
+    b.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
+    b.hl:SetColorTexture(1, 1, 1, 0.12)
+    b.text:SetTextColor(0.91, 0.76, 0.42)
+    b.text:SetFont(ns.FONT_TEXT, 12, "")
+    if BackdropTemplateMixin and not b.rim then
+        local rim = CreateFrame("Frame", nil, b, "BackdropTemplate")
+        rim:SetAllPoints(b)
+        rim:SetFrameLevel(b:GetFrameLevel() + 2)
+        rim:SetBackdrop({ edgeFile = "Interface/Tooltips/UI-Tooltip-Border", edgeSize = 10 })
+        rim:SetBackdropBorderColor(0.42, 0.34, 0.15, 1)
+        b.rim = rim
+    end
+end
+
 function ns.Button(parent)
+    local SEM = LibStub("SexyEditMode-1.0", true)
+    if SEM and SEM.ui and SEM.ui.HeaderButton then
+        local hb = SEM.ui.HeaderButton(parent, "", 100, 22)
+        hb.text:SetFont(ns.FONT_TEXT, 12, "")
+        return hb
+    end
     local b = CreateFrame("Button", nil, parent)
     b:RegisterForClicks("LeftButtonUp")
     b.bg = b:CreateTexture(nil, "BACKGROUND")
     b.bg:SetAllPoints()
-    b.bg:SetColorTexture(ns.BTN[1], ns.BTN[2], ns.BTN[3], 1)
     b.hl = b:CreateTexture(nil, "HIGHLIGHT")
     b.hl:SetAllPoints()
-    b.hl:SetColorTexture(1, 1, 1, 0.25)
     b.text = b:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     b.text:SetAllPoints()
+    ns.StyleButton(b)
     return b
 end
 
@@ -465,9 +519,10 @@ function ns.ApplyStyle(panel, key)
     local cfg = ns.cfg and ns.cfg[key]
     if not (panel and cfg) then return end
     local bg, bd = cfg.bg, cfg.border
-    panel.fill:SetColorTexture(bg[1], bg[2], bg[3], bg[4])
+    local alpha = cfg.opacity or bg[4]   -- Deckkraft des Fensters (Einstellung), sonst der Wert der Vorgabe
+    panel.fill:SetColorTexture(bg[1], bg[2], bg[3], alpha)
     panel.accent:SetColorTexture(bd[1], bd[2], bd[3], bd[4])
-    if panel.band then panel.band:SetColorTexture(0.15, 0.12, 0.07, bg[4]) end
+    if panel.band then panel.band:SetColorTexture(0.15, 0.12, 0.07, alpha) end
 end
 
 function ns.QualityColor(q)
@@ -640,6 +695,6 @@ SlashCmdList.SEXYLOOT = function(msg)
         ns.Actions.testRoll(); ns.Actions.openLoot(); ns.Feed:Test(); ns.MyLoot:Test(); ns.Toast:Test()
     else
         print("|cffe8c26aSexyLoot|r: /sexyloot test | roll | loot | feed | mine | toast | winner | freeroll | bags | de")
-        print(ns.T["Positionen und Optionen: Edit Mode öffnen und ein SexyLoot-Fenster anklicken."])
+        print(ns.T["Positionen und Optionen: /sem öffnen, dort „Fenster entsperren“ wählen und ein SexyLoot-Fenster anklicken."])
     end
 end

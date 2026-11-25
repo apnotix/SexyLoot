@@ -7,7 +7,7 @@ local Wallet = {}
 ns.Wallet = Wallet
 table.insert(ns.modules, Wallet)
 
-local panel, moneyText, sellText
+local panel, moneyText, sellText, sellLabel, moneyLabel
 local pending = false
 
 local function Coins(copper)
@@ -111,11 +111,23 @@ end
 
 ns.Apply.wallet = function()
     ns.ApplyStyle(panel, "wallet")
+    local cfg = ns.cfg.wallet
+    local show = cfg.showSell ~= false
+    sellLabel:SetShown(show and cfg.showLabels ~= false)
+    moneyLabel:SetShown(cfg.showLabels ~= false)
+    sellText:SetShown(show)
+    ns.frames.wallet:SetSize(cfg.width or 200, show and 44 or 28)
+    if (cfg.fontSize or 0) > 0 then
+        moneyText:SetFont(ns.FONT_TEXT, cfg.fontSize, "")
+        sellText:SetFont(ns.FONT_TEXT, cfg.fontSize, "")
+    end
     Wallet:Refresh()
 end
 
 function Wallet:Init()
     panel = ns.FramedPanel(ns.frames.wallet)
+    ns.Panels = ns.Panels or {}
+    ns.Panels.wallet = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     panel:SetAllPoints(ns.frames.wallet)
     SexyLootDB.chars = SexyLootDB.chars or {}
     -- Einträge der ersten Version (Schlüssel "Name-Realm", ohne Namensfeld) verwerfen
@@ -129,9 +141,11 @@ function Wallet:Init()
     local l1 = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     l1:SetPoint("TOPLEFT", 10, -7)
     l1:SetText(T["Geld"])
+    moneyLabel = l1
     local l2 = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     l2:SetPoint("TOPLEFT", 10, -23)
     l2:SetText(T["Verkaufswert"])
+    sellLabel = l2
 
     moneyText = panel:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     moneyText:SetPoint("TOPRIGHT", -10, -7)

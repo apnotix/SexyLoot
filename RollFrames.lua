@@ -21,7 +21,6 @@ local CHECK = "Interface/RaidFrame/ReadyCheck-Ready"
 local ROLLTYPE = { pass = 0, need = 1, greed = 2 }
 local KINDS = { "need", "greed", "pass" }
 
-local TONE = { need = "ok", greed = "warn", pass = "grey" }   -- Etikettenfarbe je Wahl
 
 local pool, active = {}, {}
 local win   -- Fenster "Gruppenwurf" mit Goldrahmen und Band; die Zeilen sind Karten darin
@@ -100,30 +99,40 @@ local function Me() return ns.Short(UnitName("player")) end
 
 -- Die drei Wahl-Buttons stehen nebeneinander unter der Leiste (Symbol + Text); alles darunter rückt um BTN_OFF
 local BTN_H, BTN_GAP = 22, 4
-local BTN_OFF = BTN_H + 6
+-- Würfel und Münze sitzen in ihren Bildern etwas hoch: nach unten rücken, damit sie mit der Schrift in einer Linie stehen
+local ICON_DY = { need = -2, greed = -2 }
+local BTN_OFF = BTN_H + 12
 local BTN_W = (WIDTH - 16 - 12 - 2 * BTN_GAP) / 3
 
 local function MakeButton(row, kind, index)
     local b = CreateFrame("Button", nil, row)
     b:SetSize(BTN_W, BTN_H)
-    b:SetPoint("TOPLEFT", row, "TOPLEFT", 6 + (index - 1) * (BTN_W + BTN_GAP), -56)
-    b:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+    b:SetPoint("TOPLEFT", row, "TOPLEFT", 6 + (index - 1) * (BTN_W + BTN_GAP), -62)
     b.kind = kind
     -- flache dunkle Fläche
     b.bg = b:CreateTexture(nil, "BACKGROUND")
     b.bg:SetAllPoints()
-    b.bg:SetColorTexture(0.106, 0.086, 0.063, 1)
-    -- goldener Rahmen für die gewählte Antwort (vier Linien)
-    b.edges = {}
-    for i, p in ipairs({ { "TOPLEFT", "TOPRIGHT", true }, { "BOTTOMLEFT", "BOTTOMRIGHT", true }, { "TOPLEFT", "BOTTOMLEFT" }, { "TOPRIGHT", "BOTTOMRIGHT" } }) do
-        local e = b:CreateTexture(nil, "OVERLAY")
-        e:SetColorTexture(0.91, 0.76, 0.42, 1)
-        e:SetPoint(p[1]); e:SetPoint(p[2])
-        if p[3] then e:SetHeight(1) else e:SetWidth(1) end
-        e:Hide()
-        b.edges[i] = e
+    b.bg:SetColorTexture(0.075, 0.062, 0.04, 1)
+    -- Rand wie bei den Fenstern (Tooltip-Rand); beim Darüberfahren heller, bei der gewählten Antwort voll golden
+    b.rim = CreateFrame("Frame", nil, b, "BackdropTemplate")
+    b.rim:SetAllPoints(b)
+    b.rim:SetFrameLevel(b:GetFrameLevel() + 2)
+    b.rim:SetBackdrop({ edgeFile = "Interface/Tooltips/UI-Tooltip-Border", edgeSize = 10 })
+    b.rim:SetBackdropBorderColor(0.42, 0.34, 0.15, 1)
+    -- Hover: Fläche hellt leicht auf, zarter goldener Rand; gewählt: voller goldener Rand
+    b.hover = b:CreateTexture(nil, "BACKGROUND", nil, 1)
+    b.hover:SetAllPoints()
+    b.hover:SetColorTexture(1, 0.9, 0.62, 0.12)
+    b.hover:Hide()
+    function b:UpdateEdges()
+        if self.chosen then self.rim:SetBackdropBorderColor(0.91, 0.76, 0.42, 1)
+        elseif self.hovering then self.rim:SetBackdropBorderColor(0.7, 0.58, 0.3, 1)
+        else self.rim:SetBackdropBorderColor(0.42, 0.34, 0.15, 1) end
     end
-    function b:ShowChosen(on) for _, e in ipairs(self.edges) do e:SetShown(on and true or false) end end
+    function b:ShowChosen(on)
+        self.chosen = on and true or false
+        self:UpdateEdges()
+    end
     b.icon = b:CreateTexture(nil, "ARTWORK")
     b.icon:SetSize(BTN_H - 4, BTN_H - 4)
     b.icon:SetTexture(TEX[kind])
@@ -135,9 +144,11 @@ local function MakeButton(row, kind, index)
     function b:SetLabel(text, dy)
         self.text:SetText(text)
         local iw = BTN_H - 4
-        local x = math.floor((BTN_W - (iw + 4 + self.text:GetStringWidth())) / 2 + 0.5)
+        local labels = ns.cfg.roll.btnLabels ~= false
+        self.text:SetShown(labels)
+        local x = math.floor((BTN_W - (iw + (labels and (4 + self.text:GetStringWidth()) or 0))) / 2 + 0.5)
         self.icon:ClearAllPoints()
-        self.icon:SetPoint("LEFT", self, "LEFT", math.max(2, x), dy or 0)
+        self.icon:SetPoint("LEFT", self, "LEFT", math.max(2, x), (dy or 0) + (ICON_DY[self.kind] or 0))
     end
     b:SetLabel(LABEL[kind])
     b:SetScript("OnMouseDown", function(self) if self:IsEnabled() then self:SetLabel(self.text:GetText(), -1) end end)
@@ -153,8 +164,20 @@ local function MakeButton(row, kind, index)
         GameTooltip:SetText(self.label or LABEL[self.kind])
         if self.reason then GameTooltip:AddLine(self.reason, 1, 0.3, 0.3, true) end
         GameTooltip:Show()
+        if self:IsEnabled() then
+            self.hovering = true
+            self.hover:Show()
+            self.text:SetTextColor(1, 0.97, 0.88)
+            self:UpdateEdges()
+        end
     end)
-    b:SetScript("OnLeave", GameTooltip_Hide)
+    b:SetScript("OnLeave", function(self)
+        GameTooltip_Hide()
+        self.hovering = false
+        self.hover:Hide()
+        self.text:SetTextColor(0.95, 0.92, 0.86)
+        self:UpdateEdges()
+    end)
     return b
 end
 
@@ -201,15 +224,12 @@ local function NewRow()
         end
     end)
 
-    r.arrow = r:CreateTexture(nil, "OVERLAY")
-    r.arrow:SetSize(14, 14)
-    r.arrow:SetPoint("TOPLEFT", 50, -10)
-
     r.name = r:CreateFontString(nil, "OVERLAY", "SexyLootText")
-    r.name:SetPoint("TOPLEFT", 68, -8)
+    r.name:SetPoint("TOPLEFT", 52, -8)
     r.name:SetPoint("RIGHT", r, "RIGHT", -8, 0)
     r.name:SetJustifyH("LEFT")
     r.name:SetWordWrap(false)
+    r.nameFont = { r.name:GetFont() }
     r.sub = r:CreateFontString(nil, "OVERLAY", "SexyLootSmall")
     r.sub:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
     r.sub:SetTextColor(0.6, 0.55, 0.45)
@@ -224,13 +244,15 @@ local function NewRow()
     r.btn.pass  = MakeButton(r, "pass", 3)
 
     r.bar = CreateFrame("StatusBar", nil, r)
-    r.bar:SetPoint("TOPLEFT", 6, -48)
-    r.bar:SetPoint("TOPRIGHT", -6, -48)
+    r.bar:SetPoint("TOPLEFT", 6, -50)
+    r.bar:SetPoint("TOPRIGHT", -6, -50)
     r.bar:SetHeight(6)
     r.bar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     r.bar.bg = r.bar:CreateTexture(nil, "BACKGROUND")
     r.bar.bg:SetAllPoints()
     r.bar.bg:SetColorTexture(0, 0, 0, 0.6)
+    local SEM = LibStub("SexyEditMode-1.0", true)
+    if SEM and SEM.ShineBar then SEM:ShineBar(r.bar, { radius = 3, surround = { 0.145, 0.125, 0.10 } }) end   -- gläserner Glanz, runde Ecken
 
     -- Spielerzeilen (siehe UpdateChips): Trennlinie, eine Zeile je Spieler, Ergebnisstreifen
     r.sep = r:CreateTexture(nil, "ARTWORK")
@@ -291,10 +313,10 @@ local function Acquire()
     -- Zeilen kommen aus dem Pool: ALLES zurücksetzen. Ein altes preview = true ließ
     -- Klicks auf Bedarf/Gier bei echten Würfen ins Leere laufen (Vorschauzeilen
     -- aus dem Edit Mode landen im Pool).
-    r.preview, r.transmog, r.compact, r.userCollapsed = nil, false, false, nil
+    r.preview, r.transmog, r.compact, r.userCollapsed, r.pending = nil, false, false, nil, nil
     r.fullH, r.nLines, r.names, r.expires = nil, 0, nil, nil
     r.timerText:SetText("")
-    r.bar:Show()
+    r.bar:SetShown(ns.cfg.roll.showBar ~= false)
     -- Animationen der Karte und ihrer Zeilen zurücksetzen (Karte kommt aus dem Pool)
     ns.Motion.Cancel(r)
     ns.Motion.Cancel(r.sweep)
@@ -305,9 +327,8 @@ local function Acquire()
     for _, l in ipairs(r.lines) do
         ns.Motion.Cancel(l)
         ns.Motion.Cancel(l.sweep)
-        l.owner, l.used, l.y, l.curY, l.shownPick, l.shownRoll, l.swept = nil, false, nil, nil, nil, nil, false
-        l.pill.tex:SetAlpha(1)
-        l.pill.text:SetAlpha(1)
+        l.owner, l.used, l.y, l.curY, l.shownPick, l.shownRoll, l.swept, l.counting = nil, false, nil, nil, nil, nil, false, nil
+        l.pickIcon:SetAlpha(1)
         l:Hide()
     end
     r:Show()
@@ -359,12 +380,8 @@ function RF:ShowPlayerTip(r, owner)
     GameTooltip:Show()
 end
 
--- Zeigt die Spielertabelle (voll) oder nur die Kurzzeile (eingeklappt)
-local PLUS, MINUS = "Interface/Buttons/UI-PlusButton-Up", "Interface/Buttons/UI-MinusButton-Up"
-
+-- Zeigt die Spielertabelle (voll) oder nur die Kurzzeile (eingeklappt). Ein-/Ausklappen: Klick auf den Kopf (r.hit)
 local function ShowDetail(r, full)
-    r.arrow:SetTexture(full and MINUS or PLUS)
-    r.arrow:SetShown((r.nLines or 0) > 0)
     for _, l in ipairs(r.lines) do l:SetShown(full and l.used and true or false) end
     r.sep:SetShown(full and (r.nLines or 0) > 0)
     -- Ergebnisstreifen nur, wenn alle gepasst haben; sonst zeigt der Haken den Gewinner
@@ -384,7 +401,7 @@ function RF:Layout()
     -- vom Spieler ausgeklappte werden zuletzt automatisch eingeklappt.
     if not win then return end
     -- Für die Karten bleibt die maximale Höhe abzüglich Band und Rand
-    local limit = cfg.maxHeight - (ns.HEAD + 16)
+    local limit = cfg.maxHeight - (win.headH + 16)
     local total = 0
     for _, r in ipairs(active) do
         r.compact = r.userCollapsed == true and (r.fullH or FULL_H) > COMPACT_H
@@ -448,7 +465,7 @@ function RF:Place(structural)
         if cfg.growUp then
             r:SetPoint("BOTTOMLEFT", win, "BOTTOMLEFT", 8, 8 + pos - e)
         else
-            r:SetPoint("TOPLEFT", win, "TOPLEFT", 8, -(ns.HEAD + 8 + pos) + e)
+            r:SetPoint("TOPLEFT", win, "TOPLEFT", 8, -(win.headH + 8 + pos) + e)
         end
         y = y + h + cfg.gap
     end
@@ -464,7 +481,7 @@ function RF:Place(structural)
         win:ClearAllPoints()
         win:SetPoint(cfg.growUp and "BOTTOMLEFT" or "TOPLEFT", anchor, cfg.growUp and "BOTTOMLEFT" or "TOPLEFT")
         win:SetWidth(WIDTH)
-        win:SetHeight(ns.HEAD + 16 + math.max(0, y - cfg.gap))
+        win:SetHeight(win.headH + 16 + math.max(0, y - cfg.gap))
         win:SetBadge(#active .. " " .. (#active == 1 and T["Gegenstand"] or T["Gegenstände"]))
         win:Show()
     elseif win:IsShown() and not win.fading then
@@ -556,11 +573,11 @@ local function GetLine(r, name)
     l.roll:SetWordWrap(false)
     l.roll:SetWidth(40)   -- "100" in der größeren Schrift braucht mehr als 28 px
     l.roll:SetPoint("RIGHT", l.check, "LEFT", -4, 0)
-    -- Wahl als Etikett (Bedarf grün, Gier bernstein, Passen grau) links vom Wurf
-    l.pill = ns.Pill(l)
-    l.pill.tex:SetPoint("RIGHT", l.roll, "LEFT", -6, 0)
-    l.name:SetPoint("LEFT", l, "LEFT", 8, 0)
-    l.name:SetPoint("RIGHT", l.pill.tex, "LEFT", -6, 0)
+    -- Wahl als Symbol (Würfel, Münze, Passen) vor dem Namen; ohne Wahl bleibt der Platz leer
+    l.pickIcon = l:CreateTexture(nil, "ARTWORK")
+    l.pickIcon:SetPoint("LEFT", l, "LEFT", 6, 0)
+    l.name:SetPoint("LEFT", l.pickIcon, "RIGHT", 6, 0)
+    l.name:SetPoint("RIGHT", l.roll, "LEFT", -6, 0)
     l.sweep = ns.Motion.NewSweep(l)
     l.owner = name
     r.lineOf[name] = l
@@ -568,9 +585,32 @@ local function GetLine(r, name)
     return l
 end
 
+-- Darstellung einer Karte nach den Einstellungen: Deckkraft, Schrift, Etiketten, Leiste, Zeit, Button-Beschriftung
+function RF:Look(r)
+    local cfg = ns.cfg.roll
+    r.fill:SetColorTexture(0.145, 0.125, 0.10, cfg.cardOpacity or 1)
+    if (cfg.nameSize or 0) > 0 then
+        r.name:SetFont(r.nameFont[1], cfg.nameSize, r.nameFont[3])
+    elseif r.nameFont[1] then
+        r.name:SetFont(unpack(r.nameFont))
+    end
+    r.sub:ClearAllPoints()
+    if r.armorName and cfg.showArmor ~= false then
+        r.armor:Set("grey", r.armorName, nil, 16)
+        r.sub:SetPoint("LEFT", r.armor.tex, "RIGHT", 6, 0)
+    else
+        r.armor:Hide()
+        r.sub:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
+    end
+    r.sub:SetShown(cfg.showBound ~= false)
+    if cfg.showBar == false then r.bar:Hide() elseif r.expires then r.bar:Show() end
+    r.timerText:SetShown(cfg.showTimer ~= false)
+    for _, k in ipairs(KINDS) do r.btn[k]:SetLabel(r.btn[k].text:GetText()) end
+end
+
 function RF:UpdateChips(r)
     local size = ns.cfg.roll.size
-    local lh = size + 8                          -- Höhe einer Spielerzeile
+    local lh = size + 8 + (ns.cfg.roll.lineGap or 0)                         -- Höhe einer Spielerzeile
     local names = {}
     if not ns.cfg.roll.hideRolls then
         names = { unpack(r.roster) }
@@ -595,42 +635,39 @@ function RF:UpdateChips(r)
         l:SetHeight(lh)
         PlaceLine(l, r, y, r.chipsDone)
         l.check:SetSize(size, size)
+        l.pickIcon:SetSize(size + 4, size + 4)
         l.name:SetFont(ns.FONT_TEXT, size, "")
         l.roll:SetFont(ns.FONT_TEXT, size + 1, "OUTLINE")
         if pick then
-            l.pill:Set(TONE[pick], LABEL[pick], 54, 16)
+            l.pickIcon:SetTexture(TEX[pick])
+            l.pickIcon:Show()
             l.name:SetText(ns.ColorName(name))
-            l.roll:SetText(roll and tostring(roll) or "")
+            if not l.counting then l.roll:SetText(roll and tostring(roll) or "") end
             l.roll:SetTextColor(winner and 1 or 0.95, winner and 0.82 or 0.95, winner and 0.2 or 0.95)
             -- Passen tritt optisch zurück
             l:SetAlpha(pick == "pass" and 0.55 or 1)
         else
-            l.pill:Set("grey", T["wartet"], 54, 16)
+            l.pickIcon:Hide()
             l.name:SetText("|cff8a8a8a" .. ns.Short(name) .. "|r")
             l.roll:SetText("|cff8a8a8a…|r")
             l:SetAlpha(0.8)
         end
         -- Bewegung: neue Wahl blendet das Etikett ein, ein neuer Wurf zählt hoch, der Gewinner bekommt einen Lichtstreifen
-        l.pill.tex:SetAlpha(1)
-        l.pill.text:SetAlpha(1)
+        l.pickIcon:SetAlpha(1)
         if r.chipsDone then
             if pick and l.shownPick ~= pick then
-                ns.Motion.Tween(l, "pop", 0, 1, 0.3, function(v) l.pill.tex:SetAlpha(v); l.pill.text:SetAlpha(v) end)
+                ns.Motion.Tween(l, "pop", 0, 1, 0.3, function(v) l.pickIcon:SetAlpha(v) end)
             end
             if roll and l.shownRoll ~= roll then ns.Motion.CountTo(l, l.roll, roll, 0.5) end
-            if winner and not l.swept then
-                l.swept = true
-                ns.Motion.Sweep(l.sweep, 90, 0.7, 0.5, 1)
-            end
         end
         if not winner then l.swept = false end
         l.shownPick, l.shownRoll = pick, roll
-        l.check:SetShown(winner)
+        l.check:SetShown(winner and ns.cfg.roll.showCheck ~= false)
         -- Hintergrund: Gewinner golden, sonst feine Streifen
         if winner then
             l.bg:SetColorTexture(0.91, 0.76, 0.42, 0.20)
         else
-            l.bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.05 or 0)
+            l.bg:SetColorTexture(1, 1, 1, (ns.cfg.roll.zebra ~= false and i % 2 == 0) and 0.05 or 0)
         end
         y = y + lh
     end
@@ -688,9 +725,12 @@ local function SetupButtons(r, canNeed, canGreed, reasonNeed, reasonGreed, trans
     g.icon:SetTexCoord(0, 1, 0, 1)
     g.icon:SetSize(BTN_H - 4, BTN_H - 4)
     g:SetLabel(g.label or LABEL.greed)
+    -- Liefert der Client die Berechtigungen noch nicht (nil statt true/false, Item noch nicht geladen), bleiben alle
+    -- Buttons offen und werden gleich nochmal geprüft; sonst konnte man manchmal nicht würfeln
+    local unknown = canNeed == nil and canGreed == nil
     for _, k in ipairs(KINDS) do
         local b = r.btn[k]
-        local ok = (k ~= "need" or canNeed) and (k ~= "greed" or canGreed or r.transmog)
+        local ok = unknown or ((k ~= "need" or canNeed) and (k ~= "greed" or canGreed or r.transmog))
         b.reason = nil
         if k == "need" and not canNeed and reasonNeed then b.reason = _G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonNeed] end
         if k == "greed" and not canGreed and reasonGreed then b.reason = _G["LOOT_ROLL_INELIGIBLE_REASON" .. reasonGreed] end
@@ -729,13 +769,8 @@ local function Fill(r, link, tex, name, count, quality, bop, duration)
         armorName = subType
     end
     r.sub:ClearAllPoints()
-    if armorName then
-        r.armor:Set("grey", armorName, nil, 16)
-        r.sub:SetPoint("LEFT", r.armor.tex, "RIGHT", 6, 0)
-    else
-        r.armor:Hide()
-        r.sub:SetPoint("TOPLEFT", r.name, "BOTTOMLEFT", 0, -3)
-    end
+    r.armorName = armorName
+    RF:Look(r)
     r.duration = duration
     r.expires = GetTime() + duration
     r.bar:SetMinMaxValues(0, duration)
@@ -758,6 +793,15 @@ function RF:Start(rollID, rollTime)
     Fill(r, GetLootRollItemLink(rollID), tex, name, count, quality, bop, (rollTime or 60000) / 1000)
     SetupButtons(r, canNeed, canGreed, reasonNeed, reasonGreed, canTransmog)
     self:UpdateChips(r)
+    -- Berechtigungen nach kurzer Zeit erneut lesen: gleich beim Start sind sie manchmal noch leer oder veraltet
+    local gen = r.gen
+    for _, delay in ipairs({ 0.4, 1.5 }) do
+        C_Timer.After(delay, function()
+            if r.gen ~= gen or r.rollID ~= rollID or r.done or r.chosen or r.fake then return end
+            local _, _, _, _, _, cN, cG, _, rN, rG, _, _, cT = GetLootRollItemInfo(rollID)
+            if cN ~= nil or cG ~= nil then SetupButtons(r, cN, cG, rN, rG, cT) end
+        end)
+    end
 end
 
 function RF:Choose(r, kind)
@@ -767,6 +811,7 @@ function RF:Choose(r, kind)
     -- ist (OnChat). Bei Bind-on-Pickup-Items fragt Blizzard erst nach; bricht
     -- man dort ab, muss man noch einmal wählen können.
     local rolltype = (kind == "greed" and r.transmog) and 4 or ROLLTYPE[kind]
+    r.pending = kind   -- kommt CANCEL_LOOT_ROLL, hat das Spiel die Wahl genommen (siehe OnCancel)
     ns.Dbg("RollOnLoot", r.rollID, "Typ", rolltype, "preview", r.preview, "fake", r.fake, "chosen", r.chosen, "done", r.done)
     RollOnLoot(r.rollID, rolltype)
 end
@@ -789,10 +834,9 @@ function RF:Finish(r, winner)
     r.duration, r.expires = hold, GetTime() + hold
     r.bar:SetMinMaxValues(0, hold)
     r.bar:SetValue(hold)
-    r.bar:Show()
+    r.bar:SetShown(ns.cfg.roll.showBar ~= false)
     for _, k in ipairs(KINDS) do r.btn[k]:Disable() end
     self:UpdateChips(r)
-    if winner then ns.Motion.Sweep(r.sweep, 110, 0.7, 0.4, ns.SameName(winner, Me()) and 2 or 1) end
     ns.Feed:AddRoll(r)
     if winner and not r.preview then
         ns.Winner:Display(winner, r.link, r.picks[winner] or "greed", r.rolls[winner])
@@ -850,12 +894,61 @@ local function RollStillOpen(rollID)
     return false
 end
 
+-- Loot-Historie des Clients (wie DaylightUI): jede Änderung eines Wurfs kommt als LOOT_HISTORY_UPDATE_DROP, mit den
+-- Wahlen, Würfen und dem Gewinner aller Spieler. Das ist schneller und verlässlicher als die Chatzeilen.
+-- Enum.EncounterLootDropRollState: 0/1 Bedarf, 2/3 Transmog bzw. Gier, 4 noch keine Wahl, 5 Passen.
+local HISTORY_PICK = { [0] = "need", [1] = "need", [2] = "greed", [3] = "greed", [5] = "pass" }
+
+function RF:OnHistory(encounterID, key)
+    local H = C_LootHistory
+    if not (H and H.GetSortedInfoForDrop) then return end
+    local ok, info = pcall(H.GetSortedInfoForDrop, encounterID, key)
+    if not ok or type(info) ~= "table" then return end
+    local link = info.itemHyperlink
+    if type(link) ~= "string" or (issecretvalue and issecretvalue(link)) then return end
+    local r = FindRow(ns.ItemID(link), nil)
+    if not r or r.done or r.fake then return end
+
+    local changed, winner = false, nil
+    for _, ri in ipairs(type(info.rollInfos) == "table" and info.rollInfos or {}) do
+        local name = ri.playerName
+        if type(name) == "string" and not (issecretvalue and issecretvalue(name)) then
+            name = AddPlayer(r, name)
+            local pick = type(ri.state) == "number" and HISTORY_PICK[ri.state]
+            if pick and r.picks[name] ~= pick then
+                r.picks[name] = pick
+                changed = true
+                if (ri.isSelf == true or ns.SameName(name, Me())) and not r.chosen then self:SetChoice(r, pick) end
+            end
+            if type(ri.roll) == "number" and r.rolls[name] ~= ri.roll then
+                r.rolls[name] = ri.roll
+                changed = true
+            end
+            if ri.isWinner == true then winner = name end
+        end
+    end
+    if changed then self:UpdateChips(r) end
+    if winner then
+        self:Finish(r, winner)
+    elseif info.allPassed == true then
+        self:Finish(r, nil)
+    end
+end
+
 function RF:OnCancel(rollID)
     -- UIParent schließt den Bestätigungsdialog sonst selbst, aber wir haben
     -- CANCEL_LOOT_ROLL dort abgemeldet.
     StaticPopup_Hide("CONFIRM_LOOT_ROLL", rollID)
     local r = FindRow(nil, rollID)
     if not r or r.done then return end
+    -- Das Spiel hat das Fenster geschlossen: hast du gerade gedrückt, wurde deine Wahl genommen. So zeigt die Zeile sie
+    -- sofort, ohne auf die Chatzeile oder die Historie zu warten.
+    if r.pending and not r.chosen then
+        local pick = r.pending
+        self:SetChoice(r, pick)
+        r.picks[AddPlayer(r, Me())] = pick
+        self:UpdateChips(r)
+    end
     -- Die Gewinnernachricht kommt oft kurz nach CANCEL_LOOT_ROLL. Der Client
     -- schickt das Ereignis aber auch, wenn nur DU fertig gewählt hast, während
     -- andere noch würfeln. Darum erst entfernen, wenn der Wurf wirklich vorbei
@@ -998,8 +1091,9 @@ end
 ns.Apply.roll = function()
     -- Der Edit-Mode-Rahmen zeigt die maximale Höhe der Liste
     ns.frames.roll:SetHeight(ns.cfg.roll.maxHeight)
+    win:SetHeaderShown(not ns.cfg.roll.hideHeader)
     ns.ApplyStyle(win, "roll")
-    for _, r in ipairs(active) do RF:UpdateChips(r) end
+    for _, r in ipairs(active) do RF:Look(r); RF:UpdateChips(r) end
     RF:Layout()
 end
 
@@ -1088,6 +1182,9 @@ function RF:Init()
     ev:RegisterEvent("CANCEL_LOOT_ROLL")
     ev:RegisterEvent("CHAT_MSG_LOOT")
     ev:RegisterEvent("PLAYER_ENTERING_WORLD")
+    -- Loot-Historie und "alle Würfe abgebrochen" (Ereignisse, die es nicht in jedem Client gibt)
+    pcall(ev.RegisterEvent, ev, "LOOT_HISTORY_UPDATE_DROP")
+    pcall(ev.RegisterEvent, ev, "CANCEL_ALL_LOOT_ROLLS")
     -- Blockierte Aktionen sichtbar machen (nur im Debug-Modus)
     pcall(ev.RegisterEvent, ev, "ADDON_ACTION_FORBIDDEN")
     pcall(ev.RegisterEvent, ev, "ADDON_ACTION_BLOCKED")
@@ -1101,6 +1198,11 @@ function RF:Init()
             C_Timer.After(4, function() RF:Restore() end)
         elseif event == "START_LOOT_ROLL" then RF:Start(a, b)
         elseif event == "CANCEL_LOOT_ROLL" then RF:OnCancel(a)
+        elseif event == "LOOT_HISTORY_UPDATE_DROP" then RF:OnHistory(a, b)
+        elseif event == "CANCEL_ALL_LOOT_ROLLS" then
+            for i = #active, 1, -1 do
+                if active[i].rollID and not active[i].fake and not active[i].done then RF:Remove(active[i]) end
+            end
         else RF:OnChat(a) end
     end)
 end

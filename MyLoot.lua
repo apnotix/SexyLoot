@@ -12,6 +12,7 @@ local WIDTH = 280
 local MAXROWS = 10
 local entries, rows = {}, {}
 local FOOT = 24   -- Fußleiste mit dem Gesamtwert
+local function RowH() return ns.cfg.mine.rowH or 20 end   -- Zeilenhöhe (Einstellung)
 local panel, total, empty, hover, footer, footerLabel
 local log = {}   -- alles, was in dieser Sitzung gelootet wurde: { link, count }
 local sessionStart = GetTime()   -- Beginn der Sitzung: Login oder letztes Leeren der Liste
@@ -103,7 +104,7 @@ end
 local function MakeRow(i)
     local b = CreateFrame("Button", nil, panel)
     b:SetSize(WIDTH - 16, 20)
-    b:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -(ns.HEAD + 2 + (i - 1) * 20))
+    b.index = i
     b.icon = b:CreateTexture(nil, "ARTWORK")
     b.icon:SetSize(16, 16)
     b.icon:SetPoint("LEFT", 0, 0)
@@ -198,12 +199,27 @@ function MyLoot:Refresh()
         if i <= shown and e then
             row.link = e.link
             row.icon:SetTexture(select(5, ns.GetItemInfoInstant(e.link)))
-            row.quest:SetShown(IsQuest(e))
+            local rh = RowH()
+            row:SetHeight(rh)
+            row.icon:SetSize(rh - 4, rh - 4)
+            row.icon:SetShown(cfg.showIcons ~= false)
+            row.name:ClearAllPoints()
+            if cfg.showIcons ~= false then row.name:SetPoint("LEFT", row.icon, "RIGHT", 5, 0) else row.name:SetPoint("LEFT", row, "LEFT", 0, 0) end
+            local showCount = cfg.showCount ~= false
+            row.count:SetShown(showCount)
+            row.name:SetPoint("RIGHT", showCount and row.count or row.value, "LEFT", -4, 0)
+            row:SetWidth((cfg.width or 280) - 16)
+            if (cfg.nameSize or 0) > 0 then
+                for _, fs in ipairs({ row.name, row.count, row.value }) do fs:SetFont(ns.FONT_TEXT, cfg.nameSize, "") end
+            end
+            row.quest:SetShown(IsQuest(e) and cfg.showIcons ~= false)
             row.name:SetText(e.link)
             row.count:SetText(e.count > 1 and ("x" .. e.count) or "")
             -- Wert des ganzen Stapels (Stückpreis mal Anzahl)
             local value = UnitPrice(e) * e.count
             row.value:SetText((cfg.hideItemValue or value == 0) and "" or Coins(value))
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -(panel.headH + 2 + (i - 1) * RowH()))
             row:Show()
         else
             row.link = nil
@@ -212,10 +228,11 @@ function MyLoot:Refresh()
     end
     empty:SetShown(#entries == 0)
     local n = math.max(1, math.min(shown, #entries))
-    panel:SetHeight(ns.HEAD + 4 + n * 20 + (showTotal and FOOT or 0))
-    -- Der Anker behält die Höhe für alle Zeilen samt Fußleiste, das Fenster hängt oben
-    -- (nach unten wachsen) oder steht unten (nach oben wachsen).
-    ns.frames.mine:SetHeight(ns.HEAD + 4 + math.max(1, shown) * 20 + FOOT)
+    local height = panel.headH + 4 + n * RowH() + (showTotal and FOOT or 0)
+    panel:SetHeight(height)
+    -- Der Anker ist so groß wie das Fenster (wächst es mit den Einträgen, wächst er mit); das Fenster hängt oben
+    -- (nach unten wachsen) oder steht unten (nach oben wachsen)
+    ns.ResizeAnchor("mine", cfg.width or 280, height, ns.cfg.mine.growDown and true or false)
 end
 
 local function Place()
@@ -227,6 +244,9 @@ local function Place()
 end
 
 ns.Apply.mine = function()
+    panel:SetHeaderShown(not ns.cfg.mine.hideHeader)
+    empty:ClearAllPoints()
+    empty:SetPoint("TOPLEFT", 10, -(panel.headH + 6))
     Place()
     ns.ApplyStyle(panel, "mine")
     MyLoot:Refresh()
@@ -234,6 +254,8 @@ end
 
 function MyLoot:Init()
     panel = ns.FramedPanel(ns.frames.mine, T["Zuletzt gelootet"])
+    ns.Panels = ns.Panels or {}
+    ns.Panels.mine = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     Place()
 
     -- Fußleiste: Gesamtwert aller Einträge
@@ -251,11 +273,11 @@ function MyLoot:Init()
     hover = CreateFrame("Frame", nil, panel)
     hover:SetPoint("TOPLEFT", panel, "TOPLEFT")
     hover:SetPoint("TOPRIGHT", panel, "TOPRIGHT")
-    hover:SetHeight(ns.HEAD)
+    hover:SetHeight(ns.HEAD)   -- bei ausgeblendeter Kopfzeile bleibt die Fläche (Sitzungs-Tooltip) über dem Rand
     hover:SetScript("OnEnter", ShowTooltip)
     hover:SetScript("OnLeave", GameTooltip_Hide)
     empty = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
-    empty:SetPoint("TOPLEFT", 10, -(ns.HEAD + 6))
+    empty:SetPoint("TOPLEFT", 10, -(ns.HEAD + 6))   -- siehe Refresh: wird dort nachgezogen
     empty:SetText(T["Noch nichts gelootet."])
 
     C_Timer.NewTicker(5, function() MyLoot:Refresh() end)

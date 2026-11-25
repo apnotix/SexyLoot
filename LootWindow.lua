@@ -10,8 +10,9 @@ ns.LootWindow = LW
 table.insert(ns.modules, LW)
 
 local WIDTH = 250
-local HEAD, FOOT = ns.HEAD + 4, 32
+local FOOT = 32
 local panel, title, closeBtn, allBtn
+local function HEAD() return panel.headH + 8 end   -- Titelband (oder nur Rand) plus Abstand
 local rows, slots = {}, {}
 
 --------------------------------------------------------------------------
@@ -74,16 +75,21 @@ end
 
 function LW:Draw()
     local cfg = ns.cfg.loot
+    panel:SetHeaderShown(not cfg.hideHeader)
     local h = cfg.icon
+    local width = cfg.width or WIDTH
+    local gap = cfg.rowGap or 0
+    ns.frames.loot:SetWidth(width)
     local thr = cfg.thr   -- Qualität 2 grün, 3 blau, 4 episch
     for i = 1, math.max(#rows, #slots) do
         local row = rows[i] or MakeRow(i)
         local d = slots[i]
         if d then
             row.data = d
-            row:SetSize(WIDTH - 2 * ns.INSET, h + 4)
+            row.bg:SetColorTexture(0.145, 0.125, 0.10, cfg.opacity or 1)   -- Karten folgen der Deckkraft des Fensters
+            row:SetSize(width - 2 * ns.INSET, h + 4)
             row:ClearAllPoints()
-            row:SetPoint("TOPLEFT", panel, "TOPLEFT", ns.INSET, -(HEAD + (i - 1) * (h + 4)))
+            row:SetPoint("TOPLEFT", panel, "TOPLEFT", ns.INSET, -(HEAD() + (i - 1) * (h + 4 + gap)))
 
             row.qual:SetSize(h + 2, h + 2)
             row.qual:ClearAllPoints()
@@ -105,11 +111,12 @@ function LW:Draw()
             row.name:SetPoint("TOPLEFT", row.qual, "TOPRIGHT", 6, -1)
             row.name:SetPoint("RIGHT", row, "RIGHT", -8, 0)
             row.name:SetText(d.name)
+            if (cfg.nameSize or 0) > 0 then row.name:SetFont(ns.FONT_TEXT, cfg.nameSize, "") end
             if d.item then row.name:SetTextColor(r, g, b) else row.name:SetTextColor(1, 0.85, 0.3) end
 
             row.pill.tex:ClearAllPoints()
             row.pill.tex:SetPoint("TOPLEFT", row.name, "BOTTOMLEFT", 0, -2)
-            if d.item then
+            if d.item and cfg.showPills ~= false then
                 if d.quality >= thr then row.pill:Set("they", T["Gruppenloot"], nil, 14)
                 else row.pill:Set("grey", T["Freie Beute"], nil, 14) end
             else
@@ -121,7 +128,11 @@ function LW:Draw()
             row:Hide()
         end
     end
-    local height = HEAD + #slots * (h + 4) + FOOT
+    local showAll = cfg.showAll ~= false
+    panel.footTex:SetShown(showAll)
+    panel.footLine:SetShown(showAll)
+    allBtn:SetShown(showAll)
+    local height = HEAD() + #slots * (h + 4 + gap) + (showAll and FOOT + 6 or 6)
     panel:SetHeight(height)
     panel:SetBadge(#slots .. " " .. (#slots == 1 and T["Beutestück"] or T["Beutestücke"]))
     -- Der Anker sitzt mit der unteren Kante fest; wächst er mit den Zeilen, wanderte die Oberkante nach oben
@@ -375,6 +386,8 @@ function LW:Init()
     if LootFrame then LootFrame:UnregisterAllEvents() end
 
     panel = ns.FramedPanel(ns.frames.loot, LOOT or "Loot")
+    ns.Panels = ns.Panels or {}
+    ns.Panels.loot = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     panel:SetPoint("TOPLEFT", ns.frames.loot, "TOPLEFT")
     panel:SetPoint("TOPRIGHT", ns.frames.loot, "TOPRIGHT")
     panel:Hide()
@@ -400,7 +413,14 @@ function LW:Init()
     foot:SetPoint("BOTTOMLEFT", ns.INSET, ns.INSET)
     foot:SetPoint("BOTTOMRIGHT", -ns.INSET, ns.INSET)
     foot:SetHeight(FOOT - ns.INSET)
-    foot:SetColorTexture(0.15, 0.12, 0.07, 0.96)
+    foot:SetColorTexture(0.114, 0.078, 0.05, 1)   -- Fußleiste wie im Einstellungsfenster, mit Linie darüber
+    panel.footTex = foot
+    local footLine = panel:CreateTexture(nil, "BACKGROUND", nil, 2)
+    footLine:SetColorTexture(0.24, 0.185, 0.122, 1)
+    footLine:SetPoint("BOTTOMLEFT", foot, "TOPLEFT")
+    footLine:SetPoint("BOTTOMRIGHT", foot, "TOPRIGHT")
+    footLine:SetHeight(1)
+    panel.footLine = footLine
 
     allBtn = ns.Button(panel)
     allBtn:SetSize(100, 22)

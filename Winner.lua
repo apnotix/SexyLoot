@@ -38,15 +38,24 @@ local function SetGlow(c, r, g, b)
     c.iborder:SetColorTexture(r, g, b, 1)
 end
 
+-- Abstand der Karten und Breite der schmalen Karte aus den Einstellungen
+local function Sizes()
+    local c = ns.cfg.winner
+    GAP = c.cardGap or 28
+    SLIM_W = (c.slimWidth or 75) / 100
+end
+
 local function Style(c)
     local cfg = ns.cfg.winner
     ns.ApplyStyle(c, "winner")
     c:SetSize(ns.frames.winner:GetWidth(), CARD_H)
     local s = cfg.size
-    local icon = math.min(64, s * 2 + 8)
+    -- Größen: 0 = automatisch aus der Schriftgröße, sonst der eingestellte Wert
+    local icon = (cfg.iconSize or 0) > 0 and cfg.iconSize or math.min(64, s * 2 + 8)
     c.icon:SetSize(icon, icon)
-    c.item:SetFont(ns.FONT_TITLE, math.max(14, s - 4), "OUTLINE")
-    c.who:SetFont(ns.FONT_TEXT, math.max(12, s - 12), "")
+    c.item:SetFont(ns.FONT_TITLE, (cfg.itemSize or 0) > 0 and cfg.itemSize or math.max(14, s - 4), "OUTLINE")
+    c.who:SetFont(ns.FONT_TEXT, (cfg.whoSize or 0) > 0 and cfg.whoSize or math.max(12, s - 12), "")
+    if c.glow then c.glow:SetShown(cfg.glow ~= false) end
 end
 
 -- Dauer-Animationen: laufen nur, solange die Karte sichtbar ist
@@ -66,8 +75,10 @@ local function Pulse(c, target, from, to, seconds)
 end
 
 local function Layout()
+    Sizes()
     local anchor = ns.frames.winner
-    local y = 0
+    anchor:SetWidth(ns.cfg.winner.width or 480)
+    local y, bottom = 0, 0
     for i, c in ipairs(cards) do
         c:ClearAllPoints()
         -- schmale Karten sitzen mittig im Anker
@@ -75,10 +86,13 @@ local function Layout()
         c:SetPoint("TOPLEFT", anchor, "TOPLEFT", x, -y)
         local nextCard = cards[i + 1]
         -- der Schein großer Karten braucht Platz; zwischen zwei schmalen Karten reicht wenig
+        bottom = y + (c.slim and SLIM_H or CARD_H)
         y = y + (c.slim and SLIM_H or CARD_H) + ((c.slim and nextCard and nextCard.slim) and SLIM_GAP or GAP)
         -- Mehrere Karten tragen ihre Stapelposition als Badge
         c:SetBadge(#cards > 1 and (i .. "/" .. #cards) or "")
     end
+    -- Anker so hoch wie die sichtbaren Karten (mindestens eine); der Stapel hängt oben und wächst nach unten
+    ns.ResizeAnchor("winner", ns.cfg.winner.width or 480, math.max(CARD_H, bottom), true)
 end
 
 local function Release(c)
@@ -243,6 +257,7 @@ function W:Display(player, link, pick, roll, sticky)
         c.rollPill:Hide()
     end
 
+    if cfg.showPills == false then c.pick:Hide(); c.rollPill:Hide() end
     local tex = select(5, ns.GetItemInfoInstant(link))
     c.icon:SetTexture(tex or FALLBACK_ICON)
     local q = ns.LinkQuality(link)
@@ -289,13 +304,15 @@ function W:Preview(active)
 end
 
 ns.Apply.winner = function()
-    -- Der Edit-Mode-Rahmen umfasst den ganzen Stapel
-    local n = ns.cfg.winner.max
-    ns.frames.winner:SetHeight(n * CARD_H + (n - 1) * GAP)
+    -- Der Edit-Mode-Rahmen umfasst die sichtbaren Karten (Layout setzt die Größe)
+    Sizes()
+    ns.frames.winner:SetWidth(ns.cfg.winner.width or 480)
     for _, c in ipairs(cards) do
         if c.slim then c:SetSize(ns.frames.winner:GetWidth() * SLIM_W, SLIM_H) else Style(c) end
     end
     Layout()
+    -- im Edit Mode stehen Beispielgewinner: neu aufbauen, damit Etiketten und Schein der Einstellung folgen
+    if ns.editing then W:Preview(true) end
 end
 
 function W:Init() end

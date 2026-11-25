@@ -1,14 +1,14 @@
 ## Interface: 120100, 16001
 ## Version: 0.1.25
-## Title: SexyLoot
+## Title: |cffb48cffSexy|r|cffc7a9ffL|cffdac6ffo|cffece2ffo|cfffffffft|r
 ## Author: apnotix
 ## X-Curse-Project-ID: 1717476
 ## Notes: Lootfenster, Rollfenster mit Würfen am Item, Gruppen-Feed und Liste der zuletzt gelooteten Items. Alles über den Edit Mode einstellbar.
-## Category: Loot
 ## IconTexture: Interface\AddOns\SexyLoot\icon.tga
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## Dependencies: SexyEditMode
+## Group: SexyEditMode
 ## SavedVariables: SexyLootDB
 
 lib\LibStub\LibStub.lua
@@ -16,7 +16,6 @@ lib\CallbackHandler-1.0\CallbackHandler-1.0.lua
 lib\LibDataBroker-1.1\LibDataBroker-1.1.lua
 lib\LibDBIcon-1.0\LibDBIcon-1.0.lua
 lib\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
-lib\SexyEditMode\SexyEditMode.lua
 
 Locale.lua
 Sounds.lua
@@ -33,5 +32,8 @@ Dock.lua
 Wallet.lua
 BagCleaner.lua
 Disenchant.lua
+Samples.lua
+SamplesMore.lua
 EditMode.lua
 Minimap.lua
+News.lua

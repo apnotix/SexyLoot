@@ -10,12 +10,12 @@ local FR = {}
 ns.FreeRolls = FR
 table.insert(ns.modules, FR)
 
-local HEAD = ns.HEAD + 8   -- Titelband plus Leiste
 local entries = {}   -- echte Würfe der laufenden Runde
 local sample = {}    -- Vorschau im Edit Mode
 local lastRoll = 0
 local preview = false
 local panel, lines = nil, {}
+local function Head() return panel.headH + 8 end   -- Titelband (oder nur Rand) plus Leiste
 
 -- Muster aus dem Blizzard-Text, funktioniert in jeder Sprache
 local PAT, TOKENS = ns.Compile(RANDOM_ROLL_RESULT or "%s rolls %d (%d-%d)")
@@ -84,11 +84,13 @@ end
 function FR:UpdateAnnounce()
     if not panel then return end
     local _, _, label = ChannelInfo()
-    panel.btn.text:SetText(T["Gewinner ansagen"] .. " |cffe8c26a(" .. label .. ")|r")
+    local auto = (SexyLootDB.freeChannel or "AUTO") == "AUTO"
+    panel.btn.text:SetText(auto and T["Gewinner ansagen"] or (T["Gewinner ansagen"] .. " |cffe8c26a(" .. label .. ")|r"))
     panel.btn:SetWidth(math.max(120, panel.btn.text:GetStringWidth() + 24))
     panel.btn:SetEnabled(not preview)
+    panel.btn:SetShown(ns.cfg.freeroll.showButton ~= false)
     -- Ausgegraut in der Edit-Mode-Vorschau
-    local c = preview and ns.TONES.grey.bg or ns.BTN
+    local c = preview and ns.TONES.grey.bg or ns.BTN   -- gedämpft in der Vorschau
     panel.btn.bg:SetColorTexture(c[1], c[2], c[3], 1)
 end
 
@@ -138,6 +140,13 @@ function FR:Refresh()
     if not panel then return end
     local cfg = ns.cfg.freeroll
     ns.ApplyStyle(panel, "freeroll")
+    ns.frames.freeroll:SetWidth(cfg.width or 260)
+    panel:SetHeaderShown(not cfg.hideHeader)
+    panel.bar:SetShown(cfg.showBar ~= false)
+    -- Leiste unter dem Band: sitzt direkt unter dem Titelband bzw. dem Rand
+    panel.bar:ClearAllPoints()
+    panel.bar:SetPoint("TOPLEFT", ns.INSET, -panel.headH)
+    panel.bar:SetPoint("TOPRIGHT", -ns.INSET, -panel.headH)
     local list = preview and sample or entries
     local visible = #list > 0 and (preview or cfg.single or Distinct(list) >= 2)
     if not visible then
@@ -154,7 +163,7 @@ function FR:Refresh()
     local top = Fraction(sorted[1])
 
     local size = cfg.size
-    local lh = size + 8
+    local lh = size + 8 + (cfg.lineGap or 0)
     local n = math.min(#sorted, cfg.rows)
     panel.title:SetText(T("Freie Würfe (%d)", #sorted))
 
@@ -164,31 +173,36 @@ function FR:Refresh()
         local best = Fraction(e) == top
         l:SetHeight(lh)
         l:ClearAllPoints()
-        l:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(HEAD + (i - 1) * lh))
-        l:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -(HEAD + (i - 1) * lh))
+        l:SetPoint("TOPLEFT", panel, "TOPLEFT", 6, -(Head() + (i - 1) * lh))
+        l:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -6, -(Head() + (i - 1) * lh))
         l.check:SetSize(size, size)
         l.name:SetFont(ns.FONT_TEXT, size, "")
         l.roll:SetFont(ns.FONT_TEXT, size + 2, "OUTLINE")
         l.range:SetFont(ns.FONT_TEXT, math.max(8, size - 4), "")
-        l.rank:Set(best and "warn" or "grey", tostring(i), 24, 16)
+        -- Rang-Etikett vorn (einstellbar); ohne es beginnt der Name am Rand
+        local rank = cfg.showRank ~= false
+        if rank then l.rank:Set(best and "warn" or "grey", tostring(i), 24, 16) else l.rank:Hide() end
+        l.name:ClearAllPoints()
+        l.name:SetPoint("LEFT", rank and l.rank.tex or l, rank and "RIGHT" or "LEFT", 6, 0)
+        l.name:SetPoint("RIGHT", l.range, "LEFT", -6, 0)
         l.name:SetText(ns.ColorName(e.player))
         l.roll:SetText(tostring(e.roll))
         l.roll:SetTextColor(best and 1 or 0.95, best and 0.82 or 0.95, best and 0.2 or 0.95)
         -- Der Bereich steht nur dabei, wenn er nicht 1-100 ist
         local std = (e.min or 1) == 1 and (e.max or 100) == 100
         l.range:SetText(std and "" or ("|cff8a8a8a" .. e.min .. "-" .. e.max .. "|r"))
-        l.check:SetShown(best)
+        l.check:SetShown(best and cfg.showCheck ~= false)
         if best then
             l.bg:SetColorTexture(0.91, 0.76, 0.42, 0.20)
         else
-            l.bg:SetColorTexture(1, 1, 1, i % 2 == 0 and 0.05 or 0)
+            l.bg:SetColorTexture(1, 1, 1, (cfg.zebra ~= false and i % 2 == 0) and 0.05 or 0)
         end
         l:Show()
     end
     for i = n + 1, #lines do lines[i]:Hide() end
 
     self:UpdateAnnounce()
-    local height = HEAD + n * lh + 8 + 28   -- Platz für die Ansage-Schaltfläche
+    local height = Head() + n * lh + 8 + (cfg.showButton ~= false and 28 or 0)   -- Platz für die Ansage-Schaltfläche
     panel:SetHeight(height)
     ns.frames.freeroll:SetHeight(height)
     panel:Show()
@@ -263,6 +277,8 @@ ns.Apply.freeroll = function() FR:Refresh() end
 
 function FR:Init()
     panel = ns.FramedPanel(ns.frames.freeroll, T["Freie Würfe"])
+    ns.Panels = ns.Panels or {}
+    ns.Panels.freeroll = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     panel:SetPoint("TOPLEFT", ns.frames.freeroll, "TOPLEFT")
     panel:SetPoint("TOPRIGHT", ns.frames.freeroll, "TOPRIGHT")
     panel:Hide()
@@ -277,6 +293,8 @@ function FR:Init()
     panel.bar.bg = panel.bar:CreateTexture(nil, "BACKGROUND")
     panel.bar.bg:SetAllPoints()
     panel.bar.bg:SetColorTexture(0, 0, 0, 0.6)
+    local SEM = LibStub("SexyEditMode-1.0", true)
+    if SEM and SEM.ShineBar then SEM:ShineBar(panel.bar) end
 
     panel.btn = ns.Button(panel)
     panel.btn:SetSize(140, 22)

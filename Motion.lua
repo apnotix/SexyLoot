@@ -62,8 +62,10 @@ driver:SetScript("OnUpdate", function(_, dt)
 end)
 
 -- Zahl zählt von 0 bis value hoch (text: FontString)
+-- obj.counting ist gesetzt, solange gezählt wird (der Aufrufer setzt den Text dann nicht selbst)
 function M.CountTo(obj, fs, value, dur)
-    M.Tween(obj, "count", 0, value, dur or 0.5, function(v) fs:SetText(tostring(math.floor(v + 0.5))) end)
+    obj.counting = true
+    M.Tween(obj, "count", 0, value, dur or 0.5, function(v) fs:SetText(tostring(math.floor(v + 0.5))) end, function() obj.counting = nil end)
 end
 
 -- Heller Streifen, der einmal (oder times-mal) über ein Fenster zieht. Der Streifen liegt in einem eigenen Rahmen
