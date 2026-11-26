@@ -372,6 +372,10 @@ function ns.Button(parent)
     if SEM and SEM.ui and SEM.ui.HeaderButton then
         local hb = SEM.ui.HeaderButton(parent, "", 100, 22)
         hb.text:SetFont(ns.FONT_TEXT, 12, "")
+        -- Schrift ausdrücklich gold und ganz oben (über Rand und Fläche)
+        hb.text:SetDrawLayer("OVERLAY", 7)
+        hb.text:SetTextColor(0.91, 0.76, 0.42, 1)
+        hb.text:SetAlpha(1)
         return hb
     end
     local b = CreateFrame("Button", nil, parent)

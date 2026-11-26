@@ -319,9 +319,11 @@ end
 
 function LW:UpdateHotkey()
     if not allBtn then return end
+    -- Wie im Entzauber-Fenster: lesbare Taste in eckigen Klammern, golden
     local hk = SexyLootDB.hotkey
-    allBtn.text:SetText(T["Alles nehmen"] .. (hk and (" |cffe8c26a" .. hk .. "|r") or ""))
-    allBtn:SetWidth(hk and math.max(100, allBtn.text:GetStringWidth() + 24) or 100)
+    local key = hk and Pretty(hk)
+    allBtn.text:SetText(T["Alles nehmen"] .. (key and ("  |cffe8c26a[" .. key .. "]|r") or ""))
+    allBtn:SetWidth(key and math.max(100, allBtn.text:GetStringWidth() + 24) or 100)
     self:UpdateListener()
 end
 
