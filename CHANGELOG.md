@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.30
+
+- "Recently looted": the session survives /reload. The list, the looted items (tooltip with value per hour) and the session time come back after a reload; a new login or a character switch starts a new session. The time of the reload counts as part of the session.
+- Money frame: the tooltip with your characters uses a smaller font (its own tooltip, other tooltips are not affected).
+- Money frame: the tooltip shows the profit today and yesterday for the whole account (green plus, red minus; money moved between characters cancels out). The starting value of each day is the total of all characters the first time it is calculated that day, so the numbers start with the day you install this version. The last 8 days are kept. The English tooltip showed "Master" instead of "Total"; fixed.
+
 ## 0.1.29
 
 - Loot window: new option "Fast loot". With auto loot active, everything is picked up at once and the window stays closed. If something does not fit (full bags), the window shows the rest.

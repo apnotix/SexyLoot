@@ -54,6 +54,44 @@ local function PlayerRealm()
     return realm
 end
 
+-- Eigener Tooltip mit kleinerer Schrift: die Zeilen von GameTooltip zu ändern würde alle anderen Tooltips treffen
+local TIP_SIZE = 11
+local tip
+local function Tip()
+    if not tip then tip = CreateFrame("GameTooltip", "SexyLootWalletTip", UIParent, "GameTooltipTemplate") end
+    return tip
+end
+
+-- Gewinn pro Tag (account-weit): beim ersten Berechnen eines Tages wird die Gesamtsumme aller Charaktere als Ausgangswert in
+-- SexyLootDB.moneyDays[Datum] gemerkt. Heute = Summe jetzt - Ausgangswert von heute; gestern = Ausgangswert von heute - der von gestern
+-- (gibt es den nicht, entfällt die Zeile). Geld, das zwischen Charakteren wandert, hebt sich auf. Es werden die letzten 8 Tage behalten.
+local function DayKey(offset) return date("%Y-%m-%d", time() - (offset or 0) * 86400) end
+
+local function TotalMoney()
+    local total = 0
+    for _, c in pairs(SexyLootDB.chars) do total = total + (c.money or 0) end
+    return total
+end
+
+local function NoteDay(total)
+    local days = SexyLootDB.moneyDays
+    local key = DayKey()
+    if days[key] == nil then
+        days[key] = total
+        local keys = {}
+        for k in pairs(days) do keys[#keys + 1] = k end
+        table.sort(keys)
+        for i = 1, #keys - 8 do days[keys[i]] = nil end
+    end
+end
+
+-- Betrag mit Vorzeichen und Farbe (grün Plus, rot Minus)
+local function Signed(copper)
+    if copper == 0 then return "|cff9a9080" .. Coins(0) .. "|r" end
+    local sign, color = copper > 0 and "+" or "-", copper > 0 and "|cff7ee08f" or "|cffff9a8f"
+    return color .. sign .. "|r " .. Coins(math.abs(copper))
+end
+
 local function ShowTooltip(self)
     local list, total = {}, 0
     local names = {}
@@ -66,8 +104,10 @@ local function ShowTooltip(self)
         if a.money ~= b.money then return a.money > b.money end
         return a.guid < b.guid
     end)
-    GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-    GameTooltip:AddLine(T["Charaktere"], 1, 0.82, 0)
+    local tip = Tip()
+    tip:SetOwner(self, "ANCHOR_LEFT")
+    tip:ClearLines()
+    tip:AddLine(T["Charaktere"], 1, 0.82, 0)
     local realm = PlayerRealm()
     for _, c in ipairs(list) do
         local name, r = c.name, c.realm
@@ -75,15 +115,32 @@ local function ShowTooltip(self)
         if col then name = ("|cff%02x%02x%02x%s|r"):format(col.r * 255, col.g * 255, col.b * 255, name) end
         -- Realm nur zeigen, wenn er sich unterscheidet oder der Name doppelt vorkommt
         if r and (r ~= realm or names[c.name] > 1) then name = name .. " |cff999999(" .. r .. ")|r" end
-        GameTooltip:AddDoubleLine(name, Coins(c.money), 1, 1, 1, 1, 1, 1)
+        tip:AddDoubleLine(name, Coins(c.money), 1, 1, 1, 1, 1, 1)
     end
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddDoubleLine(T["Gesamt"], Coins(total), 1, 0.82, 0, 1, 1, 1)
-    GameTooltip:Show()
+    tip:AddLine(" ")
+    tip:AddDoubleLine(T["Gesamtsumme"], Coins(total), 1, 0.82, 0, 1, 1, 1)
+    local days = SexyLootDB.moneyDays
+    NoteDay(total)
+    tip:AddLine(" ")
+    tip:AddDoubleLine(T["Gewinn heute"], Signed(total - days[DayKey()]), 0.7, 0.7, 0.7, 1, 1, 1)
+    if days[DayKey(1)] then
+        tip:AddDoubleLine(T["Gewinn gestern"], Signed(days[DayKey()] - days[DayKey(1)]), 0.7, 0.7, 0.7, 1, 1, 1)
+    end
+    for i = 1, tip:NumLines() do
+        for _, side in ipairs({ "Left", "Right" }) do
+            local fs = _G["SexyLootWalletTipText" .. side .. i]
+            if fs then
+                local path, _, flags = fs:GetFont()
+                if path then fs:SetFont(path, TIP_SIZE, flags) end
+            end
+        end
+    end
+    tip:Show()
 end
 
 function Wallet:ResetChars()
     wipe(SexyLootDB.chars)
+    wipe(SexyLootDB.moneyDays)
     self:Refresh()
 end
 
@@ -95,6 +152,7 @@ function Wallet:Refresh()
     if guid then
         SexyLootDB.chars[guid] = { name = UnitName("player"), realm = PlayerRealm(), money = money, class = class }
     end
+    NoteDay(TotalMoney())
     moneyText:SetText(Coins(money))
     sellText:SetText(Coins(BagValue()))
 end
@@ -130,13 +188,14 @@ function Wallet:Init()
     ns.Panels.wallet = panel   -- für die Vorschau im Einstellungsfenster (Live.lua)
     panel:SetAllPoints(ns.frames.wallet)
     SexyLootDB.chars = SexyLootDB.chars or {}
+    SexyLootDB.moneyDays = SexyLootDB.moneyDays or {}
     -- Einträge der ersten Version (Schlüssel "Name-Realm", ohne Namensfeld) verwerfen
     for key, c in pairs(SexyLootDB.chars) do
         if not c.name then SexyLootDB.chars[key] = nil end
     end
     panel:EnableMouse(true)
     panel:SetScript("OnEnter", ShowTooltip)
-    panel:SetScript("OnLeave", GameTooltip_Hide)
+    panel:SetScript("OnLeave", function() if tip then tip:Hide() end end)
 
     local l1 = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     l1:SetPoint("TOPLEFT", 10, -7)

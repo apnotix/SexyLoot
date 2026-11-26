@@ -5,6 +5,12 @@ if not (SEM and SEM.RegisterNews) then return end
 
 SEM:RegisterNews("SexyLoot", {
 	color = { 0.79, 0.64, 0.35 },
+	{ v = "0.1.30",
+		{ "Sitzung", "Die Sitzung in „Zuletzt gelootet“ übersteht /reload: Liste, Beute und Dauer bleiben erhalten. Bei einem neuen Login oder Charakterwechsel beginnt eine neue.",
+		  "Session", "The session in \"Recently looted\" survives /reload: list, loot and duration stay. A new login or a character switch starts a new one." },
+		{ "Geld", "Der Tooltip mit deinen Charakteren am Geld-Rahmen hat eine kleinere Schrift und zeigt den Gewinn heute und gestern für den ganzen Account (grün Plus, rot Minus).",
+		  "Money", "The tooltip with your characters at the money frame uses a smaller font and shows the profit today and yesterday for the whole account (green plus, red minus)." },
+	},
 	{ v = "0.1.29",
 		{ "Schnell plündern", "Neue Option im Beutefenster: Bei Auto-Loot wird sofort alles genommen, das Fenster bleibt zu. Passt etwas nicht mehr hinein (volle Taschen), zeigt das Fenster den Rest.",
 		  "Fast loot", "New option in the loot window: with auto loot everything is picked up at once and the window stays closed. If something does not fit (full bags), the window shows the rest." },

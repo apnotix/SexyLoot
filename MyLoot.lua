@@ -43,6 +43,36 @@ function MyLoot:Add(link, count)
     self:Refresh()
 end
 
+-- Die Sitzung übersteht /reload: beim Abmelden (PLAYER_LOGOUT kommt auch vor einem Reload) landen Liste, Beute und Dauer in
+-- SexyLootDB.session; nach einem Reload (PLAYER_ENTERING_WORLD mit isReloadingUi) kommen sie zurück, bei Login oder
+-- Charakterwechsel wird das Gespeicherte verworfen. Zeiten werden als Alter gespeichert, die Zeit des Reloads zählt zur Sitzung.
+local function SaveSession()
+    local now = GetTime()
+    local data = { savedAt = time(), elapsed = now - sessionStart, entries = {}, log = {} }
+    for _, e in ipairs(entries) do
+        if not e.preview then data.entries[#data.entries + 1] = { id = e.id, link = e.link, count = e.count, age = now - e.time } end
+    end
+    for _, x in ipairs(log) do data.log[#data.log + 1] = { link = x.link, count = x.count } end
+    SexyLootDB.session = (#data.entries > 0 or #data.log > 0) and data or nil
+end
+
+local function RestoreSession()
+    local d = SexyLootDB.session
+    SexyLootDB.session = nil
+    if type(d) ~= "table" or type(d.savedAt) ~= "number" then return end
+    local gap = math.max(0, time() - d.savedAt)
+    if gap > 600 then return end   -- keine Sitzung aus einer langen Pause
+    local now = GetTime()
+    wipe(entries)
+    wipe(log)
+    sessionStart = now - (d.elapsed or 0) - gap
+    for _, e in ipairs(d.entries or {}) do
+        entries[#entries + 1] = { id = e.id, link = e.link, count = e.count or 1, time = now - (e.age or 0) - gap }
+    end
+    for _, x in ipairs(d.log or {}) do log[#log + 1] = { link = x.link, count = x.count or 1 } end
+    MyLoot:Refresh()
+end
+
 function MyLoot:Clear()
     wipe(entries)
     wipe(log)
@@ -279,6 +309,18 @@ function MyLoot:Init()
     empty = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     empty:SetPoint("TOPLEFT", 10, -(ns.HEAD + 6))   -- siehe Refresh: wird dort nachgezogen
     empty:SetText(T["Noch nichts gelootet."])
+
+    local sev = CreateFrame("Frame")
+    sev:RegisterEvent("PLAYER_LOGOUT")
+    sev:RegisterEvent("PLAYER_ENTERING_WORLD")
+    sev:SetScript("OnEvent", function(self, event, _, isReload)
+        if event == "PLAYER_LOGOUT" then
+            SaveSession()
+        else
+            self:UnregisterEvent("PLAYER_ENTERING_WORLD")   -- nur der erste Eintritt zählt (Zonenwechsel nicht)
+            if isReload then RestoreSession() else SexyLootDB.session = nil end
+        end
+    end)
 
     C_Timer.NewTicker(5, function() MyLoot:Refresh() end)
     C_Timer.NewTicker(1, function()
