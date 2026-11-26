@@ -140,7 +140,9 @@ local function Scan()
                 local name, _, q, _, _, _, _, _, _, icon, vendor, classID, _, bindType = ns.GetItemInfo(link)
                 if name then
                     q = q or quality or 1
-                    local isQuest = classID == (Enum and Enum.ItemClass and Enum.ItemClass.Questitem or 12) or bindType == 4
+                    -- Questitems nie, außer sie haben einen Händlerpreis (z. B. die Shredder-Anleitungen: droppen auch nach der Quest weiter);
+                    -- echte Questgegenstände sind unverkäuflich
+                    local isQuest = (classID == (Enum and Enum.ItemClass and Enum.ItemClass.Questitem or 12) or bindType == 4) and (vendor or 0) == 0
                     -- Berufs-Items: Handwerksmaterial, Rezepte, Reagenzien
                     local IC = Enum and Enum.ItemClass
                     local isProfession = classID == (IC and IC.Tradegoods or 7) or classID == (IC and IC.Recipe or 9)

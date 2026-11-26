@@ -14,7 +14,7 @@ ns.defaults = {
         bg = PANEL_BG, border = GOLD },
     winner = { size = 28, hold = 6, max = 3, glow = true, showPills = true, iconSize = 0, itemSize = 0, whoSize = 0, width = 480, cardGap = 28, slimWidth = 75, sound = false, soundKey = "UI_EPICLOOT_TOAST", soundChannel = "Master",
         bg = PANEL_BG, border = GOLD },
-    loot = { auto = false, noAutoMoney = false, thr = 2, icon = 34, showPills = true, showAll = true, width = 250, nameSize = 0, rowGap = 0,
+    loot = { auto = false, noAutoMoney = false, fastLoot = false, thr = 2, icon = 34, showPills = true, showAll = true, width = 250, nameSize = 0, rowGap = 0,
         bg = PANEL_BG, border = GOLD },
     feed = { hideStamp = false, sortPlayers = false, noFade = false, fade = 20, width = 340, height = 160, size = 15, lineGap = 0, outline = false, stampColor = { 0.53, 0.53, 0.53 },
         bg = { 0.08, 0.065, 0.05, 0.88 }, border = GOLD },

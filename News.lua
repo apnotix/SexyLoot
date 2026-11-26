@@ -5,6 +5,14 @@ if not (SEM and SEM.RegisterNews) then return end
 
 SEM:RegisterNews("SexyLoot", {
 	color = { 0.79, 0.64, 0.35 },
+	{ v = "0.1.29",
+		{ "Schnell plündern", "Neue Option im Beutefenster: Bei Auto-Loot wird sofort alles genommen, das Fenster bleibt zu. Passt etwas nicht mehr hinein (volle Taschen), zeigt das Fenster den Rest.",
+		  "Fast loot", "New option in the loot window: with auto loot everything is picked up at once and the window stays closed. If something does not fit (full bags), the window shows the rest." },
+		{ "Aufräumen", "Questitems mit Händlerpreis (z. B. die Shredder-Anleitungen, die auch nach der Quest weiter droppen) stehen jetzt in der Liste. Echte Questgegenstände ohne Preis bleiben außen vor.",
+		  "Clean-up", "Quest-class items with a vendor price (like the Shredder Operating Manual pages that keep dropping after the quest) are listed now. Real quest items without a price stay out." },
+		{ "Knöpfe", "Die Beschriftung der Knöpfe bleibt nach einem frischen Login nicht mehr unsichtbar.",
+		  "Buttons", "Button labels no longer stay invisible after a fresh login." },
+	},
 	{ v = "0.1.25",
 		{ "Aussehen", "Beute-Fenster mit braunem Fuß und Abstand zwischen Titel, Liste und Fuß. Die Würfel-Knöpfe haben den Rand der anderen Fenster, ihre Symbole sitzen genau in der Mitte. „Gewinner melden“ nennt den Kanal nur, wenn er nicht automatisch ist.",
 		  "Look", "The loot window has a brown footer and space between title, list and footer. The roll buttons have the rim of the other windows and their icons sit exactly in the middle. \"Announce winner\" only names the channel when it is not automatic." },

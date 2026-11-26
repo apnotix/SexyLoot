@@ -309,6 +309,7 @@ function ns.SetupEditMode()
         Check("loot", "hideHeader", T["Kopfzeile ausblenden"]),
         B(Check("loot", "auto", T["Graue Items automatisch einsammeln"])),
         B(Check("loot", "noAutoMoney", T["Geld nicht automatisch einsammeln"])),
+        B(Check("loot", "fastLoot", T["Schnell plündern (bei Auto-Loot ohne Fenster)"])),
         B({ type = "select", name = T["Gruppenloot-Markierung ab Qualität"], preview = true,
             options = { { value = 2, label = T["Grün"] }, { value = 3, label = T["Blau"] }, { value = 4, label = T["Episch"] } },
             get = function() return ns.cfg.loot.thr end,

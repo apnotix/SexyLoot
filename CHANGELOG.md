@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.29
+
+- Loot window: new option "Fast loot". With auto loot active, everything is picked up at once and the window stays closed. If something does not fit (full bags), the window shows the rest.
+- Button labels use a font object, so they no longer stay invisible after a fresh login.
+- Bag clean-up: quest-class items that have a vendor price (like the Shredder Operating Manual pages, which keep dropping after the quest) are listed now. Real quest items cannot be sold and stay out.
+
 ## 0.1.25
 
 - Loot window: the footer (with "Take all") is brown like the other windows, and there is some space between the title band, the list and the footer.

@@ -299,6 +299,7 @@ local en = {
     ["SexyLoot: Beutefenster"] = "SexyLoot: Loot window",
     ["Graue Items automatisch einsammeln"] = "Auto-loot grey items",
     ["Geld nicht automatisch einsammeln"] = "Do not auto-loot money",
+    ["Schnell plündern (bei Auto-Loot ohne Fenster)"] = "Fast loot (no window with auto loot)",
     ["Gruppenloot-Markierung ab Qualität"] = "Group loot label from quality",
     ["Grün"] = "Green",
     ["Blau"] = "Blue",

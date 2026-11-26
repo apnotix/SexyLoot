@@ -157,6 +157,16 @@ end
 
 function LW:OnOpened(autoLoot)
     local cfg = ns.cfg.loot
+    -- Schnell plündern: bei Auto-Loot sofort alles nehmen, das Fenster bleibt zu. Was nicht ging
+    -- (volle Taschen, Bindungsabfrage), zeigt kurz danach der normale Weg.
+    if autoLoot and cfg.fastLoot and not self.preview then
+        wipe(slots)
+        for i = GetNumLootItems(), 1, -1 do LootSlot(i) end
+        C_Timer.After(0.4, function()
+            if GetNumLootItems() > 0 then LW:OnOpened() end
+        end)
+        return
+    end
     wipe(slots)
     self.preview = false
     for i = 1, GetNumLootItems() do

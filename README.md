@@ -108,7 +108,7 @@ Kleiner Rahmen mit deinem aktuellen Geld und dem Verkaufswert aller Items in dei
 ---
 
 ### 🧹 Taschen aufräumen
-Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein kleiner Hinweis. Mit **„Aufräumen“** (oder `/sl bags`) öffnet sich ein Dialog mit den **günstigsten Items** deiner Taschen, jeweils mit Anzahl und Wert. Meldet das Spiel beim Looten „Inventar ist voll“, öffnet sich der Dialog von selbst direkt neben dem Beutefenster (abschaltbar). Wegwerfen braucht zwei Klicks („Wegwerfen“, dann „Sicher?“); Questitems und Items mit Preis 0 bleiben außen vor. Den Wert liefert wahlweise ein Preis-Addon (Auctionator, Mastercraft, TSM, Oribos Exchange, Auctioneer, Preise in Blau) oder der Händlerpreis. Die Liste lässt sich mit dem Mausrad scrollen. Einstellbar: ab wie vielen freien Plätzen der Hinweis kommt, sichtbare Zeilen, höchste Qualität, „Nur Junk“ (graue Items), „Berufs-Items ignorieren“ (Handwerksmaterial, Rezepte, Reagenzien; Standard an), Items ohne Preis und Preisquelle.
+Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein kleiner Hinweis. Mit **„Aufräumen“** (oder `/sl bags`) öffnet sich ein Dialog mit den **günstigsten Items** deiner Taschen, jeweils mit Anzahl und Wert. Meldet das Spiel beim Looten „Inventar ist voll“, öffnet sich der Dialog von selbst direkt neben dem Beutefenster (abschaltbar). Wegwerfen braucht zwei Klicks („Wegwerfen“, dann „Sicher?“); Questitems ohne Händlerpreis (also echte Questgegenstände) und Items mit Preis 0 bleiben außen vor. Den Wert liefert wahlweise ein Preis-Addon (Auctionator, Mastercraft, TSM, Oribos Exchange, Auctioneer, Preise in Blau) oder der Händlerpreis. Die Liste lässt sich mit dem Mausrad scrollen. Einstellbar: ab wie vielen freien Plätzen der Hinweis kommt, sichtbare Zeilen, höchste Qualität, „Nur Junk“ (graue Items), „Berufs-Items ignorieren“ (Handwerksmaterial, Rezepte, Reagenzien; Standard an), Items ohne Preis und Preisquelle.
 
 ---
 
@@ -140,7 +140,7 @@ Ist das Inventar fast voll (Standard: höchstens 4 freie Plätze), erscheint ein
 | 🎲 Rollfenster | Würfe am Item ausblenden · Neue Fenster nach oben wachsen lassen · Animationen · Abstand zwischen Fenstern · Schriftgröße der Würfe · Maximale Höhe der Liste · Fenster nach dem Wurf anzeigen (Sekunden) |
 | 🎯 Freie Würfe | Schon bei einem Würfler anzeigen · Liste leeren nach (Sekunden ohne Wurf) · Maximale Zeilen · Schriftgröße · Ansage-Kanal wechseln · Kanal-Nummer · Test-Würfe starten |
 | 🏆 Gewinner-Anzeige | Schriftgröße · Anzeigedauer · Gleichzeitig angezeigte Gewinner · Test-Gewinner anzeigen |
-| 🎁 Beutefenster | Graue Items automatisch einsammeln · Geld nicht automatisch einsammeln · Gruppenloot-Markierung ab Qualität · Symbolgröße · Hotkey für „Alles nehmen“ festlegen oder entfernen · Testbeute öffnen |
+| 🎁 Beutefenster | Graue Items automatisch einsammeln · Geld nicht automatisch einsammeln · Schnell plündern · Gruppenloot-Markierung ab Qualität · Symbolgröße · Hotkey für „Alles nehmen“ festlegen oder entfernen · Testbeute öffnen |
 | 📜 Gruppen-Feed | Zeitstempel ausblenden · Wurfdetails nach Spielerreihenfolge sortieren · Nachrichten nicht ausblenden · Ausblenden nach (Sekunden) · Breite · Höhe · Schriftgröße · Feed leeren |
 | ✨ Loot-Einblendung | Wert ausblenden · Anzeigedauer · Anzahl Zeilen · Test-Beute anzeigen |
 | 💰 Geld | Nur Position · Gespeicherte Charaktere zurücksetzen |
