@@ -2,7 +2,7 @@
 
 ## 0.1.30
 
-- "Recently looted": the session survives /reload. The list, the looted items (tooltip with value per hour) and the session time come back after a reload; a new login or a character switch starts a new session. The time of the reload counts as part of the session.
+- "Recently looted": the session survives /reload. The list, the looted items (tooltip with value per hour) and the session time come back after a reload; a new login or a character switch starts a new session. The time of the reload counts as part of the session. The timer also continues when nothing has been looted yet (before, an empty session was dropped).
 - Money frame: the tooltip with your characters uses a smaller font (its own tooltip, other tooltips are not affected).
 - Money frame: the tooltip shows the profit today and yesterday for the whole account (green plus, red minus; money moved between characters cancels out). The starting value of each day is the total of all characters the first time it is calculated that day, so the numbers start with the day you install this version. The last 8 days are kept. The English tooltip showed "Master" instead of "Total"; fixed.
 

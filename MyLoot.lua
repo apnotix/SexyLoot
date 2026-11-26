@@ -53,7 +53,7 @@ local function SaveSession()
         if not e.preview then data.entries[#data.entries + 1] = { id = e.id, link = e.link, count = e.count, age = now - e.time } end
     end
     for _, x in ipairs(log) do data.log[#data.log + 1] = { link = x.link, count = x.count } end
-    SexyLootDB.session = (#data.entries > 0 or #data.log > 0) and data or nil
+    SexyLootDB.session = data   -- auch ohne Beute: die Dauer läuft weiter
 end
 
 local function RestoreSession()
