@@ -230,6 +230,7 @@ MakeFont("SexyLootTitle", ns.FONT_TITLE, 14, 0.91, 0.76, 0.42)
 MakeFont("SexyLootText", ns.FONT_TEXT, 13, 0.95, 0.92, 0.86)
 MakeFont("SexyLootSmall", ns.FONT_TEXT, 11, 0.95, 0.92, 0.86)
 MakeFont("SexyLootDim", ns.FONT_TEXT, 11, 0.61, 0.57, 0.5)
+MakeFont("SexyLootButton", ns.FONT_TEXT, 12, 0.91, 0.76, 0.42)
 
 -- Vier Randlinien um einen Rahmen. Liefert ein Objekt mit :SetColorTexture(r, g, b, a).
 function ns.Edges(parent, thick, layer)
@@ -371,11 +372,26 @@ function ns.Button(parent)
     local SEM = LibStub("SexyEditMode-1.0", true)
     if SEM and SEM.ui and SEM.ui.HeaderButton then
         local hb = SEM.ui.HeaderButton(parent, "", 100, 22)
-        hb.text:SetFont(ns.FONT_TEXT, 12, "")
+        -- Schriftobjekt wie bei den übrigen Texten (die funktionieren), kein SetFont mit Dateipfad
+        hb.text:SetFontObject(SexyLootButton)
         -- Schrift ausdrücklich gold und ganz oben (über Rand und Fläche)
         hb.text:SetDrawLayer("OVERLAY", 7)
         hb.text:SetTextColor(0.91, 0.76, 0.42, 1)
         hb.text:SetAlpha(1)
+        -- Nach frischem Login blieb der Text oft unsichtbar (nach /reload nicht): beim Einblenden und
+        -- einmal verzögert Schrift, Farbe und Text neu setzen, damit das Layout der Schrift neu entsteht
+        local function Refresh(self)
+            local t = self.text
+            local s = t:GetText() or ""
+            t:SetFontObject(SexyLootButton)
+            t:SetDrawLayer("OVERLAY", 7)
+            t:SetTextColor(0.91, 0.76, 0.42, 1)
+            t:SetAlpha(1)
+            t:SetText("")
+            t:SetText(s)
+        end
+        hb:HookScript("OnShow", Refresh)
+        if C_Timer and C_Timer.After then C_Timer.After(0, function() Refresh(hb) end) end
         return hb
     end
     local b = CreateFrame("Button", nil, parent)
