@@ -86,7 +86,8 @@ function ns.MigrateOldOptions()
                 for _, kind in ipairs({ 12, 18 }) do
                     for opt, value in pairs(settings[kind] or {}) do
                         if def[opt] ~= nil and type(value) == "number" then
-                            SexyLootDB.cfg[key][opt] = (kind == 12) and (value == 1) or value
+                            -- (a and b or c ergäbe bei value ~= 1 wieder die Zahl: ein ausgeschalteter Schalter blieb 0, und 0 gilt in Lua als wahr)
+                            if kind == 12 then SexyLootDB.cfg[key][opt] = (value == 1) else SexyLootDB.cfg[key][opt] = value end
                         end
                     end
                 end
@@ -662,6 +663,10 @@ f:SetScript("OnEvent", function(_, _, name)
         -- gespeichert werden nur geänderte Werte; alles andere kommt aus den Standardwerten
         SexyLootDB.cfg[key] = SexyLootDB.cfg[key] or {}
         ns.cfg[key] = setmetatable(SexyLootDB.cfg[key], { __index = def })
+        -- Schalter, die durch den früheren Fehler der Übernahme als Zahl (0/1) gespeichert sind, wieder zu Wahrheitswerten machen
+        for opt, v in pairs(SexyLootDB.cfg[key]) do
+            if type(def[opt]) == "boolean" and type(v) == "number" then SexyLootDB.cfg[key][opt] = v ~= 0 end
+        end
     end
     -- Farben sind fest (Quest-Look) und nicht mehr einstellbar; alte gespeicherte Farbwahlen entfallen
     SexyLootDB.colors = nil

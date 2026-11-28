@@ -288,9 +288,14 @@ local function NewRow()
         if not self.expires then return end
         local left = math.max(0, self.expires - GetTime())
         self.bar:SetValue(left)
+        -- Sekunden als Text (nur bei Änderung neu setzen); vor dem Ende der Würfe: wie lange noch gewürfelt werden kann
+        local secs = math.ceil(left)
+        if self.shownSecs ~= secs or self.shownDone ~= self.done then
+            self.shownSecs, self.shownDone = secs, self.done
+            self.timerText:SetText(self.done and T("Schließt in %ds", secs) or T("Noch %ds", secs))
+        end
         if self.done then
             self.bar:SetStatusBarColor(0.55, 0.6, 0.7)
-            self.timerText:SetText(T("Schließt in %ds", math.ceil(left)))
         elseif left < self.duration * 0.25 then
             self.bar:SetStatusBarColor(0.85, 0.28, 0.17)
             -- Zeit wird knapp: die Leiste pulsiert
@@ -316,6 +321,7 @@ local function Acquire()
     r.preview, r.transmog, r.compact, r.userCollapsed, r.pending = nil, false, false, nil, nil
     r.fullH, r.nLines, r.names, r.expires = nil, 0, nil, nil
     r.timerText:SetText("")
+    r.shownSecs, r.shownDone = nil, nil
     r.bar:SetShown(ns.cfg.roll.showBar ~= false)
     -- Animationen der Karte und ihrer Zeilen zurücksetzen (Karte kommt aus dem Pool)
     ns.Motion.Cancel(r)

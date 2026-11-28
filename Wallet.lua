@@ -149,6 +149,10 @@ function Wallet:Refresh()
     local money = GetMoney() or 0
     local _, class = UnitClass("player")
     local guid = UnitGUID("player")
+    -- Direkt nach dem Login liefert GetMoney manchmal 0: das hätte den Tageswert (Gewinn pro Tag) um das ganze Gold dieses Charakters
+    -- verfälscht. Solange noch kein Geld-Ereignis kam und keine zehn Sekunden vergangen sind, gilt dann der zuletzt gespeicherte Stand.
+    local prev = guid and SexyLootDB.chars[guid] and SexyLootDB.chars[guid].money
+    if money == 0 and prev and prev > 0 and not Wallet.moneyReady then money = prev end
     if guid then
         SexyLootDB.chars[guid] = { name = UnitName("player"), realm = PlayerRealm(), money = money, class = class }
     end
@@ -214,10 +218,20 @@ function Wallet:Init()
     sellText:SetJustifyH("RIGHT")
     sellText:SetTextColor(0.53, 0.8, 1)   -- Verkaufswert in Informationsblau, wie die Etiketten
 
+    -- Einmalige Korrektur: der Ausgangswert des Tages konnte durch den Fehler oben zu niedrig sein (Charakter mit 0 Gold gezählt)
+    if not SexyLootDB.moneyFix1 then
+        SexyLootDB.moneyFix1 = true
+        SexyLootDB.moneyDays[DayKey()] = nil
+    end
+    C_Timer.After(10, function() Wallet.moneyReady = true end)
+
     local ev = CreateFrame("Frame")
     ev:RegisterEvent("PLAYER_MONEY")
     ev:RegisterEvent("BAG_UPDATE_DELAYED")
     ev:RegisterEvent("GET_ITEM_INFO_RECEIVED")   -- Preise noch nicht gecachter Items
     ev:RegisterEvent("PLAYER_ENTERING_WORLD")
-    ev:SetScript("OnEvent", Queue)
+    ev:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_MONEY" then Wallet.moneyReady = true end
+        Queue()
+    end)
 end

@@ -2,6 +2,10 @@
 
 ## 0.1.30
 
+- "Recently looted": the session tooltip (time, items, value per hour) became huge with many empty lines because it is refreshed every second. It is its own tooltip now (not the shared game tooltip), the lines are cleared each time, the font is smaller and the size is recalculated.
+- Fix: the profit per day in the money tooltip could be wrong by the whole gold of a character (for example "yesterday: -40 gold"). Right after the login the game sometimes reports 0 gold, and that value was taken as the starting value of the day. The last saved amount counts until the game reports money or ten seconds have passed. The wrong starting value of today is discarded once (the numbers start again from now).
+- Group roll window: the remaining roll time is shown as seconds ("%ds left") next to the bar while the roll is still open, not only after it ended ("Closes in %ds"). Follows the existing setting for the timer text.
+- Fix: switches that an older version had migrated as the number 0 (instead of "off") counted as on. That was why "Recently looted" did not stack equal items ("Do not stack equal items" looked on). Such values are converted to on/off at load now, and the migration no longer produces them.
 - "Recently looted": the session survives /reload. The list, the looted items (tooltip with value per hour) and the session time come back after a reload; a new login or a character switch starts a new session. The time of the reload counts as part of the session. The timer also continues when nothing has been looted yet (before, an empty session was dropped).
 - Money frame: the tooltip with your characters uses a smaller font (its own tooltip, other tooltips are not affected).
 - Money frame: the tooltip shows the profit today and yesterday for the whole account (green plus, red minus; money moved between characters cancels out). The starting value of each day is the total of all characters the first time it is calculated that day, so the numbers start with the day you install this version. The last 8 days are kept. The English tooltip showed "Master" instead of "Total"; fixed.

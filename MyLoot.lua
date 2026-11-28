@@ -182,7 +182,12 @@ local function UpdateTimer()
 end
 
 -- Tooltip über dem Gesamtwert: Beute der Sitzung, ihr Wert und die Werte pro Stunde
+-- Eigener Tooltip (nicht der GameTooltip): der Tooltip läuft jede Sekunde mit, und der GameTooltip (oft von anderen Addons umgestaltet)
+-- wurde dabei riesig mit leeren Zeilen. Hier werden die Zeilen jedes Mal gelöscht und die Größe neu berechnet.
+local sessionTip
 local function ShowTooltip()
+    if not sessionTip then sessionTip = CreateFrame("GameTooltip", "SexyLootSessionTip", UIParent, "GameTooltipTemplate") end
+    local tip = sessionTip
     local seconds = GetTime() - sessionStart
     local items, value = 0, 0
     local best, bestPrice = nil, 0   -- teuerstes einzelnes Item (Stückpreis)
@@ -192,22 +197,33 @@ local function ShowTooltip()
         value = value + price * x.count
         if price > bestPrice then best, bestPrice = x.link, price end
     end
-    GameTooltip:SetOwner(hover, "ANCHOR_BOTTOMRIGHT")
-    GameTooltip:AddLine(T["Sitzung"], 1, 0.82, 0)
+    tip:SetOwner(hover, "ANCHOR_BOTTOMRIGHT")
+    tip:ClearLines()
+    tip:AddLine(T["Sitzung"], 1, 0.82, 0)
     local s = math.floor(seconds)
-    GameTooltip:AddDoubleLine(T["Dauer"], ("%d:%02d:%02d"):format(math.floor(s / 3600), math.floor(s / 60) % 60, s % 60), 1, 1, 1, 1, 1, 1)
-    GameTooltip:AddDoubleLine(T["Gelootete Items"], items, 1, 1, 1, 1, 1, 1)
-    GameTooltip:AddDoubleLine(T["Wert gesamt"], Coins(value), 1, 1, 1, 1, 1, 1)
-    if best then GameTooltip:AddDoubleLine(T["Teuerstes Item"], best .. " " .. Coins(bestPrice), 1, 1, 1, 1, 1, 1) end
+    tip:AddDoubleLine(T["Dauer"], ("%d:%02d:%02d"):format(math.floor(s / 3600), math.floor(s / 60) % 60, s % 60), 1, 1, 1, 1, 1, 1)
+    tip:AddDoubleLine(T["Gelootete Items"], items, 1, 1, 1, 1, 1, 1)
+    tip:AddDoubleLine(T["Wert gesamt"], Coins(value), 1, 1, 1, 1, 1, 1)
+    if best then tip:AddDoubleLine(T["Teuerstes Item"], best .. " " .. Coins(bestPrice), 1, 1, 1, 1, 1, 1) end
     -- Hochrechnung erst nach einer halben Minute, davor schwanken die Werte zu stark
     if seconds >= 30 then
         local perHour = 3600 / seconds
-        GameTooltip:AddDoubleLine(T["Wert pro Stunde"], Coins(math.floor(value * perHour)), 1, 1, 1, 1, 1, 1)
-        GameTooltip:AddDoubleLine(T["Items pro Stunde"], math.floor(items * perHour + 0.5), 1, 1, 1, 1, 1, 1)
+        tip:AddDoubleLine(T["Wert pro Stunde"], Coins(math.floor(value * perHour)), 1, 1, 1, 1, 1, 1)
+        tip:AddDoubleLine(T["Items pro Stunde"], math.floor(items * perHour + 0.5), 1, 1, 1, 1, 1, 1)
     else
-        GameTooltip:AddLine(T["Pro Stunde: erst nach 30 Sekunden"], 0.6, 0.6, 0.6)
+        tip:AddLine(T["Pro Stunde: erst nach 30 Sekunden"], 0.6, 0.6, 0.6)
     end
-    GameTooltip:Show()
+    -- kleinere Schrift, Breite und Höhe nach dem Inhalt neu bestimmen
+    for i = 1, tip:NumLines() do
+        for _, side in ipairs({ "Left", "Right" }) do
+            local fs = _G["SexyLootSessionTipText" .. side .. i]
+            if fs then
+                local path, _, flags = fs:GetFont()
+                if path then fs:SetFont(path, 11, flags) end
+            end
+        end
+    end
+    tip:Show()
 end
 
 function MyLoot:Refresh()
@@ -305,7 +321,7 @@ function MyLoot:Init()
     hover:SetPoint("TOPRIGHT", panel, "TOPRIGHT")
     hover:SetHeight(ns.HEAD)   -- bei ausgeblendeter Kopfzeile bleibt die Fläche (Sitzungs-Tooltip) über dem Rand
     hover:SetScript("OnEnter", ShowTooltip)
-    hover:SetScript("OnLeave", GameTooltip_Hide)
+    hover:SetScript("OnLeave", function() if sessionTip then sessionTip:Hide() end end)
     empty = panel:CreateFontString(nil, "OVERLAY", "SexyLootDim")
     empty:SetPoint("TOPLEFT", 10, -(ns.HEAD + 6))   -- siehe Refresh: wird dort nachgezogen
     empty:SetText(T["Noch nichts gelootet."])
@@ -325,6 +341,6 @@ function MyLoot:Init()
     C_Timer.NewTicker(5, function() MyLoot:Refresh() end)
     C_Timer.NewTicker(1, function()
         UpdateTimer()
-        if hover:IsMouseOver() and GameTooltip:GetOwner() == hover then ShowTooltip() end   -- Tooltip läuft mit
+        if hover:IsMouseOver() and sessionTip and sessionTip:IsShown() and sessionTip:GetOwner() == hover then ShowTooltip() end   -- Tooltip läuft mit
     end)
 end

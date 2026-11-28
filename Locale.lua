@@ -55,6 +55,7 @@ local en = {
     ["Charaktere"] = "Characters",
     ["Gesamt"] = "Total",
     ["Gesamtsumme"] = "Total",
+    ["Noch %ds"] = "%ds left",
     ["Gewinn heute"] = "Profit today",
     ["Gewinn gestern"] = "Profit yesterday",
     ["Gespeicherte Charaktere zurücksetzen"] = "Reset saved characters",
